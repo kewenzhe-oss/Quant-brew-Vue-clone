@@ -31,10 +31,12 @@ export const asyncRouterMap = [
         meta: { title: 'menu.dashboard.indicatorIde', keepAlive: true, icon: 'code', permission: ['dashboard'] }
       },
       // 4. 策略与实盘（指标信号策略：创建 / 管理 / 与实盘联动；不含 Python 脚本策略）
+      // [surface-reset] hidden: true — 路由保留可访问，不在侧边栏显示
       {
         path: '/strategy-live',
         name: 'StrategyLive',
         component: () => import('@/views/trading-assistant'),
+        hidden: true,
         meta: {
           title: 'menu.dashboard.tradingAssistant',
           keepAlive: true,
@@ -61,12 +63,45 @@ export const asyncRouterMap = [
         hidden: true
       },
       // 5. 交易机器人（实盘运维监控）
+      // [surface-reset] hidden: true — 路由保留可访问，不在侧边栏显示
       {
         path: '/trading-bot',
         name: 'TradingBot',
         component: () => import('@/views/trading-bot'),
+        hidden: true,
         meta: { title: 'menu.dashboard.tradingBot', keepAlive: true, icon: 'robot', permission: ['dashboard'] }
       },
+      // ── 新研究入口（同层替换）─────────────────────────────────────────
+      // Layer 1: 宏观首页（4 个 Domain 入口）
+      {
+        path: '/macro',
+        name: 'MacroIntelligence',
+        component: () => import('@/views/macro-intelligence'),
+        meta: { title: 'menu.macro', keepAlive: false, icon: 'global', permission: ['dashboard'] }
+      },
+      // Layer 2: 维度页（hidden，从 Layer 1 卡片跳入）
+      {
+        path: '/macro/:domain',
+        name: 'MacroDomain',
+        component: () => import('@/views/macro-intelligence/domain'),
+        hidden: true,
+        meta: { title: 'menu.macro', keepAlive: false, permission: ['dashboard'] }
+      },
+      // 早报·晚报
+      {
+        path: '/briefing',
+        name: 'DailyBriefing',
+        component: () => import('@/views/daily-briefing'),
+        meta: { title: 'menu.briefing', keepAlive: false, icon: 'read', permission: ['dashboard'] }
+      },
+      // 个股研究
+      {
+        path: '/stock-research',
+        name: 'StockResearch',
+        component: () => import('@/views/stock-research'),
+        meta: { title: 'menu.stockResearch', keepAlive: false, icon: 'area-chart', permission: ['dashboard'] }
+      },
+      // ──────────────────────────────────────────────────────────────────
       // 旧路由兼容：图表与指标 → 指标 IDE
       {
         path: '/indicator-analysis',

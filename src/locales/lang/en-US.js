@@ -38,6 +38,9 @@ const locale = {
   'menu.dashboard.backtestCenter': 'Backtest Center',
   'menu.dashboard.indicatorIde': 'Indicator IDE',
   'menu.dashboard.tradingBot': 'Trading Bot',
+  'menu.macro': 'Macro',
+  'menu.briefing': 'Daily Briefing',
+  'menu.stockResearch': 'Stock Research',
   // ---- Trading Bot Page ----
   'trading-bot.pageTitle': 'Trading Bots',
   'trading-bot.pageSubtitle': 'Create and manage your automated trading bots',

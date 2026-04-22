@@ -38,6 +38,9 @@ const locale = {
   'menu.dashboard.backtestCenter': '回测中心',
   'menu.dashboard.indicatorIde': '指标 IDE',
   'menu.dashboard.tradingBot': '交易机器人',
+  'menu.macro': '宏观',
+  'menu.briefing': '早报·晚报',
+  'menu.stockResearch': '个股研究',
   // ---- 交易机器人页 ----
   'trading-bot.pageTitle': '交易机器人',
   'trading-bot.pageSubtitle': '创建并管理你的自动交易机器人',
