@@ -59,6 +59,28 @@ export function getMarketSentiment () {
 }
 
 /**
+ * Get a specific macro snapshot section by name.
+ * Sections: liquidity | inflation_rates | economy | sentiment
+ */
+export function getMacroSection (section) {
+  return request({
+    url: `${BASE_URL}/section/${section}`,
+    method: 'get'
+  })
+}
+
+/**
+ * Get historical timeseries for a specific macro metric chart.
+ * @param {string} chartId - The chart identifier (e.g. 'sen_vix', 'inf_us10y')
+ */
+export function getMetricTimeseries (chartId) {
+  return request({
+    url: `${BASE_URL}/timeseries/${chartId}`,
+    method: 'get'
+  })
+}
+
+/**
  * Get trading opportunities based on technical analysis
  */
 export function getTradingOpportunities (params) {

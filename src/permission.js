@@ -22,7 +22,7 @@ NProgress.configure({
 
 const allowList = ['login'] // no redirect allowList
 const loginRoutePath = '/user/login'
-const defaultRoutePath = '/ai-asset-analysis'
+const defaultRoutePath = '/dashboard'
 
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar

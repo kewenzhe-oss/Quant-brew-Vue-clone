@@ -1,28 +1,17 @@
 <template>
   <div :class="wrpCls">
     <avatar-dropdown :menu="true" :current-user="currentUser" :class="prefixCls" />
-    <notice-icon :class="prefixCls" />
-    <select-lang :class="prefixCls" />
-    <a-tooltip :title="$t('app.setting.tooltip')">
-      <span :class="prefixCls" @click="handleSettingClick">
-        <a-icon type="setting" style="font-size: 16px;" />
-      </span>
-    </a-tooltip>
   </div>
 </template>
 
 <script>
 import AvatarDropdown from './AvatarDropdown'
-import SelectLang from '@/components/SelectLang'
-import NoticeIcon from '@/components/NoticeIcon'
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'RightContent',
   components: {
-    AvatarDropdown,
-    SelectLang,
-    NoticeIcon
+    AvatarDropdown
   },
   props: {
     prefixCls: {
@@ -40,17 +29,6 @@ export default {
     theme: {
       type: String,
       required: true
-    }
-  },
-  data () {
-    return {
-      apiBase: 'https://api.quantdinger.com/'
-    }
-  },
-  methods: {
-    handleSettingClick () {
-      // 触发设置抽屉显示事件
-      this.$root.$emit('show-setting-drawer')
     }
   },
   computed: {

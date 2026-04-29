@@ -7,31 +7,117 @@ export const asyncRouterMap = [
     name: 'index',
     component: BasicLayout,
     meta: { title: 'menu.home' },
-    redirect: '/ai-asset-analysis',
+    redirect: '/dashboard',
     children: [
-      // 1. AI资产分析（首页）
+      // 1. Dashboard / 今日概览
+      // NOTE: Today.vue is the active page. index.vue is frozen legacy — do not delete.
+      {
+        path: '/dashboard',
+        name: 'Dashboard',
+        component: () => import('@/views/dashboard/Today'),
+        meta: { title: 'menu.dashboard.today', keepAlive: false, icon: 'home', permission: ['dashboard'] }
+      },
+      // 2. Asset Snapshot / 资产速览（路径保留 /ai-asset-analysis）
       {
         path: '/ai-asset-analysis',
         name: 'AIAssetAnalysis',
         component: () => import('@/views/ai-asset-analysis'),
-        meta: { title: 'menu.dashboard.aiAssetAnalysis', keepAlive: false, icon: 'appstore', permission: ['dashboard'] }
+        meta: { title: 'menu.assetSnapshot', keepAlive: false, icon: 'appstore', permission: ['dashboard'] }
       },
-      // 2. 指标市场（浏览/购买指标，排在图表页之上）
+      // 3. Stock Research / 股票研究
+      {
+        path: '/stock-research',
+        name: 'StockResearch',
+        component: () => import('@/views/stock-research'),
+        meta: { title: 'menu.stockResearch', keepAlive: false, icon: 'area-chart', permission: ['dashboard'] }
+      },
+      // 4. Trade Plan / 交易计划（路径保留 /indicator-ide，禁止修改）
+      {
+        path: '/indicator-ide',
+        name: 'IndicatorIDE',
+        component: () => import('@/views/trade-plan/index.vue'),
+        meta: { title: 'menu.tradePlan', keepAlive: true, icon: 'fund', permission: ['dashboard'] }
+      },
+      // 5. My Plan / 我的计划
+      {
+        path: '/my-plan',
+        name: 'MyPlan',
+        component: () => import('@/views/my-plan'),
+        meta: { title: 'menu.myPlan', keepAlive: false, icon: 'book', permission: ['dashboard'] }
+      },
+      // 6. Learning / 学习中心
+      {
+        path: '/learning',
+        name: 'Learning',
+        component: () => import('@/views/learning'),
+        meta: { title: 'menu.learning', keepAlive: false, icon: 'read', permission: ['dashboard'] }
+      },
+      // 7. Profile / 个人中心
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('@/views/profile'),
+        meta: { title: 'menu.myProfile', keepAlive: false, icon: 'user', permission: ['dashboard'] }
+      },
+      // 8. Settings / 设置 (admin only)
+      {
+        path: '/settings',
+        name: 'Settings',
+        component: () => import('@/views/settings'),
+        meta: { title: 'menu.settings', keepAlive: false, icon: 'setting', permission: ['admin'] }
+      },
+
+      // ── Hidden routes (路由保留，侧边栏不显示) ──────────────────────────
+
+      // Daily Briefing（隐藏：产品 2.0 不在导航显示，保留路由确保直接访问不报错）
+      {
+        path: '/briefing',
+        name: 'DailyBriefing',
+        component: () => import('@/views/daily-briefing'),
+        hidden: true,
+        meta: { title: 'menu.briefing', keepAlive: false, icon: 'read', permission: ['dashboard'] }
+      },
+      // Macro Intelligence（隐藏）
+      {
+        path: '/macro',
+        name: 'MacroIntelligence',
+        component: () => import('@/views/macro-intelligence'),
+        hidden: true,
+        meta: { title: 'menu.macro', keepAlive: false, icon: 'global', permission: ['dashboard'] }
+      },
+      // Macro Domain（隐藏，从 Macro 卡片跳入）
+      {
+        path: '/macro/:domain',
+        name: 'MacroDomain',
+        component: () => import('@/views/macro-intelligence/domain'),
+        hidden: true,
+        meta: { title: 'menu.macro', keepAlive: false, permission: ['dashboard'] }
+      },
+      // Indicator Community / 指标市场（隐藏）
       {
         path: '/indicator-community',
         name: 'IndicatorCommunity',
         component: () => import('@/views/indicator-community'),
+        hidden: true,
         meta: { title: 'menu.dashboard.community', keepAlive: false, icon: 'shop', permission: ['dashboard'] }
       },
-      // 3. 指标 IDE（图表 + 代码编辑 + 回测一体化）
+      // Billing / 会员充值（隐藏，可从 Profile 内访问）
       {
-        path: '/indicator-ide',
-        name: 'IndicatorIDE',
-        component: () => import('@/views/indicator-ide'),
-        meta: { title: 'menu.dashboard.indicatorIde', keepAlive: true, icon: 'code', permission: ['dashboard'] }
+        path: '/billing',
+        name: 'Billing',
+        component: () => import('@/views/billing'),
+        hidden: true,
+        meta: { title: 'menu.billing', keepAlive: false, icon: 'wallet', permission: ['dashboard'] }
       },
-      // 4. 策略与实盘（指标信号策略：创建 / 管理 / 与实盘联动；不含 Python 脚本策略）
-      // [surface-reset] hidden: true — 路由保留可访问，不在侧边栏显示
+      // User Manage (admin only, hidden)
+      {
+        path: '/user-manage',
+        name: 'UserManage',
+        component: () => import('@/views/user-manage'),
+        hidden: true,
+        meta: { title: 'menu.userManage', keepAlive: false, icon: 'team', permission: ['admin'] }
+      },
+      // Strategy & Live（隐藏）
       {
         path: '/strategy-live',
         name: 'StrategyLive',
@@ -45,7 +131,7 @@ export const asyncRouterMap = [
           indicatorSignalOnly: true
         }
       },
-      // Python 脚本策略（无侧栏入口，从「交易机器人」进入）
+      // Python Script Strategy（隐藏）
       {
         path: '/strategy-script',
         name: 'StrategyScript',
@@ -62,8 +148,7 @@ export const asyncRouterMap = [
         redirect: '/strategy-live',
         hidden: true
       },
-      // 5. 交易机器人（实盘运维监控）
-      // [surface-reset] hidden: true — 路由保留可访问，不在侧边栏显示
+      // Trading Bot（隐藏）
       {
         path: '/trading-bot',
         name: 'TradingBot',
@@ -71,70 +156,7 @@ export const asyncRouterMap = [
         hidden: true,
         meta: { title: 'menu.dashboard.tradingBot', keepAlive: true, icon: 'robot', permission: ['dashboard'] }
       },
-      // ── 新研究入口（同层替换）─────────────────────────────────────────
-      // Layer 1: 宏观首页（4 个 Domain 入口）
-      {
-        path: '/macro',
-        name: 'MacroIntelligence',
-        component: () => import('@/views/macro-intelligence'),
-        meta: { title: 'menu.macro', keepAlive: false, icon: 'global', permission: ['dashboard'] }
-      },
-      // Layer 2: 维度页（hidden，从 Layer 1 卡片跳入）
-      {
-        path: '/macro/:domain',
-        name: 'MacroDomain',
-        component: () => import('@/views/macro-intelligence/domain'),
-        hidden: true,
-        meta: { title: 'menu.macro', keepAlive: false, permission: ['dashboard'] }
-      },
-      // 早报·晚报
-      {
-        path: '/briefing',
-        name: 'DailyBriefing',
-        component: () => import('@/views/daily-briefing'),
-        meta: { title: 'menu.briefing', keepAlive: false, icon: 'read', permission: ['dashboard'] }
-      },
-      // 个股研究
-      {
-        path: '/stock-research',
-        name: 'StockResearch',
-        component: () => import('@/views/stock-research'),
-        meta: { title: 'menu.stockResearch', keepAlive: false, icon: 'area-chart', permission: ['dashboard'] }
-      },
-      // ──────────────────────────────────────────────────────────────────
-      // 旧路由兼容：图表与指标 → 指标 IDE
-      {
-        path: '/indicator-analysis',
-        name: 'Indicator',
-        redirect: '/indicator-ide',
-        hidden: true,
-        meta: { title: 'menu.dashboard.indicator', keepAlive: false, icon: 'line-chart', permission: ['dashboard'] }
-      },
-      // 旧路由兼容：回测中心 → 指标 IDE
-      {
-        path: '/backtest-center',
-        name: 'BacktestCenter',
-        redirect: '/indicator-ide',
-        hidden: true,
-        meta: { title: 'menu.dashboard.backtestCenter', keepAlive: false, icon: 'experiment', permission: ['dashboard'] }
-      },
-      // 旧路由兼容：交易助手 → 策略与实盘
-      {
-        path: '/trading-assistant',
-        name: 'TradingAssistant',
-        redirect: '/strategy-live',
-        hidden: true,
-        meta: { title: 'menu.dashboard.tradingAssistant', keepAlive: false, icon: 'deployment-unit', permission: ['dashboard'] }
-      },
-      // 原仪表盘路由保留兼容，重定向到交易助手
-      {
-        path: '/dashboard',
-        name: 'Dashboard',
-        redirect: '/trading-bot',
-        hidden: true,
-        meta: { title: 'menu.dashboard', keepAlive: false, icon: 'dashboard', permission: ['dashboard'] }
-      },
-      // AI 分析（隐藏）
+      // AI Analysis（隐藏，被 ai-asset-analysis 内嵌为子组件，禁止删除）
       {
         path: '/ai-analysis/:pageNo([1-9]\\d*)?',
         name: 'Analysis',
@@ -142,7 +164,7 @@ export const asyncRouterMap = [
         hidden: true,
         meta: { title: 'menu.dashboard.analysis', keepAlive: false, icon: 'thunderbolt', permission: ['dashboard'] }
       },
-      // 资产监测（隐藏）
+      // Portfolio（隐藏）
       {
         path: '/portfolio',
         name: 'Portfolio',
@@ -150,97 +172,38 @@ export const asyncRouterMap = [
         hidden: true,
         meta: { title: 'menu.dashboard.portfolio', keepAlive: true, icon: 'fund', permission: ['dashboard'] }
       },
-      // 个人中心
-      {
-        path: '/profile',
-        name: 'Profile',
-        component: () => import('@/views/profile'),
-        meta: { title: 'menu.myProfile', keepAlive: false, icon: 'user', permission: ['dashboard'] }
-      },
-      // 会员/充值
-      {
-        path: '/billing',
-        name: 'Billing',
-        component: () => import('@/views/billing'),
-        meta: { title: 'menu.billing', keepAlive: false, icon: 'wallet', permission: ['dashboard'] }
-      },
-      // 用户管理 (admin only)
-      {
-        path: '/user-manage',
-        name: 'UserManage',
-        component: () => import('@/views/user-manage'),
-        meta: { title: 'menu.userManage', keepAlive: false, icon: 'team', permission: ['admin'] }
-      },
-      // 系统设置 (admin only) - 放在最后
-      {
-        path: '/settings',
-        name: 'Settings',
-        component: () => import('@/views/settings'),
-        meta: { title: 'menu.settings', keepAlive: false, icon: 'setting', permission: ['admin'] }
-      }
 
-      // other
-      /*
+      // Legacy Indicator IDE / 高级技术分析工作区（隐藏）
       {
-        path: '/other',
-        name: 'otherPage',
-        component: PageView,
-        meta: { title: '其他组件', icon: 'slack', permission: [ 'dashboard' ] },
-        redirect: '/other/icon-selector',
-        children: [
-          {
-            path: '/other/icon-selector',
-            name: 'TestIconSelect',
-            component: () => import('@/views/other/IconSelectorView'),
-            meta: { title: 'IconSelector', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
-          },
-          {
-            path: '/other/list',
-            component: RouteView,
-            meta: { title: '业务布局', icon: 'layout', permission: [ 'support' ] },
-            redirect: '/other/list/tree-list',
-            children: [
-              {
-                path: '/other/list/tree-list',
-                name: 'TreeList',
-                component: () => import('@/views/other/TreeList'),
-                meta: { title: '树目录表格', keepAlive: true }
-              },
-              {
-                path: '/other/list/edit-table',
-                name: 'EditList',
-                component: () => import('@/views/other/TableInnerEditList'),
-                meta: { title: '内联编辑表格', keepAlive: true }
-              },
-              {
-                path: '/other/list/user-list',
-                name: 'UserList',
-                component: () => import('@/views/other/UserList'),
-                meta: { title: '用户列表', keepAlive: true }
-              },
-              {
-                path: '/other/list/role-list',
-                name: 'RoleList',
-                component: () => import('@/views/other/RoleList'),
-                meta: { title: '角色列表', keepAlive: true }
-              },
-              {
-                path: '/other/list/system-role',
-                name: 'SystemRole',
-                component: () => import('@/views/role/RoleList'),
-                meta: { title: '角色列表2', keepAlive: true }
-              },
-              {
-                path: '/other/list/permission-list',
-                name: 'PermissionList',
-                component: () => import('@/views/other/PermissionList'),
-                meta: { title: '权限列表', keepAlive: true }
-              }
-            ]
-          }
-        ]
+        path: '/legacy-indicator-ide',
+        name: 'LegacyIndicatorIde',
+        component: () => import('@/views/indicator-ide'),
+        hidden: true,
+        meta: { title: 'Technical Workspace', keepAlive: true, icon: 'line-chart', permission: ['dashboard'] }
+      },
+
+      // ── Legacy compatibility redirects ──────────────────────────────────
+      {
+        path: '/indicator-analysis',
+        name: 'Indicator',
+        redirect: '/indicator-ide',
+        hidden: true,
+        meta: { title: 'menu.dashboard.indicator', keepAlive: false, icon: 'line-chart', permission: ['dashboard'] }
+      },
+      {
+        path: '/backtest-center',
+        name: 'BacktestCenter',
+        redirect: '/indicator-ide',
+        hidden: true,
+        meta: { title: 'menu.dashboard.backtestCenter', keepAlive: false, icon: 'experiment', permission: ['dashboard'] }
+      },
+      {
+        path: '/trading-assistant',
+        name: 'TradingAssistant',
+        redirect: '/strategy-live',
+        hidden: true,
+        meta: { title: 'menu.dashboard.tradingAssistant', keepAlive: false, icon: 'deployment-unit', permission: ['dashboard'] }
       }
-      */
     ]
   },
   {

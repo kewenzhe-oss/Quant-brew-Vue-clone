@@ -4,7 +4,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": []
+  },
+  "typeAcquisition": {
+    "exclude": ["minimatch"]
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src/**/*"]

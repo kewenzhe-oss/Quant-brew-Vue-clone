@@ -6,39 +6,17 @@
         <div class="fx-gradient"></div>
         <div class="fx-grid"></div>
       </div>
-      <div class="user-layout-lang">
-        <select-lang class="select-lang-trigger" />
-      </div>
       <div class="user-layout-content">
         <div class="top">
           <div class="header">
-            <a href="/">
-              <img src="~@/assets/logo.png" class="logo" alt="logo">
-              <!-- <span class="title">QuantDinger</span> -->
+            <a href="/" class="login-brand">
+              PostSoma Core
             </a>
           </div>
-          <!-- <div class="desc">
-            {{ $t('layouts.userLayout.title') }}
-          </div> -->
         </div>
 
         <div class="main-content">
           <router-view />
-        </div>
-
-        <div class="footer">
-          <div class="copyright">
-            Copyright &copy; 2025-2026 Quantdinger.com
-            <div style="width: 70%; text-align: center; margin-left: 15%; margin-top: 10px;">
-              <a @click="toggleRisk" style="color: #1890ff; cursor: pointer;">
-                {{ showRisk ? $t('user.login.privacy.collapse') : $t('user.login.privacy.view') }}
-              </a>
-              <div v-if="showRisk" style="margin-top: 10px; font-size: 12px; color: rgba(0,0,0,0.65); line-height: 1.6; text-align: left;">
-                <div style="font-weight: 600; margin-bottom: 6px;">{{ $t('user.login.privacy.title') }}</div>
-                {{ $t('user.login.privacy.content') }}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -47,24 +25,10 @@
 
 <script>
 import { deviceMixin } from '@/store/device-mixin'
-import SelectLang from '@/components/SelectLang'
 
 export default {
   name: 'UserLayout',
-  components: {
-    SelectLang
-  },
   mixins: [deviceMixin],
-  data () {
-    return {
-      showRisk: false
-    }
-  },
-  methods: {
-    toggleRisk () {
-      this.showRisk = !this.showRisk
-    }
-  },
   mounted () {
     document.body.classList.add('userLayout')
   },
@@ -125,29 +89,11 @@ export default {
       }
     }
 
-    .user-layout-lang {
-      width: 100%;
-      height: 40px;
-      line-height: 44px;
-      text-align: right;
-
-      .select-lang-trigger {
-        cursor: pointer;
-        padding: 12px;
-        margin-right: 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        vertical-align: middle;
-      }
-    }
-
     .user-layout-content {
-      padding: 32px 0 24px;
+      padding: 40px 0 32px;
       display: flex;
       flex-direction: column;
-      min-height: calc(100vh - 40px);
+      min-height: 100vh;
       position: relative;
       z-index: 1;
 
@@ -158,32 +104,13 @@ export default {
           height: 56px;
           line-height: 56px;
 
-          .badge {
-            position: absolute;
-            display: inline-block;
-            line-height: 1;
-            vertical-align: middle;
-            margin-left: -12px;
-            margin-top: -10px;
-            opacity: 0.8;
-          }
-
-          .logo {
-            width: 342px; // approx 3.8:1 when height ~90px, keep responsive
-            max-width: 42vw;
-            height: auto;
-            vertical-align: middle;
-            margin-right: 0;
-            border-style: none;
-          }
-
-          .title {
-            font-size: 33px;
-            color: rgba(0, 0, 0, .85);
-            font-family: Avenir, 'Helvetica Neue', Arial, Helvetica, sans-serif;
+          .login-brand {
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 28px;
             font-weight: 600;
-            position: relative;
-            top: 2px;
+            letter-spacing: 0;
+            text-decoration: none;
           }
         }
         .desc {
@@ -207,29 +134,6 @@ export default {
         justify-content: center;
       }
 
-      .footer {
-        width: 100%;
-        padding: 0 16px;
-        margin-top: auto;
-        margin-bottom: 16px;
-        text-align: center;
-
-        .links {
-          margin-bottom: 8px;
-          font-size: 14px;
-          a {
-            color: rgba(0, 0, 0, 0.45);
-            transition: all 0.3s;
-            &:not(:last-child) {
-              margin-right: 40px;
-            }
-          }
-        }
-        .copyright {
-          color: rgba(0, 0, 0, 0.45);
-          font-size: 14px;
-        }
-      }
     }
 
     a {
@@ -240,10 +144,8 @@ export default {
 }
 
 @media (max-width: 576px) {
-  #userLayout.user-layout-wrapper .container .user-layout-content .top .header .logo {
-    width: 208px;
-    max-width: 70vw;
-    margin-top: 8px;
+  #userLayout.user-layout-wrapper .container .user-layout-content .top .header .login-brand {
+    font-size: 24px;
   }
   #userLayout.user-layout-wrapper .container .user-layout-content .main {
     width: 92vw;

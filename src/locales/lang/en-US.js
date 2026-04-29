@@ -41,6 +41,12 @@ const locale = {
   'menu.macro': 'Macro',
   'menu.briefing': 'Daily Briefing',
   'menu.stockResearch': 'Stock Research',
+  // ---- QuantDinger 2.0 Navigation ----
+  'menu.dashboard.today': 'Today',
+  'menu.assetSnapshot': 'Asset Snapshot',
+  'menu.tradePlan': 'Trade Plan',
+  'menu.myPlan': 'My Plan',
+  'menu.learning': 'Learning',
   // ---- Trading Bot Page ----
   'trading-bot.pageTitle': 'Trading Bots',
   'trading-bot.pageSubtitle': 'Create and manage your automated trading bots',

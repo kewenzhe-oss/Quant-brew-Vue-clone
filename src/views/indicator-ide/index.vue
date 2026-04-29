@@ -65,6 +65,16 @@
         </div>
 
         <div class="ide-toolbar-group ide-toolbar-group--indicator">
+          <a-tooltip title="指标库 / Indicator Library">
+            <a-button
+              class="ide-toolbar-icon-btn ide-lib-btn"
+              size="small"
+              :type="libraryDrawerVisible ? 'primary' : 'default'"
+              @click="libraryDrawerVisible = !libraryDrawerVisible"
+            >
+              <a-icon type="book" />
+            </a-button>
+          </a-tooltip>
           <span class="ide-toolbar-label">{{ $t('indicatorIde.toolbar.indicator') }}</span>
           <a-select
             v-model="selectedIndicatorId"
@@ -116,6 +126,122 @@
     <div class="ide-main">
       <!-- Left panel (collapsible drawer) -->
       <div v-show="codeDrawerVisible" class="ide-left">
+
+        <!-- ===== Indicator Library Panel (slide-over) ===== -->
+        <transition name="lib-panel-slide">
+          <div v-if="libraryDrawerVisible" class="indicator-library-panel">
+            <!-- Header -->
+            <div class="lib-header">
+              <div class="lib-header-top">
+                <span class="lib-title"><a-icon type="book" style="margin-right:6px;" />指标库</span>
+                <div class="lib-header-actions">
+                  <a-tooltip title="新建指标">
+                    <a-button size="small" :loading="creatingIndicator" @click="handleCreateIndicator">
+                      <a-icon type="plus" />
+                    </a-button>
+                  </a-tooltip>
+                  <a-tooltip title="刷新">
+                    <a-button size="small" :loading="loadingIndicators" @click="loadIndicators">
+                      <a-icon type="reload" />
+                    </a-button>
+                  </a-tooltip>
+                  <a-button size="small" @click="libraryDrawerVisible = false">
+                    <a-icon type="close" />
+                  </a-button>
+                </div>
+              </div>
+              <a-input
+                v-model="libraryFilter"
+                class="lib-search"
+                placeholder="搜索指标名称…"
+                size="small"
+                allow-clear
+              >
+                <a-icon slot="prefix" type="search" />
+              </a-input>
+            </div>
+
+            <!-- Body -->
+            <div class="lib-body">
+              <a-tabs v-model="libraryActiveTab" size="small" class="lib-tabs">
+                <a-tab-pane key="my" :tab="'我的策略/指标 (' + filteredMyIndicators.length + ')'">
+                  <div v-if="filteredMyIndicators.length === 0" class="lib-empty">
+                    {{ libraryFilter ? '无匹配结果' : '暂无自定义指标' }}
+                  </div>
+                  <div
+                    v-for="ind in filteredMyIndicators"
+                    :key="ind.id"
+                    class="lib-item"
+                    :class="{
+                      'lib-item--active': selectedIndicatorId === ind.id,
+                      'lib-item--dirty': selectedIndicatorId === ind.id && codeDirty,
+                      'lib-item--purchased': isPurchasedIndicator(ind)
+                    }"
+                    @click="loadIndicatorFromLibrary(ind)"
+                  >
+                    <div class="lib-item-main">
+                      <span class="lib-item-name">{{ ind.name || ('Indicator #' + ind.id) }}</span>
+                      <span v-if="selectedIndicatorId === ind.id && codeDirty" class="lib-dirty-dot" title="未保存" />
+                    </div>
+                    <div class="lib-item-meta">
+                      <a-tag :color="indicatorKind(ind) === 'Strategy' ? 'blue' : 'green'" class="lib-type-tag">
+                        {{ indicatorKind(ind) === 'Strategy' ? 'Strategy' : 'Indicator' }}
+                      </a-tag>
+                      <a-tag v-if="isPurchasedIndicator(ind)" color="purple" class="lib-type-tag">已购</a-tag>
+                      <span class="lib-item-time">{{ formatIndicatorUpdatedAt(ind) }}</span>
+                    </div>
+                    <div v-if="ind.description" class="lib-item-desc">{{ ind.description }}</div>
+                    <div class="lib-item-actions" @click.stop>
+                      <a-button size="small" type="link" class="lib-open-btn" @click="loadIndicatorFromLibrary(ind)">
+                        打开
+                      </a-button>
+                      <a-button
+                        size="small"
+                        type="link"
+                        class="lib-del-btn"
+                        :disabled="isPurchasedIndicator(ind)"
+                        :loading="deletingIndicator && deletingIndicatorId === ind.id"
+                        @click="handleDeleteIndicator(ind)"
+                      >
+                        删除
+                      </a-button>
+                    </div>
+                  </div>
+                </a-tab-pane>
+                <a-tab-pane key="examples" :tab="'官方示例 (' + filteredExampleIndicators.length + ')'">
+                  <div v-if="filteredExampleIndicators.length === 0" class="lib-empty">
+                    {{ libraryFilter ? '无匹配结果' : '暂无官方示例' }}
+                  </div>
+                  <div
+                    v-for="ind in filteredExampleIndicators"
+                    :key="ind.id"
+                    class="lib-item lib-item--example"
+                    :class="{ 'lib-item--active': selectedIndicatorId === ind.id }"
+                    @click="loadIndicatorFromLibrary(ind)"
+                  >
+                    <div class="lib-item-main">
+                      <span class="lib-item-name">{{ ind.name || ('Example #' + ind.id) }}</span>
+                    </div>
+                    <div class="lib-item-meta">
+                      <a-tag :color="indicatorKind(ind) === 'Strategy' ? 'blue' : 'green'" class="lib-type-tag">
+                        {{ indicatorKind(ind) === 'Strategy' ? 'Strategy' : 'Indicator' }}
+                      </a-tag>
+                      <a-tag color="cyan" class="lib-type-tag">官方示例</a-tag>
+                      <span class="lib-item-time">{{ formatIndicatorUpdatedAt(ind) }}</span>
+                    </div>
+                    <div v-if="ind.description" class="lib-item-desc">{{ ind.description }}</div>
+                    <div class="lib-item-actions" @click.stop>
+                      <a-button size="small" type="link" class="lib-open-btn" @click="loadIndicatorFromLibrary(ind)">
+                        打开
+                      </a-button>
+                    </div>
+                  </div>
+                </a-tab-pane>
+              </a-tabs>
+            </div>
+          </div>
+        </transition>
+
         <!-- Code Editor (collapsible) -->
         <div class="code-panel" :class="{ collapsed: !codePanelExpanded }">
           <div class="panel-title" @click="codePanelExpanded = !codePanelExpanded" style="cursor: pointer;">
@@ -345,7 +471,7 @@
                   @click="runBacktest"
                 >
                   <a-icon v-if="!running" type="thunderbolt" />
-                  {{ $t('indicatorIde.runBacktest') }}
+                  运行历史回测
                 </a-button>
                 <a-icon :type="paramsPanelExpanded ? 'up' : 'down'" @click="paramsPanelExpanded = !paramsPanelExpanded" />
               </div>
@@ -1185,6 +1311,7 @@ export default {
 
       creatingIndicator: false,
       deletingIndicator: false,
+      deletingIndicatorId: null,
       showPublishModal: false,
       showSaveAsModal: false,
       saveAsName: '',
@@ -1209,6 +1336,11 @@ export default {
 
       showHistoryDrawer: false,
       historyIndicatorId: null,
+
+      // Indicator Library Panel
+      libraryDrawerVisible: false,
+      libraryFilter: '',
+      libraryActiveTab: 'my',
 
       ideAddMarketKeys: IDE_ADD_MARKET_KEYS,
 
@@ -1238,7 +1370,10 @@ export default {
       return !!(this.symbol && String(this.symbol).trim())
     },
     canRunBacktest () {
-      return this.selectedIndicatorId && this.symbol && this.startDate && this.endDate
+      return this.currentCode && this.currentCode.trim().length > 0 &&
+             this.symbol && this.market && this.timeframe &&
+             this.startDate && this.endDate &&
+             !this.codeQualityHints.some(h => h.severity === 'error')
     },
     selectedIndicatorObj () {
       return this.selectedIndicatorId ? this.indicators.find(i => i.id === this.selectedIndicatorId) : null
@@ -1254,6 +1389,37 @@ export default {
     },
     filteredDatePresets () {
       return DATE_PRESETS.filter(p => p.days <= this.tfMaxDays)
+    },
+    // ===== Indicator Library Panel =====
+    myIndicators () {
+      return this.indicators
+        .filter(i => !this.isExampleIndicator(i))
+        .slice()
+        .sort((a, b) => {
+          const ta = this.indicatorUpdatedValue(a)
+          const tb = this.indicatorUpdatedValue(b)
+          if (ta < tb) return 1
+          if (ta > tb) return -1
+          return (b.id || 0) - (a.id || 0)
+        })
+    },
+    exampleIndicators () {
+      return this.indicators
+        .filter(i => this.isExampleIndicator(i))
+        .slice()
+        .sort((a, b) => {
+          const ta = this.indicatorUpdatedValue(a)
+          const tb = this.indicatorUpdatedValue(b)
+          if (ta < tb) return 1
+          if (ta > tb) return -1
+          return (a.name || '').localeCompare(b.name || '')
+        })
+    },
+    filteredMyIndicators () {
+      return this.myIndicators.filter(i => this.matchesLibraryFilter(i))
+    },
+    filteredExampleIndicators () {
+      return this.exampleIndicators.filter(i => this.matchesLibraryFilter(i))
     },
     hasExperimentResult () {
       return !!(this.experimentResult && Array.isArray(this.experimentResult.rankedStrategies) && this.experimentResult.rankedStrategies.length)
@@ -1713,6 +1879,69 @@ export default {
       }
       this.$nextTick(() => this.applyCodeMirrorReadOnly())
     },
+    isPurchasedIndicator (ind) {
+      return Number((ind || {}).is_buy) === 1
+    },
+    isExampleIndicator (ind) {
+      if (!ind) return false
+      const markerFields = [
+        ind.is_example,
+        ind.isExample,
+        ind.example,
+        ind.is_official,
+        ind.isOfficial,
+        ind.official
+      ]
+      if (markerFields.some(v => v === true || Number(v) === 1 || String(v).toLowerCase() === 'true')) {
+        return true
+      }
+      const source = String(ind.source || ind.origin || ind.category || '').toLowerCase()
+      if (['example', 'examples', 'official', 'system', 'template'].includes(source)) {
+        return true
+      }
+      const owner = ind.user_id != null ? ind.user_id : ind.userId
+      if (owner == null || this.userId == null) return false
+      const ownerText = String(owner).toLowerCase()
+      if (['system', 'admin', 'official'].includes(ownerText)) return true
+      const ownerNum = Number(owner)
+      const currentNum = Number(this.userId)
+      return !Number.isNaN(ownerNum) && !Number.isNaN(currentNum) && ownerNum !== currentNum && ownerNum <= 1
+    },
+    indicatorKind (ind) {
+      const explicit = String((ind && (ind.kind || ind.type || ind.indicator_type || ind.indicatorType)) || '').toLowerCase()
+      if (explicit.includes('strategy')) return 'Strategy'
+      const code = String((ind && ind.code) || '')
+      return /#\s*@strategy\b/i.test(code) ? 'Strategy' : 'Indicator'
+    },
+    indicatorUpdatedValue (ind) {
+      const raw = (ind && (ind.updatetime || ind.updated_at || ind.updatedAt || ind.createtime || ind.created_at || ind.createdAt)) || ''
+      if (!raw) return 0
+      const ts = moment(raw).valueOf()
+      return Number.isNaN(ts) ? 0 : ts
+    },
+    formatIndicatorUpdatedAt (ind) {
+      const raw = (ind && (ind.updatetime || ind.updated_at || ind.updatedAt || ind.createtime || ind.created_at || ind.createdAt)) || ''
+      if (!raw) return '未记录更新时间'
+      const m = moment(raw)
+      return m.isValid() ? m.format('YYYY-MM-DD HH:mm') : String(raw)
+    },
+    matchesLibraryFilter (ind) {
+      const q = (this.libraryFilter || '').trim().toLowerCase()
+      if (!q) return true
+      const haystack = [
+        ind && ind.name,
+        ind && ind.description,
+        ind && ind.code,
+        this.indicatorKind(ind),
+        this.formatIndicatorUpdatedAt(ind)
+      ].join(' ').toLowerCase()
+      return haystack.includes(q)
+    },
+    loadIndicatorFromLibrary (ind) {
+      if (!ind || !ind.id) return
+      this.selectedIndicatorId = ind.id
+      this.onIndicatorChange(ind.id)
+    },
     buildSelectedIndicatorForChart (codeOverride) {
       const ind = this.selectedIndicatorObj
       if (!ind) return null
@@ -1886,21 +2115,22 @@ export default {
       }
     },
 
-    handleDeleteIndicator () {
-      if (!this.selectedIndicatorId || !this.userId) return
-      if (this.selectedIndicatorIsPurchased) {
+    handleDeleteIndicator (indicator = null) {
+      const target = indicator || this.selectedIndicatorObj
+      const targetId = target && target.id ? target.id : this.selectedIndicatorId
+      if (!targetId || !this.userId) return
+      if (this.isPurchasedIndicator(target) || this.isExampleIndicator(target)) {
         this.$message.warning(this.$t('indicatorIde.deleteBlockedPurchased'))
         return
       }
-      const ind = this.selectedIndicatorObj
-      const name = (ind && ind.name) || ('#' + this.selectedIndicatorId)
+      const name = (target && target.name) || ('#' + targetId)
       const h = this.$createElement
       const children = [
         h('p', { style: { margin: '0 0 8px' } }, [
           this.$t('dashboard.indicator.delete.confirmContent', { name })
         ])
       ]
-      if (this.codeDirty) {
+      if (this.codeDirty && Number(targetId) === Number(this.selectedIndicatorId)) {
         children.push(
           h('p', { style: { margin: 0, color: '#fa8c16', fontSize: '13px' } }, [
             this.$t('indicatorIde.deleteUnsavedHint')
@@ -1913,14 +2143,15 @@ export default {
         okText: this.$t('dashboard.indicator.delete.confirmOk'),
         cancelText: this.$t('dashboard.indicator.delete.confirmCancel'),
         okType: 'danger',
-        onOk: () => this.confirmDeleteIndicator()
+        onOk: () => this.confirmDeleteIndicator(targetId)
       })
     },
 
-    async confirmDeleteIndicator () {
-      if (!this.selectedIndicatorId || !this.userId) return
-      const id = this.selectedIndicatorId
+    async confirmDeleteIndicator (indicatorId = null) {
+      const id = indicatorId || this.selectedIndicatorId
+      if (!id || !this.userId) return
       this.deletingIndicator = true
+      this.deletingIndicatorId = id
       try {
         const res = await request({
           url: '/api/indicator/deleteIndicator',
@@ -1929,12 +2160,13 @@ export default {
         })
         if (res && res.code === 1) {
           this.$message.success(this.$t('dashboard.indicator.delete.success'))
+          const deletedSelected = Number(id) === Number(this.selectedIndicatorId)
           await this.loadIndicators()
-          if (this.indicators.length > 0) {
+          if (deletedSelected && this.indicators.length > 0) {
             const first = this.indicators[0]
             this.selectedIndicatorId = first.id
             this.onIndicatorChange(first.id)
-          } else {
+          } else if (deletedSelected) {
             this.selectedIndicatorId = undefined
             this.onIndicatorChange(undefined)
           }
@@ -1946,6 +2178,7 @@ export default {
         this.$message.error((data && data.msg) || (e && e.message) || this.$t('dashboard.indicator.delete.failed'))
       } finally {
         this.deletingIndicator = false
+        this.deletingIndicatorId = null
       }
     },
 
@@ -2804,6 +3037,48 @@ export default {
     // ===== Backtest =====
     async runBacktest () {
       if (!this.canRunBacktest) return
+
+      // 1. Sanitize numeric inputs
+      const safeCapital = Number(this.initialCapital)
+      if (!safeCapital || safeCapital <= 0) {
+        this.$message.warning(this.$t('indicatorIde.capitalRequired') || '请输入有效的初始资金 / Please enter a valid initial capital')
+        return
+      }
+      const safeLeverage = this.leverage ? Number(this.leverage) : 1
+      const safeCommission = this.commission ? Number(this.commission) : 0
+      const safeSlippage = this.slippage ? Number(this.slippage) : 0
+
+      // 2. Pre-flight validation
+      if (!this.symbol || !this.timeframe || !this.startDate || !this.endDate) {
+        this.$message.warning('参数不完整，请检查标的、时间周期与日期范围')
+        return
+      }
+      if (this.startDate.isAfter(this.endDate)) {
+        this.$message.warning('开始日期不能晚于结束日期 / Start date cannot be after end date')
+        return
+      }
+      if (!this.currentCode || !this.currentCode.trim()) {
+        this.$message.warning('请提供指标代码 / Please provide indicator code')
+        return
+      }
+      const allowedDirs = ['long', 'short', 'both']
+      if (!allowedDirs.includes(this.tradeDirection)) {
+        this.$message.warning('无效的交易方向 / Invalid trade direction')
+        return
+      }
+
+      // 3. Timeframe / Date range limits pre-check
+      const daysDiff = this.endDate.diff(this.startDate, 'days')
+      let maxDays = 365 * 3 // default 3 years
+      if (this.timeframe === '1m') maxDays = 31
+      else if (this.timeframe === '5m') maxDays = 183
+      else if (this.timeframe === '15m' || this.timeframe === '30m') maxDays = 366
+
+      if (daysDiff > maxDays) {
+        this.$message.warning(`当前 timeframe=${this.timeframe} 最多支持约 ${maxDays} 天的回测，请缩短日期范围。`)
+        return
+      }
+
       this.running = true
       this.hasResult = false
       this.resultTab = 'backtest'
@@ -2823,10 +3098,10 @@ export default {
             timeframe: this.timeframe,
             startDate: this.startDate.format('YYYY-MM-DD'),
             endDate: this.endDate.format('YYYY-MM-DD'),
-            initialCapital: this.initialCapital,
-            commission: Number(this.commission || 0) / 100,
-            slippage: Number(this.slippage || 0) / 100,
-            leverage: this.leverage,
+            initialCapital: safeCapital,
+            commission: safeCommission / 100,
+            slippage: safeSlippage / 100,
+            leverage: safeLeverage,
             tradeDirection: this.tradeDirection,
             strategyConfig: this.buildBacktestStrategyConfig(),
             enableMtf: this.enableMtf,
@@ -2850,7 +3125,10 @@ export default {
           this.$message.error(response.msg || this.$t('indicatorIde.backtestFailed'))
         }
       } catch (e) {
-        this.$message.error(e.message || this.$t('indicatorIde.backtestFailed'))
+        const backendMsg = e?.response?.data?.msg || e?.response?.data?.message || e?.response?.data?.error || e?.response?.data?.detail
+        const fallbackMsg = e?.message || this.$t('indicatorIde.backtestFailed')
+        const displayMsg = backendMsg || fallbackMsg
+        this.$message.error(displayMsg)
       } finally {
         this.running = false
         clearInterval(this.elapsedTimer)
@@ -5649,6 +5927,267 @@ export default {
     .ant-pagination-prev, .ant-pagination-next { .ant-pagination-item-link { background: #1f1f1f; border-color: #434343; color: rgba(255,255,255,0.45); } }
   }
   /deep/ .ant-empty-description { color: rgba(255,255,255,0.35); }
+}
+// ===== Indicator Library Panel =====
+.indicator-library-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #eee;
+  overflow: hidden;
+}
+
+// Slide-in transition
+.lib-panel-slide-enter-active,
+.lib-panel-slide-leave-active {
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease;
+}
+.lib-panel-slide-enter,
+.lib-panel-slide-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.lib-header {
+  flex-shrink: 0;
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+.lib-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.lib-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #262626;
+  display: flex;
+  align-items: center;
+}
+.lib-header-actions {
+  display: flex;
+  gap: 4px;
+}
+.lib-search {
+  width: 100%;
+}
+
+.lib-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.lib-tabs /deep/ .ant-tabs-bar {
+  margin: 0;
+  padding: 0 10px;
+}
+.lib-tabs /deep/ .ant-tabs-tab {
+  margin-right: 12px;
+  padding: 9px 0 8px;
+  font-size: 12px;
+}
+.lib-tabs /deep/ .ant-tabs-content {
+  padding: 4px 0;
+}
+
+.lib-group {
+  margin-bottom: 4px;
+}
+.lib-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8c8c8c;
+}
+.lib-group-count {
+  background: #f0f0f0;
+  border-radius: 8px;
+  padding: 0 6px;
+  font-size: 10px;
+  color: #8c8c8c;
+}
+
+.lib-empty {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #bfbfbf;
+  font-style: italic;
+}
+
+.lib-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 92px 8px 14px;
+  min-height: 74px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, border-color 0.12s;
+
+  &:hover {
+    background: #f5f7ff;
+  }
+
+  &.lib-item--active {
+    background: #e8f1ff;
+    border-left-color: #1890ff;
+    .lib-item-name { color: #1890ff; font-weight: 600; }
+  }
+
+  &.lib-item--dirty {
+    border-left-color: #fa8c16;
+    &.lib-item--active { border-left-color: #fa8c16; }
+    .lib-item-name { color: #d46b08; }
+  }
+
+  &.lib-item--purchased {
+    &.lib-item--active {
+      background: #f5e8ff;
+      border-left-color: #722ed1;
+      .lib-item-name { color: #722ed1; }
+    }
+  }
+}
+.lib-item-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.lib-item-name {
+  font-size: 13px;
+  color: #262626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  transition: color 0.12s;
+}
+.lib-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.lib-type-tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  line-height: 16px;
+  padding: 0 4px;
+  margin-right: 0;
+}
+.lib-item-time {
+  min-width: 0;
+  font-size: 11px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lib-item-desc {
+  font-size: 11px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.lib-item-actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.lib-open-btn {
+  padding: 0 4px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+}
+.lib-del-btn {
+  color: #ff4d4f !important;
+  padding: 0 4px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  &:hover { color: #cf1322 !important; }
+  &[disabled] {
+    color: #bfbfbf !important;
+  }
+}
+.lib-dirty-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fa8c16;
+  flex-shrink: 0;
+}
+.lib-purchased-tag {
+  font-size: 10px;
+  line-height: 16px;
+  padding: 0 4px;
+  margin-left: 4px;
+}
+.ide-lib-btn {
+  margin-right: 4px;
+}
+
+// ===== Dark theme overrides for Library panel =====
+.theme-dark {
+  .indicator-library-panel {
+    background: #181818;
+    border-right-color: #303030;
+  }
+  .lib-header {
+    background: #1f1f1f;
+    border-bottom-color: #303030;
+  }
+  .lib-title { color: rgba(255,255,255,0.88); }
+  .lib-tabs /deep/ .ant-tabs-bar { border-bottom-color: #303030; }
+  .lib-tabs /deep/ .ant-tabs-tab { color: rgba(255,255,255,0.55); }
+  .lib-tabs /deep/ .ant-tabs-tab-active { color: #58a6ff; }
+  .lib-group-title { color: rgba(255,255,255,0.38); }
+  .lib-group-count { background: #2a2a2a; color: rgba(255,255,255,0.38); }
+  .lib-empty { color: rgba(255,255,255,0.25); }
+  .lib-item {
+    &:hover { background: rgba(255,255,255,0.05); }
+    &.lib-item--active {
+      background: rgba(24, 144, 255, 0.12);
+      .lib-item-name { color: #58a6ff; }
+    }
+    &.lib-item--dirty .lib-item-name { color: #ffa940; }
+    &.lib-item--purchased.lib-item--active {
+      background: rgba(114,46,209,0.15);
+      .lib-item-name { color: #b37feb; }
+    }
+  }
+  .lib-item-name { color: rgba(255,255,255,0.85); }
+  .lib-item-time { color: rgba(255,255,255,0.38); }
+  .lib-item-desc { color: rgba(255,255,255,0.38); }
+  .lib-search /deep/ .ant-input {
+    background: #262626;
+    border-color: #434343;
+    color: rgba(255,255,255,0.85);
+    &::placeholder { color: rgba(255,255,255,0.25); }
+  }
+  .lib-search /deep/ .ant-input-prefix { color: rgba(255,255,255,0.38); }
 }
 </style>
 

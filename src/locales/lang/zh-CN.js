@@ -41,6 +41,12 @@ const locale = {
   'menu.macro': '宏观',
   'menu.briefing': '早报·晚报',
   'menu.stockResearch': '个股研究',
+  // ---- QuantDinger 2.0 Navigation ----
+  'menu.dashboard.today': '今日概览',
+  'menu.assetSnapshot': '资产速览',
+  'menu.tradePlan': '交易计划',
+  'menu.myPlan': '我的计划',
+  'menu.learning': '学习中心',
   // ---- 交易机器人页 ----
   'trading-bot.pageTitle': '交易机器人',
   'trading-bot.pageSubtitle': '创建并管理你的自动交易机器人',

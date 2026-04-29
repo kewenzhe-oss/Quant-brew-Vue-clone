@@ -3,7 +3,7 @@ const path = require('path')
 // If the project root also has a different webpack version installed/hoisted,
 // requiring "webpack" here may pull in the wrong major version and break hooks.
 // Always bind to Vue CLI's webpack to keep plugin APIs consistent.
-const webpack = require('@vue/cli-service/node_modules/webpack')
+const webpack = require('webpack')
 const packageJson = require('./package.json')
 const GitRevisionPlugin = require('git-revision-webpack-plugin')
 const GitRevision = new GitRevisionPlugin()
@@ -130,7 +130,7 @@ const vueConfig = {
     port: 8000,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://127.0.0.1:5050',
         ws: true,
         changeOrigin: true,
         timeout: 600000, // 10 minutes for long-running requests like backtest
@@ -141,9 +141,9 @@ const vueConfig = {
 
   // disable source map in production
   productionSourceMap: false,
-  lintOnSave: undefined,
+  lintOnSave: false,
   // babel-loader no-ignore node_modules/*
-  transpileDependencies: []
+  transpileDependencies: ['lightweight-charts']
 }
 
 // Add ThemeColorReplacer plugin for theme color switching
