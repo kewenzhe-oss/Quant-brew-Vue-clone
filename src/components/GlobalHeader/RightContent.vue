@@ -1,5 +1,10 @@
 <template>
   <div :class="wrpCls">
+    <a-tooltip title="外观设置" placement="bottom">
+      <span class="ant-pro-global-header-index-action" @click="$emit('openSettings')">
+        <a-icon type="setting" style="font-size: 16px;"/>
+      </span>
+    </a-tooltip>
     <avatar-dropdown :menu="true" :current-user="currentUser" :class="prefixCls" />
   </div>
 </template>

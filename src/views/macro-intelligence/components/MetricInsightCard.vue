@@ -90,12 +90,14 @@ export default {
       return this.derivedValue !== null
     },
     displayValue () {
-      if (!this.isOriginalMissing) {
-        return this.metric.primary || this.metric.formattedValue || this.metric.value
-      }
+      // Chart-derived value is always preferred (single source of truth with the chart).
+      // Snapshot value acts only as a placeholder while the chart is loading.
       if (this.derivedValue !== null) {
         const formatted = formatMacroMetric(this.metric.id, this.derivedValue)
         return formatted.primary
+      }
+      if (!this.isOriginalMissing) {
+        return this.metric.primary || this.metric.formattedValue || this.metric.value
       }
       return '数据暂不可用'
     },
@@ -103,19 +105,20 @@ export default {
       return this.metric.displayUnit || this.metric.unit
     },
     displayMeta () {
-      if (!this.isOriginalMissing) {
-        return this.metric.meta || (this.metric.source ? `${this.metric.source}` : 'Data unavailable')
-      }
+      // If we have a chart-derived date, use it (matches chart's provenance)
       if (this.derivedDate) {
         const config = formatMacroMetric(this.metric.id, this.derivedValue, this.derivedDate)
         return config.meta
       }
-      return this.metric.meta || 'Data unavailable'
+      return this.metric.meta || (this.metric.source ? `${this.metric.source}` : 'Data unavailable')
     }
   },
   methods: {
     onChartData ({ lastValidPoint }) {
-      if (this.isOriginalMissing && lastValidPoint) {
+      // Always sync card value to the chart's latest valid point.
+      // This establishes a single source of truth: card == chart last bar.
+      // Guard: only apply if the chart returned a valid (non-null) point.
+      if (lastValidPoint && lastValidPoint.value !== null && lastValidPoint.value !== undefined) {
         this.derivedValue = lastValidPoint.value
         this.derivedDate = lastValidPoint.date
         this.derivedFromSeries = true
@@ -243,7 +246,7 @@ export default {
     color: #1890ff;
     border: 1px solid #91d5ff;
   }
-  
+
   &.derived {
     background: #fffbe6;
     color: #faad14;

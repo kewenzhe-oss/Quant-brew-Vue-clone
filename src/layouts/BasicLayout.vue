@@ -14,8 +14,8 @@
       <template #menuHeaderRender>
         <div class="sidebar-logo-wrapper" :class="{ 'sidebar-logo-wrapper--collapsed': collapsed }">
           <div class="sidebar-text-logo" :title="collapsed ? 'PostSoma Core' : ''">
-            <span v-if="collapsed">PS</span>
-            <span v-else>PostSoma Core</span>
+            <img v-if="collapsed" src="/assets/brand/icon-primary.svg" alt="PostSoma Core" style="width: 20px; height: 20px;" />
+            <img v-else src="/assets/brand/lockup.svg" alt="PostSoma Core" style="height: 20px; width: auto;" />
           </div>
         </div>
       </template>
@@ -31,8 +31,10 @@
       </template>
 
       <template #rightContentRender>
-        <right-content :top-menu="settings.layout === 'topmenu'" :is-mobile="isMobile" :theme="settings.theme" />
+        <right-content :top-menu="settings.layout === 'topmenu'" :is-mobile="isMobile" :theme="settings.theme" @openSettings="handleOpenSettings" />
       </template>
+      <setting-drawer ref="settingDrawer" :settings="settings" @change="handleSettingChange">
+      </setting-drawer>
       <!-- custom footer removed -->
       <template #footerRender>
         <div style="display: none;"></div>
@@ -49,16 +51,25 @@ import { mapState } from 'vuex'
 import {
   CONTENT_WIDTH_TYPE,
   SIDEBAR_TYPE,
-  TOGGLE_MOBILE_TYPE
+  TOGGLE_MOBILE_TYPE,
+  TOGGLE_NAV_THEME,
+  TOGGLE_CONTENT_WIDTH,
+  TOGGLE_FIXED_HEADER,
+  TOGGLE_FIXED_SIDEBAR,
+  TOGGLE_COLOR,
+  TOGGLE_WEAK,
+  TOGGLE_MULTI_TAB
 } from '@/store/mutation-types'
 
 import defaultSettings from '@/config/defaultSettings'
 import RightContent from '@/components/GlobalHeader/RightContent'
+import SettingDrawer from '@/components/SettingDrawer/SettingDrawer'
 
 export default {
   name: 'BasicLayout',
   components: {
-    RightContent
+    RightContent,
+    SettingDrawer
     // GlobalFooter,
     // Ads
   },
@@ -178,6 +189,9 @@ export default {
   },
   methods: {
     i18nRender,
+    handleOpenSettings () {
+      this.$refs.settingDrawer.showDrawer()
+    },
     handleRefresh () {
       // 只刷新内容区域，通过改变 key 强制重新渲染 router-view
       this.refreshKey += 1
@@ -197,6 +211,40 @@ export default {
     },
     handleCollapse (val) {
       this.collapsed = val
+    },
+    handleSettingChange ({ type, value }) {
+      type && (this.settings[type] = value)
+      switch (type) {
+        case 'theme':
+          this.$store.commit(TOGGLE_NAV_THEME, value)
+          break
+        case 'layout':
+          if (value === 'sidemenu') {
+            this.$store.commit(TOGGLE_CONTENT_WIDTH, CONTENT_WIDTH_TYPE.Fluid)
+          } else {
+            this.$store.commit(TOGGLE_FIXED_SIDEBAR, false)
+            this.$store.commit(TOGGLE_CONTENT_WIDTH, CONTENT_WIDTH_TYPE.Fixed)
+          }
+          break
+        case 'contentWidth':
+          this.$store.commit(TOGGLE_CONTENT_WIDTH, value)
+          break
+        case 'fixedHeader':
+          this.$store.commit(TOGGLE_FIXED_HEADER, value)
+          break
+        case 'fixSiderbar':
+          this.$store.commit(TOGGLE_FIXED_SIDEBAR, value)
+          break
+        case 'primaryColor':
+          this.$store.commit(TOGGLE_COLOR, value)
+          break
+        case 'colorWeak':
+          this.$store.commit(TOGGLE_WEAK, value)
+          break
+        case 'multiTab':
+          this.$store.commit(TOGGLE_MULTI_TAB, value)
+          break
+      }
     }
   }
 }

@@ -197,3 +197,260 @@ body.dark .ant-modal-wrap [class*='payment'] .ant-descriptions-item-content,
 body.realdark .ant-modal-wrap [class*='payment'] .ant-descriptions-item-content {
   color: #e5e5e5 !important;
 }
+
+/* ========== Content Surfaces Dark Mode System ========== */
+/* 
+   We target .basic-layout-wrapper.dark to ensure cards switch dynamically
+   without requiring reloading or modifying each individual .vue component.
+*/
+
+.basic-layout-wrapper.dark,
+.basic-layout-wrapper.realdark {
+
+  /* 1. Global Ant Design Cards (Surface 1) */
+  .ant-card {
+    background: #1c1c1c !important;
+    border-color: #303030 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  .ant-card-head {
+    border-bottom-color: #303030 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  .ant-card-actions {
+    background: #1c1c1c !important;
+    border-top-color: #303030 !important;
+    li {
+      border-right-color: #303030 !important;
+      span {
+        color: rgba(255, 255, 255, 0.45) !important;
+        &:hover { color: #1890ff !important; }
+      }
+    }
+  }
+
+  /* 2. Generic Custom Cards (Surface 1) */
+  .today-section,
+  .metric-insight-card,
+  .core-card,
+  .ecosystem-card,
+  .popular-card,
+  .plan-card,
+  .info-card {
+    background: #1c1c1c !important;
+    border-color: #303030 !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
+    
+    .section-title,
+    .metric-title,
+    .card-title,
+    .info-title,
+    .empty-title {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+    .section-badge,
+    .card-subtitle,
+    .card-note,
+    .page-desc,
+    .empty-body {
+      color: rgba(255, 255, 255, 0.45) !important;
+    }
+  }
+
+  /* Specific overrides for My Plan internal dividers/headers */
+  .plan-card-header,
+  .plan-card-footer,
+  .bp-divider {
+    border-color: #303030 !important;
+  }
+  .bp-item {
+    .bp-label { color: rgba(255, 255, 255, 0.45) !important; }
+    .bp-amount { color: rgba(255, 255, 255, 0.85) !important; }
+  }
+  .info-item-title { color: rgba(255, 255, 255, 0.85) !important; }
+  .info-item-desc { color: rgba(255, 255, 255, 0.45) !important; }
+
+  /* Gradient overrides for specific sections */
+  .market-temp-section {
+    background: linear-gradient(135deg, #222 0%, #1c1c1c 100%) !important;
+  }
+  
+  .card-header {
+    background: #252525 !important;
+    border-bottom-color: #303030 !important;
+  }
+  .insight-content {
+    border-color: #303030 !important;
+  }
+
+  /* 3. Nested Content Cards (Surface 2) */
+  .metric-tile,
+  .dim-pill,
+  .wl-card,
+  .plan-row {
+    background: #252525 !important;
+    border-color: #3a3a3a !important;
+    
+    &:hover {
+      background: #333333 !important;
+      border-color: #4a4a4a !important;
+    }
+
+    /* Text colors within Surface 2 */
+    .metric-label, .metric-name, .dim-name, .wl-symbol, .plan-row-symbol, .card-symbol, .card-name {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+    .metric-value, .kv-val, .wl-price {
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+    .metric-explain, .kv-label, .wl-name, .plan-row-meta, .empty-hint, .plan-summary, .plan-attrs, .plan-dates {
+      color: rgba(255, 255, 255, 0.45) !important;
+    }
+    .empty-title {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+  }
+
+  /* 4. Advisory / Muted Blocks (Surface Muted) */
+  .env-summary,
+  .direction-grid,
+  .macro-footer {
+    background: #1e1e1e !important;
+    border-color: #2a2a2a !important;
+    
+    .env-label, .insight-label {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+    .env-body, .insight-text {
+      color: rgba(255, 255, 255, 0.55) !important;
+    }
+  }
+  
+  .provenance-badge {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    
+    &.static {
+      background: rgba(24, 144, 255, 0.1) !important;
+      color: #1890ff !important;
+      border-color: rgba(24, 144, 255, 0.2) !important;
+    }
+    &.derived {
+      background: rgba(250, 173, 20, 0.1) !important;
+      color: #faad14 !important;
+      border-color: rgba(250, 173, 20, 0.2) !important;
+    }
+  }
+
+  /* Specific Badges */
+  .plan-row-badge, .plan-badge, .card-badge {
+    background: #333 !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+  }
+  .plan-row-type, .plan-type-badge {
+    background: rgba(24, 144, 255, 0.1) !important;
+    color: #1890ff !important;
+  }
+  .wl-market-tag {
+    background: #333 !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+  }
+  .wl-mkt-crypto { background: rgba(217, 119, 6, 0.15) !important; color: #f59e0b !important; }
+  .wl-mkt-usstock { background: rgba(37, 99, 235, 0.15) !important; color: #60a5fa !important; }
+  
+  /* Remove bright borders and fix specific typography cases */
+  .ant-list-item { border-bottom-color: #303030 !important; }
+  .ant-list-item-meta-title { color: rgba(255, 255, 255, 0.85) !important; }
+  .ant-list-item-meta-description { color: rgba(255, 255, 255, 0.45) !important; }
+
+  .ant-empty-description {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .ant-statistic-title {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+  .ant-statistic-content {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  /* ========== 5. Holistic Page Wrappers (Deep Dark Background #141414) ========== */
+  .stock-research-workspace,
+  .landing-container,
+  .my-plan-page,
+  .learning-page,
+  .trade-plan-page,
+  .workspace-tabs-container {
+    background-color: transparent !important;
+  }
+  .workspace-header {
+    background: #1c1c1c !important;
+    border-bottom-color: #303030 !important;
+  }
+
+  /* ========== 6. Interactive Elements (Search Bars, Tabs) ========== */
+  .landing-search .ant-input-search .ant-input,
+  .search-container .ant-input-search .ant-input {
+    background: #1c1c1c !important;
+    border-color: #3a3a3a !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    
+    &:focus {
+      border-color: #1890ff !important;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+    }
+  }
+
+  .fincept-tabs .ant-tabs-bar,
+  .popular-tabs .ant-tabs-bar {
+    background: transparent !important;
+    border-bottom-color: #303030 !important;
+  }
+
+  .popular-tabs .ant-tabs-tab {
+    color: rgba(255, 255, 255, 0.45) !important;
+    &:hover { color: #3b82f6 !important; }
+  }
+  .popular-tabs .ant-tabs-tab-active {
+    color: #3b82f6 !important;
+  }
+
+  .fincept-tabs .ant-tabs-tab {
+    color: rgba(255, 255, 255, 0.45) !important;
+    &:hover { color: #faad14 !important; }
+  }
+  .fincept-tabs .ant-tabs-tab-active {
+    color: #faad14 !important;
+  }
+
+  /* ========== 7. Nested Badges & Icons ========== */
+  .platform-icon,
+  .header-icon,
+  .core-icon-wrap,
+  .empty-icon-wrap {
+    background: #2a2a2a !important;
+    border-color: #3a3a3a !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  .card-note {
+    background: #333333 !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+  }
+
+  /* ========== 8. Specific Page Typography Fixes ========== */
+  .landing-title,
+  .popular-title,
+  .page-title,
+  .workspace-title {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  .landing-title .title-zh {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+  .landing-subtitle,
+  .popular-desc,
+  .page-sub {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+}

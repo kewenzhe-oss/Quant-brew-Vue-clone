@@ -319,7 +319,7 @@ export default {
     async loadPlans () {
       this.plansLoading = true
       try {
-        const res = await getPlans()
+        const res = await getPlans({ status: 'active' })
         if (res && res.code === 1) {
           this.plans = Array.isArray(res.data) ? res.data.slice(0, 5) : []
         } else {

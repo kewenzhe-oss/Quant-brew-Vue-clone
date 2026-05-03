@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f9fafb'/%3E%3Cpath d='M18 42V22h15c8 0 13 4 13 10s-5 10-13 10H18zm8-7h7c4 0 6-1 6-3s-2-3-6-3h-7v6z' fill='%23111827'/%3E%3C/svg%3E">
+    <link rel="icon" href="/assets/brand/favicon-32.svg" type="image/svg+xml">
     <title>PostSoma Core</title>
     <style>
       .first-loading-wrp {
@@ -358,17 +358,15 @@
         letter-spacing: 0;
       }
 
-      .loading-mark {
-        width: 36px;
-        height: 36px;
-        border: 2px solid #e5e7eb;
-        border-top-color: #4b5563;
-        border-radius: 50%;
-        animation: loadingSpin 0.9s linear infinite;
+      .brand-loading-icon {
+        width: 48px;
+        height: 48px;
+        animation: loadingPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
 
-      @keyframes loadingSpin {
-        to { transform: rotate(360deg); }
+      @keyframes loadingPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.95); }
       }
       
       /* 暗色主题适配 */
@@ -458,7 +456,7 @@
       <div class="first-loading-wrp">
         <h2>Loading</h2>
         <div class="loading-wrp">
-          <div class="loading-mark"></div>
+          <img src="/assets/brand/icon-primary.svg" class="brand-loading-icon" alt="Loading" />
         </div>
         <div class="brand-text">PostSoma Core</div>
       </div>

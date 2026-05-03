@@ -18,15 +18,96 @@
     </a-alert>
 
     <div class="settings-header">
-      <h2 class="page-title">
-        <a-icon type="setting" />
-        <span>{{ $t('settings.title') }}</span>
-      </h2>
-      <p class="page-desc">{{ $t('settings.description') }}</p>
+      <div>
+        <p class="brand-kicker">
+          <img src="/assets/brand/icon-monochrome.svg" alt="" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 8px; margin-top: -2px;" />
+          PostSoma Core
+        </p>
+        <h2 class="page-title">{{ $t('settings.title') }}</h2>
+        <p class="page-desc">Manage appearance, security, providers, and operational preferences for a disciplined research workspace.</p>
+      </div>
+      <a-button type="primary" class="header-action" @click="handleSave" :loading="saving">
+        <a-icon type="save" />
+        {{ $t('settings.save') }}
+      </a-button>
     </div>
+
+    <section class="settings-section-card appearance-card">
+      <div class="section-card-header">
+        <div>
+          <p class="section-eyebrow">Restored interface settings</p>
+          <h3>Appearance</h3>
+          <p>These controls use the original PostSoma Core theme engine and persist through the existing Vuex/localStorage settings model.</p>
+        </div>
+        <a-tag color="green">Connected</a-tag>
+      </div>
+
+      <a-row :gutter="16" class="appearance-grid">
+        <a-col :xs="24" :lg="8">
+          <div class="appearance-control">
+            <div class="control-copy">
+              <span class="control-label">{{ $t('app.setting.pagestyle') }}</span>
+              <span class="control-helper">Choose the sidebar and global surface tone.</span>
+            </div>
+            <a-radio-group :value="currentNavTheme" button-style="solid" @change="handleMenuTheme">
+              <a-radio-button value="light">{{ $t('app.setting.pagestyle.light') }}</a-radio-button>
+              <a-radio-button value="dark">{{ $t('app.setting.pagestyle.dark') }}</a-radio-button>
+            </a-radio-group>
+          </div>
+        </a-col>
+
+        <a-col :xs="24" :lg="8">
+          <div class="appearance-control">
+            <div class="control-copy">
+              <span class="control-label">{{ $t('app.setting.themecolor') }}</span>
+              <span class="control-helper">Use accents sparingly for states and selected navigation.</span>
+            </div>
+            <div class="color-swatch-row">
+              <a-tooltip v-for="item in colorList" :key="item.color" :title="item.key">
+                <button
+                  type="button"
+                  class="color-swatch"
+                  :class="{ active: item.color === currentPrimaryColor }"
+                  :style="{ backgroundColor: item.color }"
+                  @click="changeColor(item.color)"
+                >
+                  <a-icon v-if="item.color === currentPrimaryColor" type="check" />
+                </button>
+              </a-tooltip>
+            </div>
+          </div>
+        </a-col>
+
+        <a-col :xs="24" :lg="8">
+          <div class="appearance-control stacked">
+            <div class="switch-row">
+              <div class="control-copy">
+                <span class="control-label">{{ $t('app.setting.weakmode') }}</span>
+                <span class="control-helper">Accessibility color adjustment.</span>
+              </div>
+              <a-switch :checked="currentColorWeak" @change="onColorWeak" />
+            </div>
+            <div class="switch-row">
+              <div class="control-copy">
+                <span class="control-label">{{ $t('app.setting.multitab') }}</span>
+                <span class="control-helper">Preserve multi-page workspace tabs.</span>
+              </div>
+              <a-switch :checked="currentMultiTab" @change="onMultiTab" />
+            </div>
+          </div>
+        </a-col>
+      </a-row>
+    </section>
 
     <a-spin :spinning="loading">
       <div class="settings-content">
+        <div class="settings-section-intro">
+          <div>
+            <p class="section-eyebrow">Operational settings</p>
+            <h3>Security, AI, data, and providers</h3>
+          </div>
+          <p>Loaded from the active backend schema. Saving here preserves the existing server-side settings flow.</p>
+        </div>
         <a-collapse v-model="activeKeys" :bordered="false" class="settings-collapse">
           <a-collapse-panel v-for="(group, groupKey) in sortedSchema" :key="groupKey">
             <template slot="header">
@@ -209,6 +290,13 @@
 <script>
 import { getSettingsSchema, getSettingsValues, saveSettings, getOpenRouterBalance } from '@/api/settings'
 import { baseMixin } from '@/store/app-mixin'
+import { updateTheme, updateColorWeak, getColorList } from '@/components/SettingDrawer/settingConfig'
+import {
+  TOGGLE_NAV_THEME,
+  TOGGLE_COLOR,
+  TOGGLE_WEAK,
+  TOGGLE_MULTI_TAB
+} from '@/store/mutation-types'
 
 export default {
   name: 'Settings',
@@ -224,10 +312,26 @@ export default {
       showRestartTip: false,
       // OpenRouter 余额
       balanceLoading: false,
-      openrouterBalance: null
+      openrouterBalance: null,
+
     }
   },
   computed: {
+    colorList () {
+      return getColorList()
+    },
+    currentNavTheme () {
+      return this.navTheme || 'light'
+    },
+    currentPrimaryColor () {
+      return this.primaryColor || '#13C2C2'
+    },
+    currentColorWeak () {
+      return this.colorWeak || false
+    },
+    currentMultiTab () {
+      return this.multiTab !== undefined ? this.multiTab : true
+    },
     isDarkTheme () {
       return this.navTheme === 'dark' || this.navTheme === 'realdark'
     },
@@ -251,8 +355,31 @@ export default {
   },
   mounted () {
     this.loadSettings()
+    updateColorWeak(this.currentColorWeak)
   },
+
   methods: {
+    handleMenuTheme (event) {
+      const theme = event && event.target ? event.target.value : event
+      this.$store.commit(TOGGLE_NAV_THEME, theme)
+    },
+
+    changeColor (color) {
+      if (this.currentPrimaryColor === color) return
+      this.$store.commit(TOGGLE_COLOR, color)
+      updateTheme(color)
+    },
+
+    onColorWeak (checked) {
+      this.$store.commit(TOGGLE_WEAK, checked)
+      updateColorWeak(checked)
+    },
+
+    onMultiTab (checked) {
+      this.$store.commit(TOGGLE_MULTI_TAB, checked)
+    },
+
+    // ---- Settings form ----
     // 兼容后端 schema options 两种格式：
     // - string[]: ['openrouter','openai', ...]
     // - {value,label}[]: [{value:'openrouter',label:'OpenRouter'}, ...]
@@ -456,15 +583,19 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@primary-color: #1890ff;
-@success-color: #52c41a;
-@border-radius: 12px;
-@card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+@primary-color: #1677b7;
+@success-color: #2f8f5b;
+@border-radius: 8px;
+@border-color: #e5e7eb;
+@text-primary: #1f2933;
+@text-secondary: #64707d;
+@surface: #ffffff;
+@page-bg: #f6f5f2;
 
 .settings-page {
-  padding: 24px;
+  padding: 32px;
   min-height: calc(100vh - 120px);
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: @page-bg;
 
   .restart-alert {
     margin-bottom: 16px;
@@ -472,41 +603,195 @@ export default {
   }
 
   .settings-header {
-    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    max-width: 1180px;
+    margin: 0 auto 24px;
+
+    .brand-kicker {
+      margin: 0 0 8px;
+      color: @success-color;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
     .page-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0 0 8px 0;
-      color: #1e3a5f;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .anticon {
-        font-size: 28px;
-        color: @primary-color;
-      }
+      margin: 0 0 8px;
+      color: @text-primary;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: 0;
     }
 
     .page-desc {
-      color: #64748b;
+      max-width: 680px;
+      color: @text-secondary;
       font-size: 14px;
+      line-height: 1.7;
       margin: 0;
+    }
+
+    .header-action {
+      height: 40px;
+      border-radius: 6px;
+      background: #1d6f4f;
+      border-color: #1d6f4f;
+      box-shadow: none;
     }
   }
 
   .settings-content {
+    max-width: 1180px;
+    margin: 0 auto;
     margin-bottom: 80px;
   }
 
-  // OpenRouter 余额查询卡片
+  .settings-section-card,
+  .settings-section-intro {
+    max-width: 1180px;
+    margin: 0 auto 16px;
+  }
+
+  .settings-section-card {
+    padding: 24px;
+    background: @surface;
+    border: 1px solid @border-color;
+    border-radius: @border-radius;
+  }
+
+  .section-card-header,
+  .settings-section-intro {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .section-card-header {
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .settings-section-intro {
+    align-items: flex-end;
+    margin-top: 24px;
+    color: @text-secondary;
+
+    h3 {
+      margin-bottom: 0;
+    }
+
+    p {
+      max-width: 440px;
+      margin: 0;
+      line-height: 1.6;
+    }
+  }
+
+  .section-eyebrow {
+    margin: 0 0 6px;
+    color: @success-color;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .section-card-header h3,
+  .settings-section-intro h3 {
+    margin: 0 0 6px;
+    color: @text-primary;
+    font-size: 18px;
+    font-weight: 650;
+  }
+
+  .section-card-header p {
+    max-width: 680px;
+    margin: 0;
+    color: @text-secondary;
+    line-height: 1.6;
+  }
+
+  .appearance-grid {
+    margin-top: 4px;
+  }
+
+  .appearance-control {
+    min-height: 156px;
+    padding: 16px;
+    border: 1px solid @border-color;
+    border-radius: @border-radius;
+    background: #fbfaf8;
+  }
+
+  .appearance-control.stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .control-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .control-label {
+    color: @text-primary;
+    font-weight: 600;
+  }
+
+  .control-helper {
+    color: @text-secondary;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .switch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+
+    .control-copy {
+      margin-bottom: 0;
+    }
+  }
+
+  .color-swatch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .color-swatch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: #fff;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+
+    &.active {
+      border-color: #111827;
+      box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+    }
+  }
+
   .openrouter-balance-card {
     margin-bottom: 20px;
 
     .ant-card {
-      background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
-      border: 1px solid #91d5ff;
+      background: #f7fbfd;
+      border: 1px solid #cfe3ef;
       border-radius: 8px;
     }
 
@@ -519,7 +804,7 @@ export default {
       .balance-title {
         font-size: 15px;
         font-weight: 600;
-        color: #1890ff;
+        color: @primary-color;
       }
     }
 
@@ -528,7 +813,7 @@ export default {
 
       /deep/ .ant-statistic-title {
         font-size: 12px;
-        color: #666;
+        color: @text-secondary;
       }
 
       /deep/ .ant-statistic-content {
@@ -542,7 +827,7 @@ export default {
     }
 
     .balance-empty {
-      color: #8c8c8c;
+      color: @text-secondary;
       font-size: 13px;
       padding: 8px 0;
     }
@@ -553,20 +838,20 @@ export default {
 
     /deep/ .ant-collapse-item {
       margin-bottom: 16px;
-      border: none;
+      border: 1px solid @border-color;
       border-radius: @border-radius;
       overflow: hidden;
       background: #fff;
-      box-shadow: @card-shadow;
+      box-shadow: none;
 
       .ant-collapse-header {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 600;
-        color: #1e3a5f;
+        color: @text-primary;
         padding: 16px 24px;
         padding-left: 48px;
-        background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
-        border-bottom: 1px solid #f0f0f0;
+        background: #fff;
+        border-bottom: 1px solid #f2f3f5;
         display: flex;
         align-items: center;
 
@@ -583,7 +868,7 @@ export default {
 
           .panel-icon-left {
             font-size: 18px;
-            color: @primary-color;
+            color: @success-color;
           }
 
           .panel-title {
@@ -596,7 +881,7 @@ export default {
         border-top: none;
 
         .ant-collapse-content-box {
-          padding: 24px;
+          padding: 22px 24px 24px;
         }
       }
     }
@@ -607,7 +892,7 @@ export default {
       padding-bottom: 4px;
 
       label {
-        color: #475569;
+        color: @text-primary;
         font-weight: 500;
       }
 
@@ -618,13 +903,13 @@ export default {
         flex-wrap: wrap;
 
         .label-text {
-          color: #475569;
+          color: @text-primary;
           font-weight: 500;
         }
 
         .help-icon {
           font-size: 14px;
-          color: #94a3b8;
+          color: #9aa4af;
           cursor: help;
           transition: color 0.2s;
 
@@ -642,13 +927,13 @@ export default {
           align-items: center;
           gap: 4px;
           padding: 2px 8px;
-          background: rgba(24, 144, 255, 0.08);
+          background: rgba(22, 119, 183, 0.08);
           border-radius: 4px;
           transition: all 0.2s;
           margin-left: 4px;
 
           &:hover {
-            background: rgba(24, 144, 255, 0.15);
+            background: rgba(22, 119, 183, 0.14);
             color: darken(@primary-color, 10%);
           }
 
@@ -683,7 +968,7 @@ export default {
     .field-default {
       margin-top: 4px;
       font-size: 12px;
-      color: #94a3b8;
+      color: #9aa4af;
     }
   }
 
@@ -694,7 +979,8 @@ export default {
     right: 0;
     padding: 16px 24px;
     background: #fff;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid @border-color;
+    box-shadow: none;
     display: flex;
     justify-content: flex-end;
     gap: 12px;
@@ -703,14 +989,19 @@ export default {
     .ant-btn {
       min-width: 100px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: 500;
+    }
+
+    .ant-btn-primary {
+      background: #1d6f4f;
+      border-color: #1d6f4f;
+      box-shadow: none;
     }
   }
 
-  // 暗黑主题
   &.theme-dark {
-    background: linear-gradient(180deg, #141414 0%, #1c1c1c 100%);
+    background: #111315;
 
     .restart-alert {
       background: #1c1c1c;
@@ -718,6 +1009,10 @@ export default {
     }
 
     .settings-header {
+      .brand-kicker {
+        color: #7bc59a;
+      }
+
       .page-title {
         color: #e0e6ed;
       }
@@ -727,13 +1022,52 @@ export default {
       }
     }
 
+    .settings-section-card {
+      background: #191c1f;
+      border-color: #2a2f35;
+    }
+
+    .section-card-header h3,
+    .settings-section-intro h3 {
+      color: #e0e6ed;
+    }
+
+    .section-card-header p,
+    .settings-section-intro,
+    .control-helper {
+      color: #8b949e;
+    }
+
+    .section-eyebrow,
+    .control-label {
+      color: #7bc59a;
+    }
+
+    .appearance-control {
+      background: #15181b;
+      border-color: #2a2f35;
+    }
+
+    .color-swatch.active {
+      border-color: #f4f5f6;
+      box-shadow: 0 0 0 3px rgba(244, 245, 246, 0.12);
+    }
+
+    .openrouter-balance-card {
+      .ant-card {
+        background: #151b20;
+        border-color: #263947;
+      }
+    }
+
     .settings-collapse {
       /deep/ .ant-collapse-item {
         background: #1c1c1c;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+        border-color: #2a2f35;
+        box-shadow: none;
 
         .ant-collapse-header {
-          background: linear-gradient(135deg, #252525 0%, #1c1c1c 100%);
+          background: #1c1c1c;
           color: #e0e6ed;
           border-bottom-color: rgba(255, 255, 255, 0.06);
 
@@ -833,15 +1167,30 @@ export default {
     .settings-footer {
       background: #1c1c1c;
       border-top: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+      box-shadow: none;
     }
   }
 }
 
-// 响应式适配
 @media (max-width: 768px) {
   .settings-page {
     padding: 16px;
+
+    .settings-header,
+    .section-card-header,
+    .settings-section-intro {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .settings-header .header-action {
+      width: 100%;
+    }
+
+    .appearance-control {
+      min-height: auto;
+      margin-bottom: 12px;
+    }
 
     .settings-footer {
       left: 0;

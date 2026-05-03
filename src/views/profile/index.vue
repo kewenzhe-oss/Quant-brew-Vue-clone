@@ -1,19 +1,22 @@
 <template>
   <div class="profile-page" :class="{ 'theme-dark': isDarkTheme }">
     <div class="page-header">
-      <h2 class="page-title">
-        <a-icon type="user" />
-        <span>{{ $t('profile.title') || 'My Profile' }}</span>
-      </h2>
-      <p class="page-desc">{{ $t('profile.description') || 'Manage your account settings and preferences' }}</p>
+      <div>
+        <p class="brand-kicker">PostSoma Core</p>
+        <h2 class="page-title">{{ $t('profile.title') || 'My Profile' }}</h2>
+        <p class="page-desc">Preference and risk control center for account identity, API access, notifications, and data portability.</p>
+      </div>
+      <a-button type="primary" class="header-action" @click="activeTab = 'exchange'">
+        <a-icon type="key" />
+        Manage API keys
+      </a-button>
     </div>
 
-    <a-row :gutter="24" class="profile-cards-row">
-      <!-- Left Column: Profile Card -->
-      <a-col :xs="24" :md="8" class="profile-card-col">
+    <a-row :gutter="24" class="profile-cards-row control-center-row">
+      <a-col :xs="24" :lg="7" class="profile-card-col">
         <a-card :bordered="false" class="profile-card">
           <div class="avatar-section">
-            <a-avatar :size="100" :src="profile.avatar || '/avatar2.jpg'" />
+            <a-avatar :size="72" :src="profile.avatar || '/avatar2.jpg'" />
             <h3 class="username">{{ profile.nickname || profile.username }}</h3>
             <p class="user-role">
               <a-tag :color="getRoleColor(profile.role)">
@@ -46,92 +49,56 @@
         </a-card>
       </a-col>
 
-      <!-- Right Column: Credits and Referral Cards -->
-      <a-col :xs="24" :md="16" class="right-cards-col">
-        <a-row :gutter="16" class="right-cards-row">
-          <!-- Credits Card (积分卡片) -->
-          <a-col :xs="24" :md="12">
-            <a-card :bordered="false" class="credits-card">
-              <div class="credits-header">
-                <h3 class="credits-title">
-                  <a-icon type="wallet" />
-                  {{ $t('profile.credits.title') || '我的积分' }}
-                </h3>
-              </div>
-              <div class="credits-body">
-                <div class="credits-amount">
-                  <span class="amount-value">{{ formatCredits(billing.credits) }}</span>
-                  <span class="amount-label">{{ $t('profile.credits.unit') || '积分' }}</span>
-                </div>
-                <div class="vip-status" v-if="billing.vip_expires_at">
-                  <a-icon type="crown" :style="{ color: isVip ? '#faad14' : '#999' }" />
-                  <span v-if="isVip" class="vip-active">
-                    {{ $t('profile.credits.vipExpires') || 'VIP有效期至' }}: {{ formatDate(billing.vip_expires_at) }}
-                  </span>
-                  <span v-else class="vip-expired">
-                    {{ $t('profile.credits.vipExpired') || 'VIP已过期' }}
-                  </span>
-                </div>
-                <div class="vip-status" v-else-if="!billing.is_vip">
-                  <span class="no-vip">{{ $t('profile.credits.noVip') || '非VIP用户' }}</span>
-                </div>
-              </div>
-              <a-divider />
-              <div class="credits-actions">
-                <a-button type="primary" icon="shopping" @click="handleRecharge">
-                  {{ $t('profile.credits.recharge') || '开通/充值' }}
-                </a-button>
-              </div>
-              <div class="credits-hint" v-if="billing.billing_enabled">
-                <a-icon type="info-circle" />
-                <span>{{ $t('profile.credits.hint') || '使用AI分析/回测/监控等功能会消耗积分；VIP仅可免费使用VIP免费指标。' }}</span>
-              </div>
-            </a-card>
-          </a-col>
+      <a-col :xs="24" :lg="17" class="right-cards-col">
+        <div class="control-grid">
+          <button type="button" class="control-tile" @click="activeTab = 'exchange'">
+            <span class="tile-icon"><a-icon type="api" /></span>
+            <span class="tile-title">API key management</span>
+            <span class="tile-meta">{{ exchangeCredentials.length }} saved connections</span>
+          </button>
+          <button type="button" class="control-tile" @click="activeTab = 'notifications'">
+            <span class="tile-icon"><a-icon type="bell" /></span>
+            <span class="tile-title">Notification defaults</span>
+            <span class="tile-meta">{{ notificationSettings.default_channels.length }} active channels</span>
+          </button>
+          <button type="button" class="control-tile" @click="activeTab = 'password'">
+            <span class="tile-icon"><a-icon type="safety-certificate" /></span>
+            <span class="tile-title">Security review</span>
+            <span class="tile-meta">Email verification required</span>
+          </button>
+          <button type="button" class="control-tile" @click="activeTab = 'credits'">
+            <span class="tile-icon"><a-icon type="audit" /></span>
+            <span class="tile-title">Usage & export trail</span>
+            <span class="tile-meta">{{ formatCredits(billing.credits) }} available credits</span>
+          </button>
+        </div>
 
-          <!-- Referral Card (邀请卡片) -->
-          <a-col :xs="24" :md="12">
-            <a-card :bordered="false" class="referral-card">
-              <div class="referral-header">
-                <h3 class="referral-title">
-                  <a-icon type="team" />
-                  {{ $t('profile.referral.title') || '邀请好友' }}
-                </h3>
-              </div>
-              <div class="referral-body">
-                <div class="referral-stats">
-                  <div class="stat-item">
-                    <span class="stat-value">{{ referralData.total || 0 }}</span>
-                    <span class="stat-label">{{ $t('profile.referral.totalInvited') || '已邀请' }}</span>
-                  </div>
-                  <div class="stat-item" v-if="referralData.referral_bonus > 0">
-                    <span class="stat-value">+{{ referralData.referral_bonus }}</span>
-                    <span class="stat-label">{{ $t('profile.referral.bonusPerInvite') || '每邀请获得' }}</span>
-                  </div>
-                </div>
-                <a-divider style="margin: 12px 0" />
-                <div class="referral-link-section">
-                  <div class="link-label">{{ $t('profile.referral.yourLink') || '您的邀请链接' }}</div>
-                  <div class="link-box">
-                    <a-input
-                      :value="referralLink"
-                      readonly
-                      size="small"
-                    >
-                      <a-tooltip slot="suffix" :title="$t('profile.referral.copyLink') || '复制链接'">
-                        <a-icon type="copy" style="cursor: pointer" @click="copyReferralLink" />
-                      </a-tooltip>
-                    </a-input>
-                  </div>
-                </div>
-                <div class="referral-hint" v-if="referralData.register_bonus > 0">
-                  <a-icon type="gift" />
-                  <span>{{ $t('profile.referral.newUserBonus') || '新用户注册获得' }} {{ referralData.register_bonus }} {{ $t('profile.credits.unit') || '积分' }}</span>
-                </div>
-              </div>
-            </a-card>
-          </a-col>
-        </a-row>
+        <a-card :bordered="false" class="risk-card">
+          <div class="risk-card-header">
+            <div>
+              <p class="section-kicker">Default risk posture</p>
+              <h3>Plan discipline before execution</h3>
+            </div>
+            <a-tag color="green">Review-first</a-tag>
+          </div>
+          <div class="risk-grid">
+            <div class="risk-item">
+              <span class="risk-label">Position sizing</span>
+              <strong>Defined per plan</strong>
+              <span>Budget and cadence are set in Trade Plan before a plan is archived.</span>
+            </div>
+            <div class="risk-item">
+              <span class="risk-label">Alerts</span>
+              <strong>Preference based</strong>
+              <span>Notification defaults apply to watch points and plan review reminders.</span>
+            </div>
+            <div class="risk-item">
+              <span class="risk-label">Connected accounts</span>
+              <strong>Credential gated</strong>
+              <span>External API keys stay managed separately from research workflows.</span>
+            </div>
+          </div>
+        </a-card>
       </a-col>
     </a-row>
 
@@ -269,8 +236,8 @@
               </a-form>
             </a-tab-pane>
 
-            <!-- Credits Log Tab (消费记录) -->
-            <a-tab-pane key="credits" :tab="$t('profile.creditsLog') || '消费记录'">
+            <!-- Usage Log Tab -->
+            <a-tab-pane key="credits" tab="Usage & Export">
               <a-table
                 :columns="creditsLogColumns"
                 :dataSource="creditsLog"
@@ -469,8 +436,8 @@
               </div>
             </a-tab-pane>
 
-            <!-- Exchange Config Tab (交易所配置) -->
-            <a-tab-pane key="exchange" :tab="$t('profile.exchange.title') || '交易所配置'">
+            <!-- API Key Management Tab -->
+            <a-tab-pane key="exchange" tab="API Keys">
               <div class="exchange-config-section">
                 <a-alert
                   :message="$t('profile.exchange.hint')"
@@ -479,10 +446,6 @@
                   style="margin-bottom: 16px"
                 />
                 <div style="margin-bottom: 16px; text-align: right;">
-                  <a-button style="margin-right: 12px" @click="openExchangeSignupModal">
-                    <a-icon type="rocket" />
-                    {{ $t('profile.exchange.openAccount') }}
-                  </a-button>
                   <a-button type="primary" icon="plus" @click="openAddExchangeModal">
                     {{ $t('profile.exchange.addAccount') }}
                   </a-button>
@@ -528,35 +491,6 @@
               </div>
             </a-tab-pane>
 
-            <!-- Referral List Tab (邀请列表) -->
-            <a-tab-pane key="referrals" :tab="$t('profile.referral.listTab') || '邀请列表'">
-              <a-table
-                :columns="referralColumns"
-                :dataSource="referralData.list || []"
-                :loading="referralLoading"
-                :pagination="referralPagination"
-                :rowKey="record => record.id"
-                :locale="{ emptyText: $t('profile.referral.noReferrals') || '暂无邀请记录' }"
-                size="small"
-                @change="handleReferralChange"
-              >
-                <!-- Avatar & Name Column -->
-                <template slot="user" slot-scope="text, record">
-                  <div class="referral-user-cell">
-                    <a-avatar :size="32" :src="record.avatar || '/avatar2.jpg'" />
-                    <div class="user-info">
-                      <span class="nickname">{{ record.nickname || record.username }}</span>
-                      <span class="username">@{{ record.username }}</span>
-                    </div>
-                  </div>
-                </template>
-
-                <!-- Time Column -->
-                <template slot="created_at" slot-scope="text">
-                  {{ formatTime(text) }}
-                </template>
-              </a-table>
-            </a-tab-pane>
           </a-tabs>
         </a-card>
       </a-col>
@@ -566,45 +500,6 @@
       :visible.sync="showAddExchangeModal"
       @success="loadExchangeCredentials"
     />
-
-    <a-modal
-      :title="$t('profile.exchange.openAccountTitle')"
-      :visible="showExchangeSignupModal"
-      :wrap-class-name="exchangeModalWrapClass"
-      @cancel="showExchangeSignupModal = false"
-      :footer="null"
-      width="860px"
-    >
-      <div class="exchange-signup-modal">
-        <div class="exchange-signup-promo">{{ $t('profile.exchange.openAccountPromo') }}</div>
-        <div class="exchange-signup-grid">
-          <div
-            v-for="item in exchangeSignupCards"
-            :key="item.id"
-            class="exchange-signup-card"
-          >
-            <div class="exchange-signup-card__header">
-              <div class="exchange-signup-logo" :style="{ background: item.brandBg, color: item.brandColor }">
-                {{ item.short }}
-              </div>
-              <div class="exchange-signup-meta">
-                <div class="exchange-signup-name">{{ item.name }}</div>
-              </div>
-            </div>
-            <div class="exchange-signup-actions">
-              <a-button
-                type="primary"
-                block
-                :disabled="!item.signupUrl"
-                @click="openExchangeSignupLink(item.signupUrl)"
-              >
-                {{ $t('profile.exchange.openAccountButton') }}
-              </a-button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a-modal>
   </div>
 </template>
 
@@ -708,67 +603,12 @@ export default {
       // Exchange config
       exchangeCredentials: [],
       exchangeLoading: false,
-      showAddExchangeModal: false,
-      showExchangeSignupModal: false,
-      exchangeSignupCards: [
-        {
-          id: 'binance',
-          name: 'Binance',
-          short: 'BN',
-          brandBg: 'rgba(243, 186, 47, 0.16)',
-          brandColor: '#f0b90b',
-          signupUrl: 'https://www.bsmkweb.cc/register?ref=QUANTDINGER'
-        },
-        {
-          id: 'bitget',
-          name: 'Bitget',
-          short: 'BG',
-          brandBg: 'rgba(0, 193, 255, 0.14)',
-          brandColor: '#00c1ff',
-          signupUrl: 'https://partner.hdmune.cn/bg/7r4xz8kd'
-        },
-        {
-          id: 'bybit',
-          name: 'Bybit',
-          short: 'BY',
-          brandBg: 'rgba(247, 166, 0, 0.14)',
-          brandColor: '#f7a600',
-          signupUrl: 'https://partner.bybit.com/b/DINGER'
-        },
-        {
-          id: 'okx',
-          name: 'OKX',
-          short: 'OK',
-          brandBg: 'rgba(17, 24, 39, 0.08)',
-          brandColor: '#111827',
-          signupUrl: 'https://www.xqmnobxky.com/join/QUANTDINGER'
-        },
-        {
-          id: 'gate',
-          name: 'Gate.io',
-          short: 'GT',
-          brandBg: 'rgba(42, 93, 255, 0.12)',
-          brandColor: '#2a5dff',
-          signupUrl: 'https://www.gateport.company/share/DINGER'
-        },
-        {
-          id: 'htx',
-          name: 'HTX',
-          short: 'HX',
-          brandBg: 'rgba(22, 119, 255, 0.12)',
-          brandColor: '#1677ff',
-          signupUrl: 'https://www.htx.com/invite/zh-cn/1f?invite_code=dinger'
-        }
-      ]
+      showAddExchangeModal: false
     }
   },
   computed: {
     isDarkTheme () {
       return this.navTheme === 'dark' || this.navTheme === 'realdark'
-    },
-    exchangeModalWrapClass () {
-      const base = 'profile-exchange-modal'
-      return this.isDarkTheme ? `${base} ${base}--dark` : base
     },
     isVip () {
       if (!this.billing.vip_expires_at) return false
@@ -865,9 +705,6 @@ export default {
       if (val === 'credits' && this.creditsLog.length === 0) {
         this.loadCreditsLog()
       }
-      if (val === 'referrals' && (!this.referralData.list || this.referralData.list.length === 0)) {
-        this.loadReferrals()
-      }
       if (val === 'notifications' && !this.notificationSettings.telegram_chat_id && !this.notificationSettings.discord_webhook) {
         this.loadNotificationSettings()
       }
@@ -883,7 +720,7 @@ export default {
   },
   mounted () {
     this.loadProfile()
-    this.loadReferrals()
+    this.loadExchangeCredentials()
   },
   beforeDestroy () {
     if (this.pwdCodeTimer) {
@@ -1243,17 +1080,9 @@ export default {
       this.showAddExchangeModal = true
     },
 
-    openExchangeSignupModal () {
-      this.showExchangeSignupModal = true
-    },
-
     openExternalLink (url) {
       if (!url) return
       window.open(url, '_blank')
-    },
-
-    openExchangeSignupLink (url) {
-      this.openExternalLink(url)
     },
 
     getExchangeDisplayName (id) {
@@ -1459,39 +1288,68 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@primary-color: #1890ff;
+@primary-color: #1677b7;
+@brand-green: #1d6f4f;
+@surface: #ffffff;
+@page-bg: #f6f5f2;
+@border-color: #e6e2dc;
+@text-main: #1f2933;
+@text-muted: #64707d;
 
 .profile-page {
-  padding: 24px;
+  padding: 32px;
   min-height: calc(100vh - 120px);
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: @page-bg;
 
   .page-header {
-    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    max-width: 1180px;
+    margin: 0 auto 28px;
+
+    .brand-kicker {
+      margin: 0 0 8px;
+      color: @brand-green;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
     .page-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin: 0 0 8px 0;
-      color: #1e3a5f;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .anticon {
-        font-size: 28px;
-        color: @primary-color;
-      }
+      margin: 0 0 8px;
+      color: @text-main;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: 0;
     }
 
     .page-desc {
-      color: #64748b;
+      max-width: 720px;
+      color: @text-muted;
       font-size: 14px;
+      line-height: 1.7;
       margin: 0;
+    }
+
+    .header-action {
+      height: 40px;
+      border-radius: 6px;
+      background: @brand-green;
+      border-color: @brand-green;
+      box-shadow: none;
     }
   }
 
-  // Profile cards row - make cards same height
+  .profile-cards-row,
+  > .ant-row[style] {
+    max-width: 1180px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
   .profile-cards-row {
     display: flex;
     align-items: stretch;
@@ -1537,23 +1395,30 @@ export default {
     }
   }
 
+  .control-center-row {
+    margin-bottom: 24px;
+  }
+
   .profile-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    text-align: center;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    box-shadow: none;
+    text-align: left;
+    background: @surface;
 
     .avatar-section {
-      padding: 20px 0;
+      padding: 4px 0 20px;
+      text-align: left;
 
       .ant-avatar {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: none;
       }
 
       .username {
         margin: 16px 0 8px;
         font-size: 20px;
-        font-weight: 600;
-        color: #1e3a5f;
+        font-weight: 650;
+        color: @text-main;
       }
 
       .user-role {
@@ -1571,8 +1436,9 @@ export default {
       .info-item {
         display: flex;
         align-items: center;
+        gap: 10px;
         padding: 12px 0;
-        border-bottom: 1px solid #f0f0f0;
+        border-bottom: 1px solid #f1efeb;
 
         &:last-child {
           border-bottom: none;
@@ -1580,30 +1446,169 @@ export default {
 
         .anticon {
           font-size: 16px;
-          color: @primary-color;
-          margin-right: 12px;
+          color: @brand-green;
         }
 
         .label {
-          color: #64748b;
+          color: @text-muted;
           margin-right: 8px;
         }
 
         .value {
-          color: #1e3a5f;
+          color: @text-main;
           font-weight: 500;
         }
       }
     }
   }
 
+  .control-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .control-tile {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    grid-template-areas:
+      "icon title"
+      "icon meta";
+    gap: 2px 14px;
+    width: 100%;
+    min-height: 92px;
+    padding: 18px;
+    text-align: left;
+    background: @surface;
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease;
+
+    &:hover {
+      background: #fbfaf8;
+      border-color: #cfd8d2;
+    }
+  }
+
+  .tile-icon {
+    grid-area: icon;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    color: @brand-green;
+    background: #eef7f1;
+    border-radius: 8px;
+    font-size: 17px;
+  }
+
+  .tile-title {
+    grid-area: title;
+    color: @text-main;
+    font-size: 15px;
+    font-weight: 650;
+  }
+
+  .tile-meta {
+    grid-area: meta;
+    color: @text-muted;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .risk-card {
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    box-shadow: none;
+
+    .risk-card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-kicker {
+      margin: 0 0 6px;
+      color: @brand-green;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      margin: 0;
+      color: @text-main;
+      font-size: 18px;
+      font-weight: 650;
+    }
+  }
+
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .risk-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    .risk-label {
+      color: @text-muted;
+      font-size: 12px;
+    }
+
+    strong {
+      color: @text-main;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    span:last-child {
+      color: @text-muted;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+  }
+
   .edit-card {
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid @border-color;
+    border-radius: 8px;
+    box-shadow: none;
+    background: @surface;
+
+    /deep/ .ant-card-body {
+      padding: 28px;
+    }
+
+    /deep/ .ant-tabs-bar {
+      margin-bottom: 28px;
+      border-bottom-color: #ebe7e1;
+    }
+
+    /deep/ .ant-tabs-tab {
+      color: @text-muted;
+      font-weight: 500;
+    }
+
+    /deep/ .ant-tabs-tab-active {
+      color: @brand-green;
+      font-weight: 650;
+    }
+
+    /deep/ .ant-tabs-ink-bar {
+      background-color: @brand-green;
+    }
 
     .profile-form,
     .password-form {
-      max-width: 500px;
+      max-width: 560px;
 
       /deep/ .ant-input,
       /deep/ .ant-input-password {
@@ -1920,9 +1925,13 @@ export default {
 
   // Dark theme
   &.theme-dark {
-    background: linear-gradient(180deg, #141414 0%, #1c1c1c 100%);
+    background: #111315;
 
     .page-header {
+      .brand-kicker {
+        color: #7bc59a;
+      }
+
       .page-title {
         color: #e0e6ed;
       }
@@ -1932,13 +1941,42 @@ export default {
     }
 
     .profile-card,
-    .edit-card {
+    .edit-card,
+    .risk-card,
+    .control-tile {
       background: #1c1c1c;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+      border-color: #2a2f35;
+      box-shadow: none;
 
       /deep/ .ant-card-body {
         background: #1c1c1c;
       }
+    }
+
+    .control-tile:hover {
+      background: #202428;
+      border-color: #3a423d;
+    }
+
+    .tile-icon {
+      background: rgba(123, 197, 154, 0.13);
+      color: #7bc59a;
+    }
+
+    .tile-title,
+    .risk-card h3,
+    .risk-item strong {
+      color: #e0e6ed;
+    }
+
+    .tile-meta,
+    .risk-item .risk-label,
+    .risk-item span:last-child {
+      color: #8b949e;
+    }
+
+    .risk-card .section-kicker {
+      color: #7bc59a;
     }
 
     .profile-card {
@@ -1977,7 +2015,11 @@ export default {
       }
 
       /deep/ .ant-tabs-tab-active {
-        color: @primary-color;
+        color: #7bc59a;
+      }
+
+      /deep/ .ant-tabs-ink-bar {
+        background-color: #7bc59a;
       }
 
       /deep/ .ant-form-item-label label {
@@ -2266,21 +2308,22 @@ export default {
 // ==================== Mobile Responsive Styles ====================
 @media screen and (max-width: 768px) {
   .profile-page {
-    padding: 12px;
+    padding: 16px;
 
     .page-header {
-      margin-bottom: 16px;
+      flex-direction: column;
+      margin-bottom: 20px;
 
       .page-title {
-        font-size: 20px;
-
-        .anticon {
-          font-size: 22px;
-        }
+        font-size: 22px;
       }
 
       .page-desc {
         font-size: 13px;
+      }
+
+      .header-action {
+        width: 100%;
       }
     }
 
@@ -2300,6 +2343,21 @@ export default {
             margin-bottom: 12px;
           }
         }
+      }
+    }
+
+    .control-grid,
+    .risk-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .control-tile {
+      min-height: 82px;
+    }
+
+    .risk-card {
+      .risk-card-header {
+        flex-direction: column;
       }
     }
 
@@ -2582,18 +2640,13 @@ export default {
 // Extra small devices (phones in portrait)
 @media screen and (max-width: 480px) {
   .profile-page {
-    padding: 8px;
+    padding: 12px;
 
     .page-header {
       margin-bottom: 12px;
 
       .page-title {
-        font-size: 18px;
-        gap: 8px;
-
-        .anticon {
-          font-size: 20px;
-        }
+        font-size: 20px;
       }
     }
 
@@ -2651,92 +2704,6 @@ export default {
           }
         }
       }
-    }
-  }
-}
-</style>
-
-<style lang="less">
-/* 交易所弹窗样式已迁至 ExchangeAccountModal.vue（全局），此处保留开户引导弹窗 */
-@exchange-dark-bg: #1c1c1c;
-@exchange-dark-border: #2a2a2a;
-@exchange-dark-title: #e0e6ed;
-
-.exchange-signup-modal {
-  .exchange-signup-promo {
-    margin-bottom: 18px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: linear-gradient(90deg, rgba(22, 119, 255, 0.12) 0%, rgba(99, 102, 241, 0.1) 100%);
-    border: 1px solid rgba(22, 119, 255, 0.2);
-    color: #1e40af;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.5;
-    text-align: center;
-  }
-
-  .exchange-signup-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
-
-  .exchange-signup-card {
-    border: 1px solid #eef1f5;
-    border-radius: 16px;
-    padding: 16px;
-    background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-  }
-
-  .exchange-signup-card__header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  .exchange-signup-logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 700;
-  }
-
-  .exchange-signup-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1f2937;
-  }
-
-  .exchange-signup-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-}
-
-.profile-exchange-modal--dark {
-  .exchange-signup-modal {
-    .exchange-signup-promo {
-      color: #93c5fd;
-      background: linear-gradient(90deg, rgba(59, 130, 246, 0.18) 0%, rgba(99, 102, 241, 0.14) 100%);
-      border-color: rgba(96, 165, 250, 0.35);
-    }
-
-    .exchange-signup-card {
-      background: linear-gradient(180deg, #171717 0%, #1f1f1f 100%);
-      border-color: @exchange-dark-border;
-      box-shadow: none;
-    }
-
-    .exchange-signup-name {
-      color: @exchange-dark-title;
     }
   }
 }

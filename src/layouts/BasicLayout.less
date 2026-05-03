@@ -95,7 +95,7 @@
   body.light .ant-layout-content,
   .ant-layout.light .ant-layout-content,
   .ant-pro-layout.light .ant-layout-content {
-    background: #f0f2f5 !important;
+    background: #f6f5f2 !important;
     color: rgba(0, 0, 0, 0.85) !important;
   }
 
@@ -324,7 +324,7 @@
   &.light {
     /* 0. 基础 Layout 背景 */
     :global(.ant-layout) {
-      background-color: #f0f2f5 !important;
+      background-color: #f6f5f2 !important;
     }
 
     /* 1. 顶部 Header */
@@ -336,12 +336,12 @@
 
     /* 2. 中间内容区域 */
     :global(.ant-layout-content) {
-      background: #f0f2f5 !important;
+      background: #f6f5f2 !important;
       color: rgba(0, 0, 0, 0.85) !important;
     }
 
     :global(.ant-pro-basicLayout-content) {
-      background: #f0f2f5 !important;
+      background: #f6f5f2 !important;
       color: rgba(0, 0, 0, 0.85) !important;
     }
 
@@ -502,6 +502,57 @@
     font-weight: 600 !important;
   }
 
+  .ant-pro-layout.light .ant-pro-sider,
+  .ant-pro-layout.light .ant-layout-sider,
+  body.light .ant-pro-sider,
+  body.light .ant-layout-sider {
+    background: #ffffff !important;
+    border-right: 1px solid #e6e2dc !important;
+  }
+
+  .ant-pro-layout.light .ant-menu,
+  body.light .ant-menu {
+    background: #ffffff !important;
+  }
+
+  .ant-pro-layout.light .ant-menu-inline .ant-menu-item,
+  body.light .ant-menu-inline .ant-menu-item {
+    margin: 4px 10px !important;
+    width: calc(100% - 20px) !important;
+    border-radius: 6px !important;
+  }
+
+  .ant-pro-layout.light .ant-menu-item-selected,
+  body.light .ant-menu-item-selected {
+    background: #eef7f1 !important;
+  }
+
+  .ant-pro-layout.light .ant-menu-item-selected > a,
+  .ant-pro-layout.light .ant-menu-item-selected .anticon,
+  body.light .ant-menu-item-selected > a,
+  body.light .ant-menu-item-selected .anticon {
+    color: #1d6f4f !important;
+  }
+
+  .ant-pro-layout.light .ant-menu-inline .ant-menu-item::after,
+  body.light .ant-menu-inline .ant-menu-item::after {
+    right: auto !important;
+    left: 0 !important;
+    border-right-color: #1d6f4f !important;
+  }
+
+  .ant-pro-layout.dark .ant-menu-dark .ant-menu-item-selected,
+  body.dark .ant-menu-dark .ant-menu-item-selected {
+    background: rgba(47, 143, 91, 0.2) !important;
+  }
+
+  .ant-pro-layout.dark .ant-menu-dark .ant-menu-item-selected > a,
+  .ant-pro-layout.dark .ant-menu-dark .ant-menu-item-selected .anticon,
+  body.dark .ant-menu-dark .ant-menu-item-selected > a,
+  body.dark .ant-menu-dark .ant-menu-item-selected .anticon {
+    color: #7bc59a !important;
+  }
+
   .ant-pro-sider-menu-logo h1 {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
       'Microsoft YaHei UI', sans-serif !important;
@@ -527,4 +578,3 @@
     }
   }
 }
-

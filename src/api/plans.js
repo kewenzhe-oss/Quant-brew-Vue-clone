@@ -23,3 +23,26 @@ export function getPlans (params) {
     params
   })
 }
+
+export function updatePlanStatus (planId, action) {
+  return request({
+    url: `/api/plans/${planId}/status`,
+    method: 'post',
+    data: { action }
+  })
+}
+
+export function getPlan (planId) {
+  return request({
+    url: `/api/plans/${planId}`,
+    method: 'get'
+  })
+}
+
+export function updatePlan (planId, data) {
+  return request({
+    url: `/api/plans/${planId}`,
+    method: 'put',
+    data: data
+  })
+}

@@ -42,7 +42,9 @@
         rel="noopener noreferrer"
       >
         <div class="card-top">
-          <div class="platform-icon">{{ platform.icon }}</div>
+          <div class="platform-icon">
+            <a-icon :type="platform.icon" />
+          </div>
           <a-icon type="export" class="external-icon" />
         </div>
         <div class="card-body">
@@ -67,25 +69,25 @@ export default {
       },
       platforms: [
         {
-          icon: '📰',
+          icon: 'read',
           title: 'NewsHub',
           subtitle: '新闻聚合平台 (News Aggregation Platform)',
           url: 'https://205077.xyz/'
         },
         {
-          icon: '🧠',
+          icon: 'tool',
           title: 'AI Skills',
           subtitle: 'AI 技能与工具聚合 (AI Skills & Tools Hub)',
           url: 'https://aiskills888.dpdns.org/'
         },
         {
-          icon: '✦',
+          icon: 'experiment',
           title: 'AI Prompts & Testing',
           subtitle: '个人提示词分享与测试平台 (Prompt Sharing & Testing)',
           url: 'https://www.205011.xyz/'
         },
         {
-          icon: '📚',
+          icon: 'book',
           title: 'PostSoma Books',
           subtitle: '个人精选书库 (Personal Library)',
           note: 'Access Code: 3yyD9R4tUa8y',
@@ -100,13 +102,13 @@ export default {
 <style scoped lang="less">
 .learning-page {
   width: 100%;
-  max-width: 1040px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 32px 48px;
+  padding: 32px 32px 56px;
 }
 
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .header-main {
@@ -129,9 +131,9 @@ export default {
 
 .page-title {
   margin: 0;
-  color: #111827;
-  font-size: 24px;
-  font-weight: 700;
+  color: #1f2933;
+  font-size: 28px;
+  font-weight: 650;
   letter-spacing: 0;
 }
 
@@ -146,20 +148,19 @@ export default {
   display: flex;
   align-items: center;
   gap: 22px;
-  margin-bottom: 28px;
-  padding: 28px;
-  border: 1px solid #d1d5db;
+  margin-bottom: 32px;
+  padding: 32px;
+  border: 1px solid #e6e2dc;
   border-radius: 8px;
   background: #ffffff;
   color: inherit;
   text-decoration: none;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  box-shadow: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
 
   &:hover {
-    border-color: #9ca3af;
-    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
-    transform: translateY(-2px);
+    border-color: #cfd8d2;
+    background: #fbfaf8;
     color: inherit;
     text-decoration: none;
 
@@ -193,17 +194,18 @@ export default {
 
 .section-kicker {
   margin: 0 0 8px;
-  color: #6b7280;
+  color: #1d6f4f;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .core-title {
   margin: 0 0 8px;
-  color: #111827;
+  color: #1f2933;
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 650;
   line-height: 1.25;
   letter-spacing: 0;
 }
@@ -223,13 +225,13 @@ export default {
 }
 
 .section-heading {
-  margin: 0 0 14px;
+  margin: 0 0 18px;
 
   h2 {
     margin: 0;
-    color: #111827;
+    color: #1f2933;
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 650;
     letter-spacing: 0;
   }
 
@@ -243,7 +245,7 @@ export default {
 .ecosystem-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
 }
 
 .ecosystem-card {
@@ -251,19 +253,18 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 22px;
-  border: 1px solid #e5e7eb;
+  padding: 24px;
+  border: 1px solid #e6e2dc;
   border-radius: 8px;
   background: #ffffff;
   color: inherit;
   text-decoration: none;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  box-shadow: none;
+  transition: border-color 0.18s ease, background 0.18s ease;
 
   &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-    transform: translateY(-2px);
+    border-color: #cfd8d2;
+    background: #fbfaf8;
     color: inherit;
     text-decoration: none;
 
@@ -289,9 +290,10 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #f9fafb;
-  border: 1px solid #eef2f7;
-  font-size: 24px;
+  background: #eef7f1;
+  color: #1d6f4f;
+  border: 1px solid #dbeadf;
+  font-size: 20px;
   line-height: 1;
 }
 
@@ -307,9 +309,9 @@ export default {
 
 .card-title {
   margin: 0 0 8px;
-  color: #111827;
+  color: #1f2933;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 650;
   line-height: 1.3;
   letter-spacing: 0;
 }

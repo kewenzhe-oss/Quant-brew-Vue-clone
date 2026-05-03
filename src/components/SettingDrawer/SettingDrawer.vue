@@ -298,10 +298,28 @@ export default {
 </script>
 
 <style lang="less" scoped>
-  /* 隐藏所有可能的悬浮按钮 */
-  :deep(.ant-drawer-handle),
-  :deep(.setting-drawer-index-handle) {
-    display: none !important;
+
+  .setting-drawer-index-handle {
+    position: absolute;
+    top: 64px;
+    background: #1890ff;
+    width: 48px;
+    height: 48px;
+    right: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 1001;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 4px 0 0 4px;
+
+    i {
+      color: rgb(255, 255, 255);
+      font-size: 20px;
+    }
   }
 
   .setting-drawer-index-content {

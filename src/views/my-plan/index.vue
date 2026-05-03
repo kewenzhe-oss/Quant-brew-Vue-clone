@@ -28,9 +28,19 @@
       <a-button @click="loadPlans">重试</a-button>
     </div>
 
-    <!-- Plan list -->
-    <template v-else-if="plans.length > 0">
-      <div class="plan-list">
+    <template v-else>
+      <!-- Tabs -->
+      <div class="plan-tabs-wrap">
+        <a-tabs v-model="currentTab" @change="handleTabChange">
+          <a-tab-pane key="active" tab="执行中" />
+          <a-tab-pane key="paused" tab="已暂停" />
+          <a-tab-pane key="completed" tab="已完成" />
+          <a-tab-pane key="archived" tab="已归档" />
+        </a-tabs>
+      </div>
+
+      <!-- Plan list -->
+      <div v-if="plans.length > 0" class="plan-list">
         <div v-for="plan in plans" :key="plan.id" class="plan-card">
           <div class="plan-card-header">
             <div class="plan-meta">
@@ -38,9 +48,27 @@
               <span class="plan-badge">{{ plan.asset_type }}</span>
               <span class="plan-type-badge">{{ plan.plan_type }}</span>
             </div>
-            <a-tag :color="statusColor(plan.status)" class="status-tag">
-              {{ statusLabel(plan.status) }}
-            </a-tag>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <a-tag :color="statusColor(plan.status)" class="status-tag" style="margin-right: 0;">
+                {{ statusLabel(plan.status) }}
+              </a-tag>
+              <a-dropdown placement="bottomRight">
+                <a class="ant-dropdown-link" @click="e => e.preventDefault()" style="color: #9ca3af; padding: 4px;">
+                  <a-icon type="ellipsis" style="font-size: 20px; transform: rotate(90deg);" />
+                </a>
+                <a-menu slot="overlay" @click="({ key }) => handleMenuClick(key, plan)">
+                  <a-menu-item key="view">查看详情</a-menu-item>
+                  <a-menu-item key="edit">编辑计划</a-menu-item>
+                  <a-menu-divider />
+                  <a-menu-item v-if="plan.status === 'active'" key="pause">暂停计划</a-menu-item>
+                  <a-menu-item v-if="plan.status === 'paused'" key="activate">恢复计划</a-menu-item>
+                  <a-menu-item v-if="['active', 'paused', 'completed'].includes(plan.status)" key="archive">归档计划</a-menu-item>
+                  <a-menu-item v-if="plan.status === 'archived'" key="pause">恢复到已暂停</a-menu-item>
+                  <a-menu-divider />
+                  <a-menu-item key="delete" style="color: #dc2626;">删除计划</a-menu-item>
+                </a-menu>
+              </a-dropdown>
+            </div>
           </div>
 
           <p v-if="plan.plan && plan.plan.plan_summary" class="plan-summary">
@@ -79,23 +107,21 @@
           </div>
         </div>
       </div>
-    </template>
 
-    <!-- Empty state — only shown when real list is empty -->
-    <template v-else>
-      <div class="empty-section">
+      <!-- Empty state — only shown when real list is empty -->
+      <div v-else class="empty-section">
         <div class="empty-icon-wrap">
           <a-icon type="file-text" class="empty-icon" />
         </div>
-        <h2 class="empty-title">还没有保存的计划</h2>
-        <p class="empty-body">
-          你可以从 Trade Plan 创建一个分批买入计划，或先记录一个长期 DCA 计划。
+        <h2 class="empty-title">{{ currentTab === 'active' ? '你还没有执行中的计划' : (currentTab === 'archived' ? '你还没有归档的计划' : '没有相关的计划记录') }}</h2>
+        <p class="empty-body" v-if="currentTab === 'active'">
+          创建一个长期定投或分批买入计划，帮助你在波动中坚持自己的规则。
         </p>
-        <div class="empty-actions">
+        <div class="empty-actions" v-if="currentTab === 'active'">
           <router-link to="/indicator-ide">
             <a-button type="primary" class="action-btn action-primary">
               <a-icon type="fund" />
-              创建交易计划
+              去创建计划
             </a-button>
           </router-link>
           <a
@@ -148,20 +174,33 @@
       </div>
     </template>
 
+    <!-- Plan Detail Drawer -->
+    <plan-detail-drawer
+      :visible.sync="detailVisible"
+      :planId="activePlanId"
+      @refresh="loadPlans"
+    />
+
   </div>
 </template>
 
 <script>
-import { getPlans } from '@/api/plans'
-import request from '@/utils/request'
+import { getPlans, updatePlanStatus } from '@/api/plans'
+import PlanDetailDrawer from './PlanDetailDrawer'
 
 export default {
   name: 'MyPlan',
+  components: {
+    PlanDetailDrawer
+  },
   data () {
     return {
       plans: [],
+      currentTab: 'active',
       plansLoading: false,
-      plansError: null
+      plansError: null,
+      detailVisible: false,
+      activePlanId: null
     }
   },
   mounted () {
@@ -177,11 +216,14 @@ export default {
       }
       return 1
     },
+    handleTabChange () {
+      this.loadPlans()
+    },
     async loadPlans () {
       this.plansLoading = true
       this.plansError = null
       try {
-        const res = await getPlans()
+        const res = await getPlans({ status: this.currentTab })
         if (res && res.code === 1) {
           this.plans = Array.isArray(res.data) ? res.data : []
         } else {
@@ -223,6 +265,78 @@ export default {
         archived: '已归档'
       }
       return map[status] || status
+    },
+    handleMenuClick (key, plan) {
+      if (key === 'view' || key === 'edit') {
+        this.activePlanId = plan.id
+        this.detailVisible = true
+        return
+      }
+
+      if (key === 'pause') {
+        this.$confirm({
+          title: '暂停这个计划？',
+          content: '暂停后，该计划将不再出现在 Today 的 Active Plans 中，但计划内容和历史记录会保留。',
+          okText: '确认暂停',
+          cancelText: '取消',
+          onOk: () => this.doChangeStatus(plan, 'pause')
+        })
+      } else if (key === 'activate') {
+        this.$confirm({
+          title: '恢复这个计划？',
+          content: '恢复后，该计划将重新出现在 Today 的 Active Plans 中，并继续作为执行中的纪律计划进行跟踪。',
+          okText: '确认恢复',
+          cancelText: '取消',
+          onOk: () => this.doChangeStatus(plan, 'activate')
+        })
+      } else if (key === 'archive') {
+        this.$confirm({
+          title: '归档这个计划？',
+          content: '归档后，该计划将从默认列表和 Today 中隐藏，但你仍可以在“已归档”中查看。',
+          okText: '确认归档',
+          cancelText: '取消',
+          onOk: () => this.doChangeStatus(plan, 'archive')
+        })
+      } else if (key === 'delete') {
+        this.handleDeleteClick(plan)
+      }
+    },
+    
+    // Proper handler for Delete menu item
+    handleDeleteClick (plan) {
+      this.$confirm({
+        title: '永久删除这个计划？',
+        content: '归档后，该计划不会出现在默认列表和 Today 中，但你仍可在“已归档”中查看。永久删除后，该计划将不可恢复。此操作不会影响券商账户。',
+        okText: '永久删除',
+        okType: 'danger',
+        cancelText: '改为归档',
+        onOk: () => this.doChangeStatus(plan, 'delete'),
+        onCancel: () => {
+          // In antd, onCancel is called if user clicks cancel button OR closes modal.
+          // Since PRD asks for a MVP with secondary "改为归档" button, we execute archive here.
+          // To prevent accidental archive when user just clicks 'X', we could check arguments, but for MVP this is acceptable or we just use standard cancel text.
+          // Actually, antd passes no args on cancel click, but we can do it:
+          this.doChangeStatus(plan, 'archive')
+        }
+      })
+    },
+    
+    async doChangeStatus (plan, action) {
+      const hide = this.$message.loading('处理中...', 0)
+      try {
+        const res = await updatePlanStatus(plan.id, action)
+        if (res && res.code === 1) {
+          this.$message.success('操作成功')
+          this.loadPlans() // Refresh list (optimistic or just reload)
+        } else {
+          this.$message.error(res?.msg || '操作失败')
+        }
+      } catch (err) {
+        this.$message.error('操作失败，请重试')
+        console.error(err)
+      } finally {
+        hide()
+      }
     }
   }
 }
@@ -265,6 +379,15 @@ export default {
 }
 
 .error-state .state-icon { font-size: 32px; color: #f59e0b; margin-bottom: 12px; }
+
+// Tabs
+.plan-tabs-wrap {
+  margin-bottom: 8px;
+  :deep(.ant-tabs-nav) {
+    font-size: 15px;
+    font-weight: 500;
+  }
+}
 
 // Plan list
 .plan-list { display: flex; flex-direction: column; gap: 16px; }

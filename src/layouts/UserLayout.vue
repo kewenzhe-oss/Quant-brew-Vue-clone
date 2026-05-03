@@ -10,7 +10,7 @@
         <div class="top">
           <div class="header">
             <a href="/" class="login-brand">
-              PostSoma Core
+              <img src="/assets/brand/lockup.svg" alt="PostSoma Core" style="height: 32px; width: auto;" />
             </a>
           </div>
         </div>

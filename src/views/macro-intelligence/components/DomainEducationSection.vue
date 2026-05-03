@@ -4,7 +4,7 @@
       <a-collapse-panel key="1" class="education-panel">
         <template #header>
           <div class="education-header">
-            <span class="education-title">📚 如何阅读这些指标</span>
+            <span class="education-title"><a-icon type="book" /> 如何阅读这些指标</span>
             <span class="education-badge">固定说明 · 非 AI 生成 · 不参与今日判断</span>
           </div>
         </template>
@@ -132,6 +132,9 @@ export default {
 }
 
 .education-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
