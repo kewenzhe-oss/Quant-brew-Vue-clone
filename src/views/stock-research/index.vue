@@ -502,4 +502,31 @@ export default {
     text-overflow: ellipsis;
   }
 }
+
+/* ========== Mobile UX: Stock Research Header and Spacing (PR2) ========== */
+@media (max-width: 768px) {
+  .workspace-header {
+    padding: 12px 16px !important;
+
+    .header-content {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 12px !important;
+
+      .search-container {
+        width: 100% !important;
+      }
+    }
+  }
+
+  .landing-container {
+    padding: 40px 16px 30px !important;
+  }
+  .landing-content {
+    gap: 24px !important;
+  }
+  .landing-header .landing-title {
+    font-size: 26px !important;
+  }
+}
 </style>

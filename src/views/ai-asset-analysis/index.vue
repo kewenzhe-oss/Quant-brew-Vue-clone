@@ -794,19 +794,20 @@ export default {
 
       .workspace-tabs {
         ::v-deep .ant-tabs-bar {
-          padding: 0 6px;
+          padding: 0 6px !important;
         }
 
         ::v-deep .ant-tabs-nav-scroll {
-          overflow-x: auto;
+          overflow-x: auto !important;
+          padding: 0 4px !important;
           -webkit-overflow-scrolling: touch;
         }
 
         ::v-deep .ant-tabs-tab {
-          font-size: 14px;
-          padding: 10px 8px;
-          margin-right: 2px;
-          white-space: nowrap;
+          font-size: 13px !important;
+          padding: 8px 10px !important;
+          margin-right: 2px !important;
+          white-space: nowrap !important;
         }
       }
 

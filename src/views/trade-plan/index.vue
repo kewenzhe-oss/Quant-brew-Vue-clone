@@ -594,6 +594,13 @@ export default {
   .tp-sidebar-col {
     width: 100%;
   }
+
+  // Force form columns to take full width on mobile viewports
+  /deep/ .ant-col-12,
+  /deep/ .ant-col-8 {
+    width: 100% !important;
+    float: none !important;
+  }
 }
 
 .tp-tech-card {
@@ -788,6 +795,16 @@ export default {
   .draft-grid {
     flex-direction: column;
     gap: 16px;
+  }
+
+  // Force budget cards and scenario panels to stack vertically on mobile browsers
+  /deep/ .draft-main .ant-row > .ant-col-8 {
+    width: 100% !important;
+    margin-bottom: 12px;
+  }
+  /deep/ .draft-scenarios .ant-row > .ant-col-6 {
+    width: 100% !important;
+    margin-bottom: 12px;
   }
 }
 </style>

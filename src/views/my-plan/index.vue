@@ -535,5 +535,25 @@ export default {
   .page-title { font-size: 20px; }
   .budget-preview { flex-direction: column; gap: 12px; }
   .bp-divider { width: 100%; height: 1px; margin: 4px 0; }
+
+  // Wrap plan card headers and meta badges cleanly on mobile viewports
+  .plan-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .plan-meta {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  // Compact tab components
+  ::v-deep .ant-tabs-nav-scroll {
+    padding: 0 4px !important;
+  }
+  ::v-deep .ant-tabs-tab {
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
 }
 </style>

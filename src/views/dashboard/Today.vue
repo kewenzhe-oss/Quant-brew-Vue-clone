@@ -640,8 +640,50 @@ export default {
 
 @media (max-width: 600px) {
   .section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .metrics-strip .metric-tile { min-width: 100%; }
-  .dimensions-row .dim-pill { min-width: 100%; }
+
+  // Enforce a tight 2-column layout for dashboard metrics to save space
+  .metrics-strip {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+  .metrics-strip .metric-tile {
+    min-width: 0 !important;
+    padding: 10px 12px !important;
+  }
+  .metric-value {
+    font-size: 20px !important;
+  }
+
+  // Enforce 2-column layout for macro dimensions
+  .dimensions-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+  .dimensions-row .dim-pill {
+    min-width: 0 !important;
+    padding: 10px 12px !important;
+  }
+
+  // Wrap active plan row elements cleanly on small viewports
+  .plan-row {
+    flex-wrap: wrap !important;
+    gap: 6px 12px !important;
+    padding: 10px 12px !important;
+  }
+  .plan-row-main {
+    width: 100% !important;
+    flex: none !important;
+  }
+  .plan-row-meta {
+    font-size: 11px !important;
+  }
+  .plan-row-status {
+    margin-left: auto !important;
+  }
 }
 
 /* Watchlist Grid Styles */

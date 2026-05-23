@@ -184,4 +184,23 @@ export default {
   color: #bfbfbf;
   font-size: 14px;
 }
+
+/* ========== Mobile UX: Persistent Global Quote Bar Wrap (PR2) ========== */
+@media (max-width: 768px) {
+  .global-quote-bar {
+    height: auto !important;
+    padding: 12px 16px !important;
+  }
+  .quote-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .stats-row {
+    margin-left: 0 !important;
+    flex-wrap: wrap !important;
+    gap: 8px 16px !important;
+    width: 100% !important;
+  }
+}
 </style>
