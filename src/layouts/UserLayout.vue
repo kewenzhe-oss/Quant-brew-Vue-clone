@@ -54,10 +54,9 @@ export default {
   .container {
     width: 100%;
     min-height: 100%;
-    background: #f0f2f5 url(~@/assets/background.svg) no-repeat 50%;
-    background-size: 100%;
-    //padding: 50px 0 84px;
+    background: #f6f8fa;
     position: relative;
+    transition: background 0.3s ease;
 
     .fx-layer {
       position: absolute;
@@ -68,29 +67,24 @@ export default {
 
       .fx-gradient {
         position: absolute;
-        inset: -20% -20% -20% -20%;
-        background: radial-gradient(1200px 600px at 10% 10%, rgba(78, 161, 255, 0.18), transparent 60%),
-                    radial-gradient(900px 500px at 90% 20%, rgba(127, 92, 255, 0.18), transparent 60%),
-                    radial-gradient(800px 500px at 30% 90%, rgba(0, 210, 170, 0.14), transparent 60%);
-        filter: blur(20px);
-        animation: fxFloat 18s ease-in-out infinite alternate;
+        inset: 0;
+        background: radial-gradient(800px 400px at 50% 0%, rgba(24, 144, 255, 0.05), transparent 70%);
+        filter: blur(40px);
         transform: translateZ(0);
       }
 
       .fx-grid {
         position: absolute;
         inset: 0;
-        background-image: linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
-        background-size: 44px 44px, 44px 44px;
-        background-position: 0 0, 0 0;
-        mix-blend-mode: overlay;
-        animation: gridDrift 40s linear infinite;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+        background-size: 32px 32px;
+        background-position: center top;
       }
     }
 
     .user-layout-content {
-      padding: 40px 0 32px;
+      padding: 64px 0 48px;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
@@ -99,25 +93,23 @@ export default {
 
       .top {
         text-align: center;
+        margin-bottom: 24px;
 
         .header {
-          height: 56px;
-          line-height: 56px;
+          height: 48px;
+          line-height: 48px;
 
           .login-brand {
-            color: #1f2937;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: 0;
-            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.9;
+            transition: opacity 0.2s ease;
+
+            &:hover {
+              opacity: 1;
+            }
           }
-        }
-        .desc {
-          font-size: 14px;
-          color: rgba(0, 0, 0, 0.45);
-          margin-top: 12px;
-          margin-bottom: 40px;
         }
       }
 
@@ -133,34 +125,47 @@ export default {
         flex-direction: column;
         justify-content: center;
       }
-
     }
 
     a {
       text-decoration: none;
     }
+  }
+}
 
+/* Dark Theme Overrides */
+body.dark,
+body.realdark {
+  #userLayout.user-layout-wrapper {
+    .container {
+      background: #09090b;
+
+      .fx-layer {
+        .fx-gradient {
+          background: radial-gradient(800px 400px at 50% 0%, rgba(255, 255, 255, 0.02), transparent 70%);
+        }
+        .fx-grid {
+          background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+        }
+      }
+
+      .user-layout-content {
+        .top {
+          .header {
+            .login-brand {
+              filter: invert(1) brightness(0.9);
+            }
+          }
+        }
+      }
+    }
   }
 }
 
 @media (max-width: 576px) {
-  #userLayout.user-layout-wrapper .container .user-layout-content .top .header .login-brand {
-    font-size: 24px;
-  }
   #userLayout.user-layout-wrapper .container .user-layout-content .main {
     width: 92vw;
   }
-}
-
-@keyframes fxFloat {
-  0%   { transform: translate3d(-2%, -1%, 0) scale(1); }
-  50%  { transform: translate3d(1%, 2%, 0) scale(1.02); }
-  100% { transform: translate3d(3%, -2%, 0) scale(1.04); }
-}
-
-@keyframes gridDrift {
-  0%   { background-position: 0 0, 0 0; transform: rotate(0deg); }
-  50%  { background-position: 22px 22px, 22px 22px; }
-  100% { background-position: 44px 44px, 44px 44px; transform: rotate(0.01turn); }
 }
 </style>

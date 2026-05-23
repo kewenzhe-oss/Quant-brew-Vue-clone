@@ -1,7 +1,10 @@
 <template>
   <div class="main">
     <div class="auth-intro">
-      <div class="desc">AI driven quantitative insights for global markets</div>
+      <div class="brand-badge">RESEARCH WORKBENCH</div>
+      <h1 class="brand-headline">{{ $t('user.login.subtitle') }}</h1>
+      <p class="brand-tagline">{{ $t('user.login.tagline') }}</p>
+      <div class="brand-separator"></div>
     </div>
 
     <div class="auth-card">
@@ -1358,26 +1361,56 @@ export default {
   align-items: center;
   justify-content: center;
   min-height: 100%;
-  padding: 40px 0;
+  padding: 40px 20px;
 
   .auth-intro {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
+    max-width: 480px;
 
-    .desc {
-      margin-top: 12px;
+    .brand-badge {
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
       color: rgba(0, 0, 0, 0.45);
-      font-size: 14px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .brand-headline {
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #111827;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-tagline {
+      font-size: 13.5px;
+      color: rgba(0, 0, 0, 0.45);
+      line-height: 1.6;
+      margin: 0 auto;
+      max-width: 420px;
+    }
+
+    .brand-separator {
+      width: 40px;
+      height: 1px;
+      background: rgba(0, 0, 0, 0.08);
+      margin: 20px auto 0;
     }
   }
 
   .auth-card {
-    min-width: 360px;
+    min-width: 320px;
     width: 420px;
     background: #fff;
-    padding: 32px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 36px 40px;
+    border-radius: 4px;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.015);
   }
 
   .oauth-processing {
@@ -1391,10 +1424,58 @@ export default {
   }
 
   .auth-form {
+    /deep/ .ant-form-item {
+      margin-bottom: 20px;
+    }
+
+    /deep/ .ant-input,
+    /deep/ .ant-input-password {
+      border-radius: 4px !important;
+      border: 1px solid #d9d9d9 !important;
+      background-color: transparent !important;
+      color: rgba(0, 0, 0, 0.85) !important;
+      transition: all 0.2s !important;
+      height: 40px;
+
+      &:hover {
+        border-color: #a3a3a3 !important;
+      }
+      &:focus, &-focused {
+        border-color: #111827 !important;
+        box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.05) !important;
+      }
+    }
+
+    /deep/ .ant-input-password-icon {
+      color: rgba(0, 0, 0, 0.45) !important;
+    }
+
+    /deep/ .ant-input-prefix {
+      color: rgba(0, 0, 0, 0.35) !important;
+    }
+
     .submit-button {
       padding: 0 15px;
-      font-size: 16px;
-      height: 40px;
+      font-size: 14px;
+      height: 42px;
+      background-color: #111827 !important;
+      border-color: #111827 !important;
+      color: #ffffff !important;
+      border-radius: 4px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.02em !important;
+      transition: all 0.2s !important;
+
+      &:hover, &:focus {
+        background-color: #1f2937 !important;
+        border-color: #1f2937 !important;
+      }
+
+      &[disabled] {
+        background-color: #f5f5f5 !important;
+        border-color: #d9d9d9 !important;
+        color: rgba(0, 0, 0, 0.25) !important;
+      }
     }
   }
 
@@ -1406,25 +1487,26 @@ export default {
 
     a {
       color: rgba(0, 0, 0, 0.45);
-      font-size: 14px;
+      font-size: 13.5px;
       cursor: pointer;
-      padding: 4px 0;
+      padding: 4px 8px;
       border-bottom: 2px solid transparent;
       transition: all 0.3s;
 
       &:hover {
-        color: #1890ff;
+        color: #111827;
       }
 
       &.active {
-        color: #1890ff;
-        border-bottom-color: #1890ff;
+        color: #111827;
+        border-bottom-color: #111827;
         font-weight: 500;
       }
     }
 
     .ant-divider {
       margin: 0 16px;
+      background: #eaeaea;
     }
   }
 
@@ -1434,24 +1516,26 @@ export default {
     justify-content: center;
     gap: 6px;
     margin-top: 16px;
-    font-size: 13px;
+    font-size: 12px;
     color: rgba(0, 0, 0, 0.45);
 
     .anticon {
-      color: #1890ff;
+      color: #8c8c8c;
     }
   }
 
   .auth-links {
     text-align: center;
     margin-top: 16px;
-    font-size: 14px;
+    font-size: 13px;
 
     a {
-      color: #1890ff;
+      color: rgba(0, 0, 0, 0.45);
       cursor: pointer;
+      transition: color 0.2s ease;
 
       &:hover {
+        color: #111827;
         text-decoration: underline;
       }
     }
@@ -1461,8 +1545,8 @@ export default {
     margin-top: 24px;
 
     .ant-divider {
-      color: rgba(0, 0, 0, 0.45);
-      font-size: 13px;
+      color: rgba(0, 0, 0, 0.35);
+      font-size: 12px;
     }
 
     .oauth-buttons {
@@ -1476,45 +1560,34 @@ export default {
         align-items: center;
         justify-content: center;
         gap: 8px;
-        height: 40px;
-        font-size: 14px;
+        height: 38px;
+        font-size: 13px;
+        border-radius: 4px;
+        border-color: #d9d9d9;
+        color: rgba(0, 0, 0, 0.65);
+        transition: all 0.2s ease;
 
         .oauth-icon {
-          width: 18px;
-          height: 18px;
+          width: 16px;
+          height: 16px;
         }
 
         .anticon {
-          font-size: 18px;
+          font-size: 16px;
         }
-      }
-
-      .google-btn {
-        border-color: #d9d9d9;
-        color: rgba(0, 0, 0, 0.65);
 
         &:hover {
-          border-color: #4285F4;
-          color: #4285F4;
-        }
-      }
-
-      .github-btn {
-        border-color: #d9d9d9;
-        color: rgba(0, 0, 0, 0.65);
-
-        &:hover {
-          border-color: #24292e;
-          color: #24292e;
+          border-color: #111827;
+          color: #111827;
         }
       }
     }
   }
 
   .legal-wrap {
-    margin-top: 20px;
+    margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px dashed #f0f0f0;
+    border-top: 1px solid #eaeaea;
 
     .legal-header {
       display: flex;
@@ -1523,44 +1596,69 @@ export default {
       line-height: 20px;
     }
     .legal-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      color: rgba(0, 0, 0, 0.75);
+      color: rgba(0, 0, 0, 0.65);
     }
     .legal-toggle {
-      font-size: 12px;
-      color: #1890ff;
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.45);
       cursor: pointer;
+
+      &:hover {
+        color: #111827;
+        text-decoration: underline;
+      }
     }
     .legal-content {
       margin-top: 8px;
-      font-size: 12px;
+      font-size: 11px;
       color: rgba(0, 0, 0, 0.45);
-      line-height: 1.7;
+      line-height: 1.6;
       white-space: pre-wrap;
+      background: #f9fafb;
+      padding: 12px;
+      border: 1px solid #eaeaea;
+      border-radius: 4px;
+      max-height: 100px;
+      overflow-y: auto;
     }
 
     .legal-agree {
-      margin-top: 10px;
+      margin-top: 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
+
+      /deep/ .ant-checkbox-wrapper {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.45);
+
+        .ant-checkbox-inner {
+          border-radius: 2px;
+        }
+        .ant-checkbox-checked .ant-checkbox-inner {
+          background-color: #111827;
+          border-color: #111827;
+        }
+      }
     }
 
     .legal-error {
       color: #ff4d4f;
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.4;
     }
   }
 }
 
 .email-display {
-  background: #f5f5f5;
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 24px;
-  font-size: 14px;
+  background: #f9fafb;
+  padding: 10px 14px;
+  border-radius: 4px;
+  border: 1px solid #eaeaea;
+  margin-bottom: 20px;
+  font-size: 13.5px;
 
   span {
     color: rgba(0, 0, 0, 0.45);
@@ -1573,17 +1671,17 @@ export default {
 }
 
 .success-panel {
-  padding: 20px 0;
+  padding: 16px 0;
 }
 
 .password-requirements {
-  font-size: 13px;
+  font-size: 12px;
 
   > div {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
+    padding: 3px 0;
     color: #ff4d4f;
 
     &.valid {
@@ -1591,8 +1689,230 @@ export default {
     }
 
     .anticon {
-      font-size: 14px;
+      font-size: 12px;
     }
+  }
+}
+
+/* Custom tabs styling */
+/deep/ .ant-tabs-nav-scroll {
+  display: flex;
+  justify-content: center;
+}
+
+/deep/ .ant-tabs-nav {
+  .ant-tabs-tab {
+    margin: 0 20px !important;
+    padding: 12px 10px !important;
+    color: rgba(0, 0, 0, 0.45) !important;
+    font-size: 14px !important;
+    font-weight: 500;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #111827 !important;
+    }
+  }
+
+  .ant-tabs-tab-active {
+    color: #111827 !important;
+    font-weight: 600;
+  }
+}
+
+/deep/ .ant-tabs-ink-bar {
+  background-color: #111827 !important;
+}
+
+/deep/ .ant-tabs-bar {
+  border-bottom: 1px solid #eaeaea !important;
+  margin-bottom: 24px !important;
+}
+
+/* ========== Dark Theme Overrides for Login Component ========== */
+body.dark,
+body.realdark {
+  .main {
+    .auth-intro {
+      .brand-badge {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .brand-headline {
+        color: #f3f4f6;
+      }
+      .brand-tagline {
+        color: rgba(255, 255, 255, 0.45);
+      }
+      .brand-separator {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    .auth-card {
+      background: #09090b;
+      border: 1px solid #27272a;
+      box-shadow: none;
+    }
+
+    .auth-form {
+      /deep/ .ant-input,
+      /deep/ .ant-input-password {
+        border: 1px solid #27272a !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+
+        &:hover {
+          border-color: #52525b !important;
+        }
+        &:focus, &-focused {
+          border-color: #a1a1aa !important;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05) !important;
+        }
+      }
+
+      /deep/ .ant-input-password-icon {
+        color: rgba(255, 255, 255, 0.45) !important;
+      }
+
+      /deep/ .ant-input-prefix {
+        color: rgba(255, 255, 255, 0.35) !important;
+      }
+
+      .submit-button {
+        background-color: #ffffff !important;
+        border-color: #ffffff !important;
+        color: #111827 !important;
+
+        &:hover, &:focus {
+          background-color: #e4e4e7 !important;
+          border-color: #e4e4e7 !important;
+        }
+
+        &[disabled] {
+          background-color: #27272a !important;
+          border-color: #27272a !important;
+          color: rgba(255, 255, 255, 0.25) !important;
+        }
+      }
+    }
+
+    .login-method-switch {
+      a {
+        color: rgba(255, 255, 255, 0.45);
+
+        &:hover {
+          color: #ffffff;
+        }
+
+        &.active {
+          color: #ffffff;
+          border-bottom-color: #ffffff;
+        }
+      }
+
+      .ant-divider {
+        background: #27272a;
+      }
+    }
+
+    .code-login-hint {
+      color: rgba(255, 255, 255, 0.45);
+
+      .anticon {
+        color: #52525b;
+      }
+    }
+
+    .auth-links {
+      a {
+        color: rgba(255, 255, 255, 0.45);
+
+        &:hover {
+          color: #ffffff;
+        }
+      }
+    }
+
+    .oauth-section {
+      .oauth-buttons {
+        .oauth-btn {
+          border-color: #27272a;
+          color: rgba(255, 255, 255, 0.65);
+
+          &:hover {
+            border-color: #ffffff;
+            color: #ffffff;
+          }
+        }
+      }
+    }
+
+    .legal-wrap {
+      border-top: 1px solid #27272a;
+
+      .legal-title {
+        color: rgba(255, 255, 255, 0.65);
+      }
+      .legal-toggle {
+        color: rgba(255, 255, 255, 0.45);
+
+        &:hover {
+          color: #ffffff;
+        }
+      }
+      .legal-content {
+        color: rgba(255, 255, 255, 0.45);
+        background: #18181b;
+        border: 1px solid #27272a;
+      }
+
+      .legal-agree {
+        /deep/ .ant-checkbox-wrapper {
+          color: rgba(255, 255, 255, 0.45);
+
+          .ant-checkbox-checked .ant-checkbox-inner {
+            background-color: #ffffff;
+            border-color: #ffffff;
+
+            &::after {
+              border-color: #111827;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .email-display {
+    background: #18181b;
+    border: 1px solid #27272a;
+
+    span {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    strong {
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+
+  /deep/ .ant-tabs-tab {
+    color: rgba(255, 255, 255, 0.45) !important;
+
+    &:hover {
+      color: #ffffff !important;
+    }
+  }
+
+  /deep/ .ant-tabs-tab-active {
+    color: #ffffff !important;
+  }
+
+  /deep/ .ant-tabs-ink-bar {
+    background-color: #ffffff !important;
+  }
+
+  /deep/ .ant-tabs-bar {
+    border-bottom: 1px solid #27272a !important;
   }
 }
 </style>
