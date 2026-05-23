@@ -353,3 +353,102 @@ body.realdark {
   }
 }
 
+/* ========== Mobile UX: PR3 — Mobile Polish ========== */
+
+// Step 1: Form stacking — force label + input to stack vertically on small screens
+@media (max-width: 576px) {
+  .ant-form-item {
+    display: block !important;
+    margin-bottom: 16px !important;
+
+    .ant-form-item-label,
+    .ant-form-item-control-wrapper {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-left: 0 !important;
+      float: none !important;
+      display: block !important;
+      text-align: left !important;
+    }
+
+    .ant-form-item-label {
+      padding: 0 0 4px !important;
+      line-height: 1.5 !important;
+
+      label {
+        font-weight: 500 !important;
+      }
+    }
+  }
+}
+
+// Step 2: Modal auto-scaling — prevent overflow on any fixed-width modal
+@media (max-width: 768px) {
+  .ant-modal {
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+  }
+
+  .ant-modal-centered .ant-modal {
+    top: 0 !important;
+  }
+
+  .ant-modal-body {
+    padding: 16px !important;
+  }
+
+  .ant-modal-footer {
+    padding: 10px 16px !important;
+  }
+}
+
+// Step 3: Empty state compact spacing
+@media (max-width: 768px) {
+  .ant-empty {
+    margin: 16px 0 !important;
+
+    .ant-empty-image {
+      height: 48px !important;
+      margin-bottom: 8px !important;
+    }
+
+    .ant-empty-description {
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+    }
+  }
+}
+
+// Step 4: Typography scale-down on mobile
+@media (max-width: 768px) {
+  h1 { font-size: 20px !important; line-height: 1.3 !important; }
+  h2 { font-size: 18px !important; line-height: 1.3 !important; }
+  h3 { font-size: 16px !important; line-height: 1.4 !important; }
+  h4 { font-size: 14px !important; line-height: 1.4 !important; }
+
+  .ant-page-header-heading-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+  }
+
+  .ant-page-header-heading-sub-title {
+    font-size: 12px !important;
+  }
+}
+
+// Step 5: GPU-accelerated transitions for drawer and modal overlays
+@media (max-width: 768px) {
+  .ant-drawer,
+  .ant-modal-mask,
+  .ant-modal-wrap {
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .ant-layout-content,
+  .ant-table-wrapper,
+  .ant-drawer-wrapper-body {
+    -webkit-overflow-scrolling: touch;
+  }
+}
