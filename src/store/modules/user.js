@@ -1,6 +1,6 @@
 import storage from 'store'
 import expirePlugin from 'store/plugins/expire'
-import { login, logout, getUserInfo } from '@/api/login'
+import { login, logout, getUserInfo } from '@/api/auth'
 import { ACCESS_TOKEN, USER_INFO, USER_ROLES } from '@/store/mutation-types'
 import { welcome } from '@/utils/util'
 

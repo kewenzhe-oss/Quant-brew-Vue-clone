@@ -1,6 +1,6 @@
 <template>
   <div class="metric-category-section" v-if="coreMetrics.length > 0 || advancedMetrics.length > 0">
-    <h2 class="category-title">{{ category.name }}</h2>
+    <h2 class="category-title">{{ getCategoryTitle(category) }}</h2>
     <div class="metrics-list" v-if="coreMetrics.length > 0">
       <metric-insight-card
         v-for="metric in coreMetrics"
@@ -11,7 +11,7 @@
 
     <div v-if="advancedMetrics.length > 0" class="advanced-section">
       <div class="advanced-toggle" @click="toggleAdvanced">
-        <span class="toggle-text">{{ showAdvanced ? '收起高级指标' : '展开高级指标' }}</span>
+        <span class="toggle-text">{{ showAdvanced ? $t('macro.detail.hideAdvanced') : $t('macro.detail.showAdvanced') }}</span>
         <span class="toggle-icon">{{ showAdvanced ? '▲' : '▼' }}</span>
       </div>
       <div class="metrics-list" v-show="showAdvanced">
@@ -46,13 +46,17 @@ export default {
   },
   computed: {
     coreMetrics () {
-      return this.category.metrics.filter(m => m.visibility === 'detail_core')
+      return this.category.coreMetrics || []
     },
     advancedMetrics () {
-      return this.category.metrics.filter(m => m.visibility === 'advanced')
+      return this.category.advancedMetrics || []
     }
   },
   methods: {
+    getCategoryTitle (category) {
+      const key = `macro.detail.categories.${category.id}`
+      return this.$te(key) ? this.$t(key) : category.name
+    },
     toggleAdvanced () {
       this.showAdvanced = !this.showAdvanced
       if (this.showAdvanced) {

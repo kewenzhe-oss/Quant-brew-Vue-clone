@@ -55,6 +55,9 @@ export function getUserInfo () {
   })
 }
 
+// compatibility alias, if old code uses getInfo
+export const getInfo = getUserInfo
+
 /**
  * Send verification code
  * @param {Object} data - { email, type, turnstile_token }

@@ -6,17 +6,17 @@
       <div class="section-header">
         <div class="section-title-group">
           <a-icon type="global" class="section-icon" />
-          <h2 class="section-title">市场温度</h2>
-          <span class="section-badge">Market Temperature</span>
+          <h2 class="section-title">{{ $t('today.marketTemp.title') }}</h2>
+          <span class="section-badge">{{ $t('today.marketTemp.badge') }}</span>
         </div>
         <router-link to="/macro" class="section-link">
-          查看宏观详情 <a-icon type="arrow-right" />
+          {{ $t('today.marketTemp.viewDetails') }} <a-icon type="arrow-right" />
         </router-link>
       </div>
 
       <div v-if="macroLoading" class="macro-loading">
         <a-spin size="default" />
-        <span class="loading-text">正在同步宏观指标…</span>
+        <span class="loading-text">{{ $t('today.marketTemp.syncing') }}</span>
       </div>
 
       <a-alert
@@ -32,27 +32,27 @@
         <div class="metrics-strip" v-if="safeTopMetrics.length">
           <div v-for="(m, idx) in safeTopMetrics" :key="idx" class="metric-tile">
             <span class="metric-label">{{ m.label }}</span>
-            <span class="metric-value" :class="{ unavailable: m.value === '--' }">
-              {{ m.value === '--' ? '暂无' : m.value }}
+            <span class="metric-value" :class="{ unavailable: macroMetricUnavailable(m) }">
+              {{ macroMetricDisplay(m, $t('today.marketTemp.noDataValue')) }}
             </span>
             <span class="metric-name">{{ metricConfig(m.label).name }}</span>
             <span class="metric-explain">{{ metricConfig(m.label).explain }}</span>
           </div>
         </div>
-        <div v-else class="metric-empty">指标数据同步中，请稍候。</div>
+        <div v-else class="metric-empty">{{ $t('today.marketTemp.loadingHint') }}</div>
 
         <!-- Dimension pills -->
         <div class="dimensions-row" v-if="safeDimensions.length">
           <div v-for="dim in safeDimensions" :key="dim.key" class="dim-pill">
-            <span class="dim-name">{{ dim.title }}</span>
+            <span class="dim-name">{{ $t('today.dimensions.' + dim.key) }}</span>
             <span class="verdict-tag" :class="verdictClass(dim.verdict)">
               {{ verdictLabel(dim.verdict) }}
             </span>
             <div class="dim-kv" v-if="dim.key_metrics && dim.key_metrics.length">
               <span v-for="(km, ki) in dim.key_metrics" :key="ki" class="kv-item">
                 <span class="kv-label">{{ km.label }}</span>
-                <span class="kv-val" :class="{ unavailable: km.value === '--' }">
-                  {{ km.value === '--' ? '--' : km.value }}
+                <span class="kv-val" :class="{ unavailable: macroMetricUnavailable(km) }">
+                  {{ macroMetricDisplay(km) }}
                 </span>
               </span>
             </div>
@@ -63,19 +63,19 @@
         <div class="env-summary">
           <div class="env-summary-header">
             <a-icon type="info-circle" class="env-icon" />
-            <span class="env-label">长期投资者提示</span>
+            <span class="env-label">{{ $t('today.guidance.title') }}</span>
           </div>
           <p class="env-body">
-            以上指标反映当前市场情绪与宏观环境的客观状态，供参考了解背景。这些数据不用于预测短线涨跌，也不代表任何买卖建议。
+            {{ $t('today.guidance.p1') }}
           </p>
           <p class="env-body">
-            对长期投资者而言，更重要的是维持既定的分批买入计划，避免因为短期波动而追高或提前退出。
+            {{ $t('today.guidance.p2') }}
           </p>
         </div>
 
         <div class="macro-footer" v-if="macroCompleteness < 1">
           <a-icon type="info-circle" />
-          <span>部分宏观指标暂不可用（{{ Math.round(macroCompleteness * 100) }}% 已加载）。数据来自第三方行情源，不代表任何投资建议。</span>
+          <span>{{ $t('today.marketTemp.footerMessage', { percentage: Math.round(macroCompleteness * 100) }) }}</span>
         </div>
       </template>
     </section>
@@ -85,32 +85,32 @@
       <div class="section-header">
         <div class="section-title-group">
           <a-icon type="star" class="section-icon" />
-          <h2 class="section-title">我的关注</h2>
-          <span class="section-badge">Watchlist</span>
+          <h2 class="section-title">{{ $t('today.watchlist.title') }}</h2>
+          <span class="section-badge">{{ $t('today.watchlist.badge') }}</span>
         </div>
       </div>
 
       <div v-if="watchlistLoading" class="macro-loading">
         <a-spin size="default" />
-        <span class="loading-text">正在同步关注列表…</span>
+        <span class="loading-text">{{ $t('today.watchlist.syncing') }}</span>
       </div>
 
       <div v-else-if="watchlistError" class="empty-card">
         <a-alert type="warning" :message="watchlistError" show-icon style="text-align: left; margin-bottom: 16px;" />
         <router-link to="/ai-asset-analysis">
-          <a-button type="primary" size="small" class="empty-action-btn">去资产速览</a-button>
+          <a-button type="primary" size="small" class="empty-action-btn">{{ $t('today.watchlist.btnGoSnapshot') }}</a-button>
         </router-link>
       </div>
 
       <div v-else-if="watchlist.length === 0" class="empty-card">
         <a-empty :image="emptyImage" :image-style="{ height: '64px' }">
           <template #description>
-            <p class="empty-title">还没有关注的资产</p>
+            <p class="empty-title">{{ $t('today.watchlist.emptyTitle') }}</p>
             <p class="empty-hint">
-              从 Asset Snapshot 搜索你关心的股票、ETF 或 Crypto，并加入关注。之后你每天打开 Today，就能快速看到它们的价格变化和状态提醒。
+              {{ $t('today.watchlist.emptyDesc') }}
             </p>
             <router-link to="/ai-asset-analysis">
-              <a-button type="primary" size="small" class="empty-action-btn">去资产速览</a-button>
+              <a-button type="primary" size="small" class="empty-action-btn">{{ $t('today.watchlist.btnGoSnapshot') }}</a-button>
             </router-link>
           </template>
         </a-empty>
@@ -143,66 +143,66 @@
       </div>
     </section>
 
-      <!-- Section C: Active Plans -->
-      <section class="today-section">
-        <div class="section-header">
-          <div class="section-title-group">
-            <a-icon type="book" class="section-icon" />
-            <h2 class="section-title">我的计划</h2>
-            <span class="section-badge">Active Plans</span>
+    <!-- Section C: Active Plans -->
+    <section class="today-section">
+      <div class="section-header">
+        <div class="section-title-group">
+          <a-icon type="book" class="section-icon" />
+          <h2 class="section-title">{{ $t('today.activePlans.title') }}</h2>
+          <span class="section-badge">{{ $t('today.activePlans.badge') }}</span>
+        </div>
+        <router-link to="/my-plan" class="section-link">
+          {{ $t('today.activePlans.viewAll') }} <a-icon type="arrow-right" />
+        </router-link>
+      </div>
+
+      <!-- Loading -->
+      <div v-if="plansLoading" class="empty-card" style="padding: 32px; text-align: center;">
+        <a-spin />
+      </div>
+
+      <!-- Has plans -->
+      <div v-else-if="plans.length > 0" class="plans-list">
+        <router-link
+          v-for="plan in plans.slice(0, 3)"
+          :key="plan.id"
+          to="/my-plan"
+          class="plan-row"
+        >
+          <div class="plan-row-main">
+            <span class="plan-row-symbol">{{ plan.symbol }}</span>
+            <span class="plan-row-badge">{{ plan.asset_type }}</span>
+            <span class="plan-row-type">{{ plan.plan_type }}</span>
           </div>
-          <router-link to="/my-plan" class="section-link">
-            查看全部 <a-icon type="arrow-right" />
-          </router-link>
-        </div>
-
-        <!-- Loading -->
-        <div v-if="plansLoading" class="empty-card" style="padding: 32px; text-align: center;">
-          <a-spin />
-        </div>
-
-        <!-- Has plans -->
-        <div v-else-if="plans.length > 0" class="plans-list">
-          <router-link
-            v-for="plan in plans.slice(0, 3)"
-            :key="plan.id"
-            to="/my-plan"
-            class="plan-row"
-          >
-            <div class="plan-row-main">
-              <span class="plan-row-symbol">{{ plan.symbol }}</span>
-              <span class="plan-row-badge">{{ plan.asset_type }}</span>
-              <span class="plan-row-type">{{ plan.plan_type }}</span>
-            </div>
-            <div class="plan-row-meta">
-              <span v-if="plan.total_budget">${{ formatMoney(plan.total_budget) }}</span>
-              <span v-if="plan.frequency"> · {{ plan.frequency }}</span>
-              <span v-if="plan.duration"> · {{ plan.duration }}</span>
-            </div>
-            <a-tag :color="planStatusColor(plan.status)" class="plan-row-status">
-              {{ planStatusLabel(plan.status) }}
-            </a-tag>
-          </router-link>
-          <div v-if="plans.length > 3" class="plans-more">
-            <router-link to="/my-plan">查看全部 {{ plans.length }} 个计划 →</router-link>
+          <div class="plan-row-meta">
+            <span v-if="plan.total_budget">${{ formatMoney(plan.total_budget) }}</span>
+            <span v-if="plan.frequency"> · {{ plan.frequency }}</span>
+            <span v-if="plan.duration"> · {{ plan.duration }}</span>
           </div>
+          <a-tag :color="planStatusColor(plan.status)" class="plan-row-status">
+            {{ planStatusLabel(plan.status) }}
+          </a-tag>
+        </router-link>
+        <div v-if="plans.length > 3" class="plans-more">
+          <router-link to="/my-plan">{{ $t('today.activePlans.moreLink', { count: plans.length }) }}</router-link>
         </div>
+      </div>
 
-        <!-- Empty state -->
-        <div v-else class="empty-card">
-          <a-empty :image="emptyImage" :image-style="{ height: '64px' }">
-            <template #description>
-              <p class="empty-title">还没有保存的计划</p>
-              <p class="empty-hint">
-                你可以创建长期 DCA 计划或分批买入计划，记录入场逻辑、失效条件和风险控制。计划的目的不是预测市场，而是帮助你在波动中保持纪律。
-              </p>
-              <router-link to="/indicator-ide">
-                <a-button type="primary" size="small" class="empty-action-btn">创建计划</a-button>
-              </router-link>
-            </template>
-          </a-empty>
-        </div>
-      </section>
+      <!-- Empty state -->
+      <div v-else class="empty-card">
+        <a-empty :image="emptyImage" :image-style="{ height: '64px' }">
+          <template #description>
+            <p class="empty-title">{{ $t('today.activePlans.emptyTitle') }}</p>
+            <p class="empty-hint">
+              {{ $t('today.activePlans.emptyDesc') }}
+            </p>
+            <router-link to="/indicator-ide">
+              <a-button type="primary" size="small" class="empty-action-btn">{{ $t('today.activePlans.btnCreate') }}</a-button>
+            </router-link>
+          </template>
+        </a-empty>
+      </div>
+    </section>
 
   </div>
 </template>
@@ -216,26 +216,6 @@ import request from '@/utils/request'
 
 // ONLY reads: top_metrics, dimensions[*].{title, verdict, key_metrics}, data_completeness
 // NEVER reads: headline, core_judgment, risk_asset_implication, tailwinds, headwinds
-
-const METRIC_CONFIG = {
-  FGI: { name: '恐贪指数', explain: '衡量市场情绪。数值越高代表越贪婪，追高风险也越大。' },
-  VIX: { name: '波动率指数', explain: '衡量市场预期波动。低位不代表没有风险，只代表当前市场不太害怕。' },
-  DXY: { name: '美元指数', explain: '反映美元强弱。美元走弱通常会减轻全球流动性压力。' },
-  US10Y: { name: '十年期美债收益率', explain: '代表长期无风险利率。利率越高，高估值资产承受的估值压力越大。' }
-}
-
-const VERDICT_LABELS = {
-  Loose: '宽松',
-  Tight: '收紧',
-  Expanding: '扩张',
-  Slowing: '放缓',
-  Contracting: '萎缩',
-  Easing: '宽松',
-  'High Yield': '高利率',
-  Greed: '情绪偏热',
-  Fear: '情绪偏冷',
-  Neutral: '中性'
-}
 
 const VERDICT_CLASSES = {
   Loose: 'verdict-positive',
@@ -267,6 +247,13 @@ export default {
       plansLoading: false
     }
   },
+  watch: {
+    '$store.getters.lang' () {
+      this.fetchMacroData()
+      this.loadWatchlist()
+      this.loadPlans()
+    }
+  },
   mounted () {
     this.fetchMacroData()
     this.loadWatchlist()
@@ -292,15 +279,34 @@ export default {
           ? model.data_completeness : 0
       } catch (e) {
         console.error('[Today] Macro data fetch failed:', e)
-        this.macroError = '宏观数据暂时无法加载，请稍后刷新。'
+        this.macroError = this.$t('today.marketTemp.loadError')
       } finally {
         this.macroLoading = false
       }
     },
-    metricConfig (label) { return METRIC_CONFIG[label] || { name: '', explain: '' } },
-    verdictLabel (verdict) { return VERDICT_LABELS[verdict] || verdict },
+    metricConfig (label) {
+      const keyName = `today.metrics.${label}.name`
+      const keyExplain = `today.metrics.${label}.explain`
+      return {
+        name: this.$te(keyName) ? this.$t(keyName) : label,
+        explain: this.$te(keyExplain) ? this.$t(keyExplain) : ''
+      }
+    },
+    verdictLabel (verdict) {
+      if (!verdict) return ''
+      const normalized = verdict.replace(/\s+/g, '')
+      const key = `today.verdicts.${normalized}`
+      return this.$te(key) ? this.$t(key) : verdict
+    },
     verdictClass (verdict) { return VERDICT_CLASSES[verdict] || 'verdict-neutral' },
-    
+    macroMetricUnavailable (metric) {
+      return !metric || metric.value === null || metric.value === undefined || metric.status === 'missing'
+    },
+    macroMetricDisplay (metric, unavailableLabel = '--') {
+      if (this.macroMetricUnavailable(metric)) return unavailableLabel
+      return metric.displayValue || metric.formattedValue || metric.primary || String(metric.value)
+    },
+
     // ==== Watchlist ====
     async loadUserId () {
       try {
@@ -310,11 +316,6 @@ export default {
         return 1
       }
       return 1
-    },
-    loadUserId () {
-      return request({ url: '/api/users/me', method: 'get' })
-        .then(res => (res && res.data) ? (res.data.id || res.data.user_id || 1) : 1)
-        .catch(() => 1)
     },
     async loadPlans () {
       this.plansLoading = true
@@ -341,8 +342,8 @@ export default {
       return map[status] || 'default'
     },
     planStatusLabel (status) {
-      const map = { active: '执行中', paused: '已暂停', draft: '草稿', completed: '已完成', cancelled: '已取消', archived: '已归档' }
-      return map[status] || status
+      const key = `today.activePlans.status.${status}`
+      return this.$te(key) ? this.$t(key) : status
     },
     async loadWatchlist () {
       this.watchlistLoading = true
@@ -356,7 +357,7 @@ export default {
         } else if (Array.isArray(res)) {
           items = res
         }
-        
+
         // Take up to 6
         const displayItems = items.slice(0, 6).map(w => ({
           market: w.market || '',
@@ -366,15 +367,15 @@ export default {
           changePercent: null,
           priceAvailable: false
         }))
-        
+
         this.watchlist = displayItems
-        
+
         if (displayItems.length > 0) {
           this.fetchWatchlistPrices(displayItems)
         }
       } catch (e) {
         console.error('[Today] Watchlist fetch failed:', e)
-        this.watchlistError = '暂时无法加载关注列表，请稍后重试。'
+        this.watchlistError = this.$t('today.watchlist.loadError')
       } finally {
         this.watchlistLoading = false
       }
@@ -387,7 +388,7 @@ export default {
         if (res && res.code === 1 && res.data) {
           priceData = res.data
         }
-        
+
         if (Array.isArray(priceData)) {
           const newWatchlist = [...this.watchlist]
           priceData.forEach(p => {
@@ -630,7 +631,6 @@ export default {
 }
 
 .empty-action-btn { border-radius: 6px; }
-
 
 @media (max-width: 900px) {
   .today-page { padding: 16px 16px 40px; }

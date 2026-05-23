@@ -1173,10 +1173,10 @@ import 'codemirror/addon/selection/active-line'
 import * as echarts from 'echarts'
 import moment from 'moment'
 import storage from 'store'
-import { ACCESS_TOKEN } from '@/store/mutation-types'
+import { ACCESS_TOKEN, APP_LANGUAGE } from '@/store/mutation-types'
 import { baseMixin } from '@/store/app-mixin'
 import request from '@/utils/request'
-import { getUserInfo } from '@/api/login'
+import { getUserInfo } from '@/api/auth'
 import { getWatchlist, addWatchlist, searchSymbols } from '@/api/market'
 import KlineChart from '@/views/indicator-analysis/components/KlineChart.vue'
 import BacktestHistoryDrawer from '@/views/indicator-analysis/components/BacktestHistoryDrawer.vue'
@@ -2395,7 +2395,7 @@ export default {
      */
     async streamAiOptimizeWithSse (payload, signal) {
       const token = this._authTokenForFetch()
-      const lang = storage.get('lang') || 'en-US'
+      const lang = storage.get(APP_LANGUAGE) || 'en-US'
       const response = await fetch('/api/experiment/ai-optimize', {
         method: 'POST',
         headers: {

@@ -1,6 +1,6 @@
 <template>
   <a-drawer
-    title="Plan Details"
+    :title="$t('myPlan.drawer.title')"
     width="640"
     :visible="visible"
     @close="onClose"
@@ -8,7 +8,7 @@
   >
     <a-spin :spinning="loading">
       <div v-if="!planData" style="text-align: center; padding: 40px;">
-        <a-empty description="Failed to load plan details" />
+        <a-empty :description="$t('myPlan.drawer.loadFailed')" />
       </div>
       <div v-else>
         <!-- Header Section -->
@@ -18,9 +18,9 @@
             <a-tag color="blue">{{ planData.plan_type }}</a-tag>
             <a-tag :color="statusColor">{{ statusLabel }}</a-tag>
           </div>
-          
+
           <div class="plan-actions" v-if="!isEditMode && canEdit">
-            <a-button type="primary" icon="edit" @click="isEditMode = true">Edit Settings</a-button>
+            <a-button type="primary" icon="edit" @click="isEditMode = true">{{ $t('myPlan.drawer.editSettings') }}</a-button>
           </div>
         </div>
 
@@ -29,15 +29,15 @@
         <!-- View Mode -->
         <div v-if="!isEditMode">
           <!-- Basic Info -->
-          <a-descriptions title="Basic Configuration" :column="2" bordered size="small">
-            <a-descriptions-item label="Total Budget">${{ formatMoney(planData.total_budget) }}</a-descriptions-item>
-            <a-descriptions-item label="Frequency">{{ planData.frequency || 'N/A' }}</a-descriptions-item>
-            <a-descriptions-item label="Duration">{{ planData.duration || 'N/A' }}</a-descriptions-item>
-            <a-descriptions-item label="Risk Profile">{{ planData.risk_profile || 'N/A' }}</a-descriptions-item>
+          <a-descriptions :title="$t('myPlan.drawer.basicConfig')" :column="2" bordered size="small">
+            <a-descriptions-item :label="$t('myPlan.drawer.totalBudget')">${{ formatMoney(planData.total_budget) }}</a-descriptions-item>
+            <a-descriptions-item :label="$t('myPlan.drawer.frequency')">{{ planData.frequency || 'N/A' }}</a-descriptions-item>
+            <a-descriptions-item :label="$t('myPlan.drawer.duration')">{{ planData.duration || 'N/A' }}</a-descriptions-item>
+            <a-descriptions-item :label="$t('myPlan.drawer.riskProfile')">{{ planData.risk_profile || 'N/A' }}</a-descriptions-item>
           </a-descriptions>
 
           <div v-if="planData.thesis" class="thesis-section mt-4">
-            <h4>My Notes (Thesis)</h4>
+            <h4>{{ $t('myPlan.drawer.myNotes') }}</h4>
             <p>{{ planData.thesis }}</p>
           </div>
 
@@ -45,30 +45,30 @@
 
           <!-- AI Generated Logic -->
           <div v-if="aiPlan" class="ai-plan-section">
-            <h3 class="section-title">Execution Strategy (AI Generated)</h3>
-            
+            <h3 class="section-title">{{ $t('myPlan.drawer.executionStrategy') }}</h3>
+
             <a-card size="small" class="mb-4 bg-gray-50">
               <p class="summary-text">{{ aiPlan.plan_summary }}</p>
             </a-card>
 
             <!-- Budget Allocation Breakdown -->
             <div v-if="aiPlan.budget_allocation" class="mb-4">
-              <h4>Budget Allocation Rules</h4>
+              <h4>{{ $t('myPlan.drawer.budgetRules') }}</h4>
               <a-row :gutter="16">
                 <a-col :span="8" v-if="aiPlan.budget_allocation.base_dca_pool">
-                  <a-card size="small" title="Base Investment">
+                  <a-card size="small" :title="$t('myPlan.drawer.baseInvestment')">
                     <div class="amount-text">${{ formatMoney(aiPlan.budget_allocation.base_dca_pool.amount) }} ({{ aiPlan.budget_allocation.base_dca_pool.percentage }}%)</div>
                     <div class="explain-text">{{ aiPlan.budget_allocation.base_dca_pool.explanation }}</div>
                   </a-card>
                 </a-col>
                 <a-col :span="8" v-if="aiPlan.budget_allocation.opportunity_reserve">
-                  <a-card size="small" title="Drawdown Pool">
+                  <a-card size="small" :title="$t('myPlan.drawer.drawdownPool')">
                     <div class="amount-text">${{ formatMoney(aiPlan.budget_allocation.opportunity_reserve.amount) }} ({{ aiPlan.budget_allocation.opportunity_reserve.percentage }}%)</div>
                     <div class="explain-text">{{ aiPlan.budget_allocation.opportunity_reserve.explanation }}</div>
                   </a-card>
                 </a-col>
                 <a-col :span="8" v-if="aiPlan.budget_allocation.cash_buffer">
-                  <a-card size="small" title="Cash Buffer">
+                  <a-card size="small" :title="$t('myPlan.drawer.cashBuffer')">
                     <div class="amount-text">${{ formatMoney(aiPlan.budget_allocation.cash_buffer.amount) }} ({{ aiPlan.budget_allocation.cash_buffer.percentage }}%)</div>
                     <div class="explain-text">{{ aiPlan.budget_allocation.cash_buffer.explanation }}</div>
                   </a-card>
@@ -78,8 +78,8 @@
 
             <!-- DCA Schedule: per-period investment amounts -->
             <div v-if="aiPlan.budget_schedule && aiPlan.budget_schedule.length > 0" class="mb-4">
-              <h4>DCA Execution Schedule</h4>
-              <div class="dca-schedule-note">每期應投入的固定金額 · Based on {{ planData.frequency || 'regular' }} cadence</div>
+              <h4>{{ $t('myPlan.drawer.dcaSchedule') }}</h4>
+              <div class="dca-schedule-note">{{ $t('myPlan.drawer.dcaNote', { frequency: planData.frequency || 'regular' }) }}</div>
               <a-table
                 :dataSource="aiPlan.budget_schedule"
                 :columns="dcaScheduleColumns"
@@ -94,72 +94,70 @@
               </a-table>
             </div>
 
-
             <!-- Rules -->
             <div v-if="aiPlan.action_rules" class="mb-4">
-              <h4>Action Rules</h4>
+              <h4>{{ $t('myPlan.drawer.actionRules') }}</h4>
               <div v-if="aiPlan.action_rules.continue_when && aiPlan.action_rules.continue_when.length > 0">
-                <h5>Continue When:</h5>
+                <h5>{{ $t('myPlan.drawer.continueWhen') }}</h5>
                 <ul><li v-for="(rule, idx) in aiPlan.action_rules.continue_when" :key="'c'+idx">{{ rule }}</li></ul>
               </div>
               <div v-if="aiPlan.action_rules.pause_when && aiPlan.action_rules.pause_when.length > 0">
-                <h5>Pause When:</h5>
+                <h5>{{ $t('myPlan.drawer.pauseWhen') }}</h5>
                 <ul><li v-for="(rule, idx) in aiPlan.action_rules.pause_when" :key="'p'+idx">{{ rule }}</li></ul>
               </div>
               <div v-if="aiPlan.action_rules.use_reserve_when && aiPlan.action_rules.use_reserve_when.length > 0">
-                <h5>Use Reserve When:</h5>
+                <h5>{{ $t('myPlan.drawer.useReserveWhen') }}</h5>
                 <ul><li v-for="(rule, idx) in aiPlan.action_rules.use_reserve_when" :key="'u'+idx">{{ rule }}</li></ul>
               </div>
             </div>
 
             <!-- Scenarios -->
             <div v-if="aiPlan.scenario_simulation" class="mb-4">
-              <h4>Scenario Simulation</h4>
+              <h4>{{ $t('myPlan.drawer.scenarios') }}</h4>
               <a-collapse :bordered="false">
-                <a-collapse-panel key="1" header="Base Case">
+                <a-collapse-panel key="1" :header="$t('myPlan.drawer.scenarios.base')">
                   <p>{{ aiPlan.scenario_simulation.base_case }}</p>
                 </a-collapse-panel>
-                <a-collapse-panel key="2" header="Stress Case (Drawdown)">
+                <a-collapse-panel key="2" :header="$t('myPlan.drawer.scenarios.stress')">
                   <p>{{ aiPlan.scenario_simulation.stress_case }}</p>
                 </a-collapse-panel>
-                <a-collapse-panel key="3" header="Upside Case">
+                <a-collapse-panel key="3" :header="$t('myPlan.drawer.scenarios.upside')">
                   <p>{{ aiPlan.scenario_simulation.upside_or_fast_rise_case }}</p>
                 </a-collapse-panel>
-                <a-collapse-panel key="4" header="Sideways Case">
+                <a-collapse-panel key="4" :header="$t('myPlan.drawer.scenarios.sideways')">
                   <p>{{ aiPlan.scenario_simulation.sideways_case }}</p>
                 </a-collapse-panel>
               </a-collapse>
             </div>
-            
+
             <div v-if="aiPlan.disclaimer" class="disclaimer-text">
               {{ aiPlan.disclaimer }}
             </div>
           </div>
         </div>
 
-        <!-- Edit Mode -->
         <div v-else class="edit-mode-section">
           <a-form-model :model="editForm" :rules="rules" ref="ruleForm" layout="vertical">
-            <a-form-model-item label="Total Budget ($)" prop="total_budget">
+            <a-form-model-item :label="$t('myPlan.drawer.totalBudget') + ' ($)'" prop="total_budget">
               <a-input-number v-model="editForm.total_budget" :min="1" style="width: 100%" />
             </a-form-model-item>
-            
-            <a-form-model-item label="Frequency" prop="frequency">
-              <a-input v-model="editForm.frequency" placeholder="e.g. Monthly, Weekly, Bi-weekly" />
+
+            <a-form-model-item :label="$t('myPlan.drawer.frequency')" prop="frequency">
+              <a-input v-model="editForm.frequency" :placeholder="$t('myPlan.drawer.frequencyPlaceholder')" />
             </a-form-model-item>
-            
-            <a-form-model-item label="Duration" prop="duration">
-              <a-input v-model="editForm.duration" placeholder="e.g. 12 months, 3 years" />
+
+            <a-form-model-item :label="$t('myPlan.drawer.duration')" prop="duration">
+              <a-input v-model="editForm.duration" :placeholder="$t('myPlan.drawer.durationPlaceholder')" />
             </a-form-model-item>
-            
-            <a-form-model-item label="My Notes (Thesis)" prop="thesis">
-              <a-textarea v-model="editForm.thesis" :rows="4" placeholder="Why are you investing in this asset? What is your personal rationale?" />
+
+            <a-form-model-item :label="$t('myPlan.drawer.myNotes')" prop="thesis">
+              <a-textarea v-model="editForm.thesis" :rows="4" :placeholder="$t('myPlan.drawer.thesisPlaceholder')" />
             </a-form-model-item>
           </a-form-model>
-          
+
           <div class="edit-actions mt-4" style="text-align: right;">
-            <a-button @click="isEditMode = false" style="margin-right: 8px;">Cancel</a-button>
-            <a-button type="primary" :loading="saving" @click="handleSave">Save Changes</a-button>
+            <a-button @click="isEditMode = false" style="margin-right: 8px;">{{ $t('myPlan.drawer.cancel') }}</a-button>
+            <a-button type="primary" :loading="saving" @click="handleSave">{{ $t('myPlan.drawer.saveChanges') }}</a-button>
           </div>
         </div>
 
@@ -194,32 +192,36 @@ export default {
         frequency: '',
         duration: '',
         thesis: ''
-      },
-      rules: {
-        total_budget: [{ required: true, message: 'Please input total budget', trigger: 'blur' }]
-      },
-      dcaScheduleColumns: [
+      }
+    }
+  },
+  computed: {
+    rules () {
+      return {
+        total_budget: [{ required: true, message: this.$t('myPlan.drawer.rules.budgetRequired'), trigger: 'blur' }]
+      }
+    },
+    dcaScheduleColumns () {
+      return [
         {
-          title: '期次 Period',
+          title: this.$t('myPlan.drawer.columns.period'),
           dataIndex: 'period',
           key: 'period'
         },
         {
-          title: '建議投入金額',
+          title: this.$t('myPlan.drawer.columns.amount'),
           dataIndex: 'amount',
           key: 'amount',
           scopedSlots: { customRender: 'amount' }
         },
         {
-          title: '備注 Note',
+          title: this.$t('myPlan.drawer.columns.note'),
           dataIndex: 'note',
           key: 'note',
           ellipsis: true
         }
       ]
-    }
-  },
-  computed: {
+    },
     aiPlan () {
       return this.planData?.plan || null
     },
@@ -237,15 +239,7 @@ export default {
     },
     statusLabel () {
       if (!this.planData) return ''
-      const map = {
-        active: '执行中',
-        paused: '已暂停',
-        draft: '草稿',
-        completed: '已完成',
-        cancelled: '已取消',
-        archived: '已归档'
-      }
-      return map[this.planData.status] || this.planData.status
+      return this.$t('myPlan.status.' + this.planData.status)
     },
     canEdit () {
       // Cannot edit if deleted or completed or archived
@@ -254,6 +248,11 @@ export default {
     }
   },
   watch: {
+    '$store.getters.lang' () {
+      if (this.visible && this.planId) {
+        this.fetchPlanDetails()
+      }
+    },
     visible (val) {
       if (val && this.planId) {
         this.isEditMode = false
@@ -289,10 +288,10 @@ export default {
             thesis: this.planData.thesis
           }
         } else {
-          this.$message.error(res.msg || 'Failed to fetch plan details')
+          this.$message.error(res.msg || this.$t('myPlan.drawer.loadFailed'))
         }
       }).catch(err => {
-        this.$message.error('API Error')
+        this.$message.error(this.$t('myPlan.drawer.apiError'))
         console.error(err)
       }).finally(() => {
         this.loading = false
@@ -304,15 +303,15 @@ export default {
           this.saving = true
           updatePlan(this.planId, this.editForm).then(res => {
             if (res.code === 1) {
-              this.$message.success('Plan updated successfully')
+              this.$message.success(this.$t('myPlan.drawer.updateSuccess'))
               this.isEditMode = false
               this.fetchPlanDetails() // Refresh local data
               this.$emit('refresh') // Tell parent to refresh list
             } else {
-              this.$message.error(res.msg || 'Update failed')
+              this.$message.error(res.msg || this.$t('myPlan.drawer.updateFailed'))
             }
           }).catch(err => {
-            this.$message.error('API Error')
+            this.$message.error(this.$t('myPlan.drawer.apiError'))
             console.error(err)
           }).finally(() => {
             this.saving = false
@@ -329,12 +328,12 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  
+
   .plan-title {
     display: flex;
     align-items: center;
     gap: 12px;
-    
+
     h2 {
       margin: 0;
       font-weight: 700;
@@ -357,7 +356,7 @@ export default {
   background: #f0fdf4;
   border-radius: 8px;
   border: 1px solid #bbf7d0;
-  
+
   h4 {
     color: #166534;
     font-weight: 600;

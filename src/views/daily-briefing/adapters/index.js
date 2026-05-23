@@ -1,10 +1,11 @@
+import i18n from '@/locales'
 import { getAllAnalysisHistory } from '@/api/fast-analysis'
 import { getMarketOverview, getMarketSentiment, getEconomicCalendar, getTradingOpportunities } from '@/api/global-market'
 
 export async function getBriefingViewModel () {
   const model = {
-    headline: '今日市场等待更新',
-    summary: '暂无摘要',
+    headline: i18n.t('dailyBriefing.waitingForUpdate'),
+    summary: i18n.t('dailyBriefing.noSummary'),
     highlights: [],
     sentiment: null,
     marketContext: [],
@@ -30,8 +31,8 @@ export async function getBriefingViewModel () {
     if (historyRes.status === 'fulfilled' && historyRes.value?.data) {
       const records = historyRes.value.data.list || historyRes.value.data || []
       if (records.length > 0) {
-        model.headline = records[0].symbol ? `${records[0].symbol} 分析简报` : '最新市场简报'
-        model.summary = records[0].conclusion || records[0].summary || '已获取最新AI分析'
+        model.headline = records[0].symbol ? i18n.t('dailyBriefing.symbolBriefing', { symbol: records[0].symbol }) : i18n.t('dailyBriefing.latestBriefing')
+        model.summary = records[0].conclusion || records[0].summary || i18n.t('dailyBriefing.fetchedLatestAnalysis')
         hasData = true
       }
     }
@@ -47,7 +48,7 @@ export async function getBriefingViewModel () {
       model.sentiment = sentimentRes.value.data
       const fgi = model.sentiment?.fear_greed_index || model.sentiment?.value
       if (fgi) {
-        model.highlights.push(`情绪指数: ${fgi}`)
+        model.highlights.push(i18n.t('dailyBriefing.sentimentIndex', { value: fgi }))
       }
       hasData = true
     }
@@ -59,7 +60,9 @@ export async function getBriefingViewModel () {
     }
 
     if (oppsRes.status === 'fulfilled' && oppsRes.value?.data) {
-      model.rawOpportunities = Array.isArray(oppsRes.value.data) ? oppsRes.value.data.slice(0, 20) : []
+      const payload = oppsRes.value.data
+      const list = Array.isArray(payload) ? payload : (payload && (payload.items || payload.opportunities)) || []
+      model.rawOpportunities = list.slice(0, 20)
       if (model.rawOpportunities.length > 0) hasData = true
     }
 

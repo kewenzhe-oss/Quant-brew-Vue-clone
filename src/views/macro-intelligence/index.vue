@@ -1,11 +1,17 @@
 <template>
   <div class="macro-intelligence-page">
     <a-page-header
-      title="宏观 Macro Briefing"
-      sub-title="数据驱动的经济周期与资产研判"
+      :title="$t('macro.title')"
+      :sub-title="$t('macro.subtitle') + ' · ' + $t('macro.dataAsOf', { time: formatDateTime(model.generated_at) })"
       :back-icon="false"
       style="padding-bottom: 0;"
-    />
+    >
+      <template #extra>
+        <span class="non-ai-banner">
+          <a-icon type="safety-certificate" /> {{ $t('macro.nonAi') }}
+        </span>
+      </template>
+    </a-page-header>
 
     <div v-if="loading" style="padding: 80px; text-align: center;">
       <a-spin size="large" />
@@ -13,232 +19,414 @@
 
     <div v-else>
 
-      <!-- Macro Data Health Banner -->
+      <!-- System Warnings / Stale metrics notification -->
       <a-alert
-        v-if="model.health && model.health.status !== 'healthy'"
-        :type="model.health.status === 'degraded' ? 'error' : (model.health.status === 'stale' ? 'warning' : 'info')"
+        v-if="model.health && (model.health.status === 'degraded' || model.health.status === 'stale')"
+        :type="model.health.status === 'degraded' ? 'error' : 'warning'"
         show-icon
         class="system-warnings"
       >
         <div slot="message">
-          <span v-if="model.health.status === 'degraded'">系统降级警告</span>
-          <span v-else-if="model.health.status === 'stale'">数据时效性提醒</span>
+          <span v-if="model.health.status === 'degraded'">{{ $t('macro.warnings.degraded.title') }}</span>
+          <span v-else>{{ $t('macro.warnings.stale.title') }}</span>
         </div>
-        <div slot="description">
-          <ul class="warning-list" v-if="model.health.status === 'degraded'">
-            <li>底层宏观指标缺失: {{ model.health.missingMetrics.join(', ') }}，已降级使用可用数据。</li>
-          </ul>
-          <ul class="warning-list" v-else-if="model.health.status === 'stale'">
-            <li>部分宏观指标已超过正常更新窗口: {{ model.health.staleMetrics.join(', ') }}。</li>
-          </ul>
-          <ul class="warning-list" v-if="model.warnings && model.warnings.length">
-            <li v-for="(warn, i) in model.warnings" :key="'w'+i">{{ warn }}</li>
-          </ul>
-        </div>
-      </a-alert>
-      <a-alert
-        v-else-if="model.warnings && model.warnings.length > 0"
-        type="warning"
-        show-icon
-        class="system-warnings"
-      >
-        <div slot="message">系统提醒</div>
         <div slot="description">
           <ul class="warning-list">
-            <li v-for="(warn, i) in model.warnings" :key="i">{{ warn }}</li>
+            <li v-if="model.health.status === 'degraded'">
+              {{ $t('macro.warnings.degraded.desc', { metrics: model.health.missingMetrics.join(', ') }) }}
+            </li>
+            <li v-else-if="model.health.status === 'stale'">
+              {{ $t('macro.warnings.stale.desc', { metrics: model.health.staleMetrics.join(', ') }) }}
+            </li>
           </ul>
         </div>
       </a-alert>
 
-      <!-- AI Fallback Banner -->
+      <!-- Deprecated AI Summary Area -->
       <a-alert
-        v-if="model.health && model.health.aiSummaryStatus === 'failed'"
+        v-if="model.provenance && model.provenance.isAIGenerated"
         type="warning"
         show-icon
-        class="system-warnings ai-fallback-warning"
+        class="system-warnings ai-deprecated-alert"
       >
-        <div slot="message">AI 简报降级</div>
-        <div slot="description">今日 AI 简报生成失败或不可用，当前展示基于本地规则的降级判断。</div>
+        <div slot="message">{{ $t('macro.provenance.aiObsoleteTitle') }}</div>
+        <div slot="description">
+          <span>{{ $t('macro.provenance.aiObsoleteDesc') }}</span>
+          <a-collapse :bordered="false" style="background: transparent; margin-top: 8px;">
+            <a-collapse-panel key="1" :header="$t('macro.provenance.expandAiSummary')">
+              <p class="hero-thesis">{{ model.core_judgment }}</p>
+              <div v-if="model.riskPostureSummary && model.riskPostureSummary.overallPosture" class="posture-summary-grid">
+                <div class="posture-row">
+                  <span class="posture-label">{{ $t('macro.provenance.riskPosture') }}:</span>
+                  <span class="posture-value">{{ model.riskPostureSummary.overallPosture }}</span>
+                </div>
+              </div>
+            </a-collapse-panel>
+          </a-collapse>
+        </div>
       </a-alert>
-      <!-- Provenance Legend -->
-      <div class="provenance-legend">
-        说明：本页包含三类内容：规则判断基于宏观指标自动计算；固定说明用于解释指标含义；AI 简报仅在真实模型生成且通过校验时显示。
-      </div>
 
-      <!-- Hero Section -->
-      <a-card :bordered="false" class="hero-card">
-        <div class="hero-header">
-          <div class="hero-left">
-            <span class="eyebrow">当前宏观定调</span>
-            <div class="title-row">
-              <h2 class="verdict-title">{{ model.headline }}</h2>
-              <span v-if="model.provenance" class="provenance-badge" :class="model.provenance.isAIGenerated ? 'ai' : 'rule'">
-                {{ model.provenance.isAIGenerated ? 'AI 生成 · 基于最新宏观数据' : '规则摘要 · AI 暂不可用' }}
-              </span>
+      <!-- Visual Branch Map Chart -->
+      <div class="visual-branch-map">
+        <div class="map-branches">
+          <!-- Branch: Liquidity -->
+          <div class="map-branch-box liquidity-box" :class="`tone-${getBranchTone('liquidity')}`">
+            <div class="branch-node" @click="scrollToBranch('liquidity')">
+              <span class="branch-node-title">{{ $t('macro.branches.liquidity.title') }}</span>
+              <span class="branch-node-summary">{{ getBranchSummary('liquidity') }}</span>
+            </div>
+            <div class="indicator-pills">
+              <span v-for="key in overviewBranchMetrics.liquidity" :key="key" class="pill-item" @click="scrollToCard(key)">{{ getMetricPillLabel(key) }}</span>
             </div>
           </div>
-          <div class="hero-right">
-            <a-tag v-if="model.confidence_level" :color="getConfidenceColor(model.confidence_level)">
-              置信度: {{ model.confidence_level }}
-            </a-tag>
-            <span v-if="model.generated_at" class="neutral-timestamp-badge">
-              {{ getOverviewTimestampLabel(model) }}
-            </span>
-          </div>
-        </div>
-        <p class="hero-thesis">{{ model.core_judgment }}</p>
-        <div class="implication-box" v-if="model.riskPostureSummary && model.riskPostureSummary.overallPosture">
-          <div class="posture-summary-grid">
-            <div class="posture-row">
-              <span class="posture-label">风险姿态</span>
-              <span class="posture-value posture-headline">{{ model.riskPostureSummary.overallPosture }}</span>
-            </div>
-            <div class="posture-row" v-if="model.riskPostureSummary.mainSupports && model.riskPostureSummary.mainSupports.length">
-              <span class="posture-label supports">主要支持</span>
-              <span class="posture-value">{{ model.riskPostureSummary.mainSupports.join(' · ') }}</span>
-            </div>
-            <div class="posture-row" v-if="model.riskPostureSummary.mainPressures && model.riskPostureSummary.mainPressures.length">
-              <span class="posture-label pressures">主要压制</span>
-              <span class="posture-value">{{ model.riskPostureSummary.mainPressures.join(' · ') }}</span>
-            </div>
-            <div class="posture-row" v-if="model.riskPostureSummary.todayWatchPoint">
-              <span class="posture-label watch">今日观察</span>
-              <span class="posture-value watch-text">{{ model.riskPostureSummary.todayWatchPoint }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="implication-box" v-else-if="model.risk_asset_implication">
-          <div class="implication-header">
-            <span class="implication-label">对风险资产的影响</span>
-          </div>
-          <p class="implication-text">{{ model.risk_asset_implication }}</p>
-        </div>
-      </a-card>
 
-      <!-- Top Metrics Strip -->
-      <div class="metrics-strip" v-if="model.top_metrics && model.top_metrics.length">
-        <div class="metric-item" v-for="(metric, idx) in model.top_metrics" :key="idx">
-          <span class="metric-label">{{ metric.label }}</span>
-          <div class="metric-value-wrapper">
-            <span class="metric-value" :class="{'unavailable': metric.formattedValue === '—' || metric.formattedValue === '--'}">
-              {{ metric.formattedValue === '—' || metric.formattedValue === '--' ? '数据暂不可用' : (metric.primary || metric.formattedValue) }}
-            </span>
-            <span class="metric-unit" v-if="metric.formattedValue !== '—' && metric.formattedValue !== '--'">{{ metric.displayUnit || metric.unit }}</span>
+          <!-- Branch: Fundamentals -->
+          <div class="map-branch-box fundamentals-box" :class="`tone-${getBranchTone('fundamentals')}`">
+            <div class="branch-node" @click="scrollToBranch('fundamentals')">
+              <span class="branch-node-title">{{ $t('macro.branches.fundamentals.title') }}</span>
+              <span class="branch-node-summary">{{ getBranchSummary('fundamentals') }}</span>
+            </div>
+            <div class="indicator-pills">
+              <span v-for="key in overviewBranchMetrics.fundamentals" :key="key" class="pill-item" @click="scrollToCard(key)">{{ getMetricPillLabel(key) }}</span>
+            </div>
           </div>
-          <div class="metric-meta" v-if="metric.formattedValue !== '—' && metric.formattedValue !== '--'">
-            {{ metric.meta || `${metric.source} • ${metric.frequency}` }}
+
+          <!-- Branch: Inflation -->
+          <div class="map-branch-box inflation-box" :class="`tone-${getBranchTone('inflation')}`">
+            <div class="branch-node" @click="scrollToBranch('inflation')">
+              <span class="branch-node-title">{{ $t('macro.branches.inflation.title') }}</span>
+              <span class="branch-node-summary">{{ getBranchSummary('inflation') }}</span>
+            </div>
+            <div class="indicator-pills">
+              <span v-for="key in overviewBranchMetrics.inflation" :key="key" class="pill-item" @click="scrollToCard(key)">{{ getMetricPillLabel(key) }}</span>
+            </div>
+          </div>
+
+          <!-- Branch: Sentiment -->
+          <div class="map-branch-box sentiment-box" :class="`tone-${getBranchTone('sentiment')}`">
+            <div class="branch-node" @click="scrollToBranch('sentiment')">
+              <span class="branch-node-title">{{ $t('macro.branches.sentiment.title') }}</span>
+              <span class="branch-node-summary">{{ getBranchSummary('sentiment') }}</span>
+            </div>
+            <div class="indicator-pills">
+              <span v-for="key in overviewBranchMetrics.sentiment" :key="key" class="pill-item" @click="scrollToCard(key)">{{ getMetricPillLabel(key) }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Dimensions Cards Grid -->
-      <div class="dimensions-grid" v-if="model.dimensions">
-        <div v-for="(dim, key) in model.dimensions" :key="key" class="dimension-card" @click="enterDomain(key)">
-          <div class="dim-header">
-            <h3 class="dim-title">{{ dim.title }}</h3>
-            <span class="verdict-pill" :class="dim.verdict.toLowerCase()">{{ dim.verdict }}</span>
-          </div>
-          <p class="dim-summary">{{ dim.summary }}</p>
-          <div class="dim-posture" v-if="dim.posture && dim.posture.posture">
-            <div class="dim-posture-row">
-              <span class="dim-posture-label">对风险资产</span>
-              <span class="dim-posture-badge" :class="dim.posture.posture">{{ { supports_risk: '支持', pressures_risk: '压制', neutral: '中性', mixed: '分歧' }[dim.posture.posture] || dim.posture.posture }}</span>
-              <span class="dim-posture-reason">{{ dim.posture.reason }}</span>
-            </div>
-            <div class="dim-watch-row" v-if="dim.posture.watchPoint">
-              <span class="dim-watch-label">观察点</span>
-              <span class="dim-watch-text">{{ dim.posture.watchPoint }}</span>
-            </div>
-          </div>
-          <div class="dim-metrics" v-if="dim.key_metrics && dim.key_metrics.length > 0">
-            <div class="dm-item" v-for="(km, kidx) in dim.key_metrics" :key="kidx">
-              <span class="dm-label">{{ km.label }}</span>
-              <span class="dm-value" :class="{'unavailable': km.formattedValue === '—' || km.formattedValue === '--'}">
-                {{ km.formattedValue === '—' || km.formattedValue === '--' ? '暂无' : (km.primary || km.formattedValue) }}
-                <span class="dm-unit" v-if="km.formattedValue !== '—' && km.formattedValue !== '--'">{{ km.displayUnit || km.unit }}</span>
-              </span>
-            </div>
-          </div>
-          <div class="dim-footer">
-            <span class="dim-action">深入分析 <a-icon type="arrow-right" /></span>
-            <span class="dim-provenance" v-if="dim.provenance">
-              <template v-if="dim.provenance.summarySource === 'ai_generated'">AI 生成</template>
-              <template v-else-if="dim.provenance.summarySource === 'mock_ai'">规则摘要 · AI 暂不可用</template>
-              <template v-else-if="dim.provenance.summarySource === 'rule_based'">规则判断</template>
-              <template v-else>固定说明</template>
-              <template v-if="dim.provenance.basedOnMetricIds && dim.provenance.basedOnMetricIds.length"> · 基于 {{ dim.provenance.basedOnMetricIds.join(', ').toUpperCase() }}</template>
-            </span>
-          </div>
-        </div>
-      </div>
+      <!-- Detailed Branch Sections -->
+      <div class="branch-sections-list">
 
-      <!-- Drivers & Changes -->
-      <a-row :gutter="24" class="analysis-section">
-        <a-col :span="12">
-          <a-card :bordered="false" title="核心驱动力 (Drivers)" class="minimal-card drivers-card">
-            <div class="tw-hw-container">
-              <div class="drivers-list tailwinds" v-if="model.tailwinds && model.tailwinds.length">
-                <span class="list-title">✅ 支持风险资产 (基于数据)</span>
-                <ul>
-                  <li v-for="(item, i) in model.tailwinds" :key="i">
-                    {{ item.desc }}
-                    <span class="evidence-tag" v-if="item.evidence_metric_ids && item.evidence_metric_ids.length">[{{ item.evidence_metric_ids.join(', ') }}]</span>
-                  </li>
-                </ul>
+        <!-- Branch: Liquidity -->
+        <div id="branch-section-liquidity" class="branch-section-block liquidity-block">
+          <div class="section-block-header">
+            <div class="header-left">
+              <a-icon type="fund" class="section-block-icon" style="color: #1890ff;" />
+              <h2>{{ $t('macro.branches.liquidity.title') }}</h2>
+            </div>
+            <a-button type="link" size="small" @click="enterDomain('liquidity')">
+              {{ $t('macro.action.deepDive') }} <a-icon type="arrow-right" />
+            </a-button>
+          </div>
+          <p class="section-block-desc">{{ $t('macro.branches.liquidity.desc') }}</p>
+
+          <div class="branch-cards-grid">
+            <div
+              v-for="key in overviewBranchMetrics.liquidity"
+              :key="key"
+              :id="'card-' + key"
+              class="indicator-card"
+              :class="{ expanded: expandedCards[key] }"
+              @click="toggleCard(key)"
+            >
+              <div class="card-header-bar">
+                <div class="header-left">
+                  <span class="indicator-name">{{ getIndicatorMeta(key).name }}</span>
+                  <span class="indicator-label">{{ getIndicatorMeta(key).label }}</span>
+                </div>
+                <div class="header-right">
+                  <span class="indicator-value" :class="{ 'unavailable': getMetricData(key).value === null }">
+                    {{ getMetricDisplayValue(key) }}
+                  </span>
+                  <a-tag :color="statusToneColor(evaluateIndicator(key, getMetricData(key).value).tone)" class="status-tag">
+                    {{ evaluateIndicator(key, getMetricData(key).value).label }}
+                  </a-tag>
+                  <a-icon :type="expandedCards[key] ? 'up' : 'down'" class="toggle-icon" />
+                </div>
               </div>
-              <div class="drivers-list headwinds" v-if="model.headwinds && model.headwinds.length">
-                <span class="list-title">⚠️ 压制风险资产 (基于数据)</span>
-                <ul>
-                  <li v-for="(item, i) in model.headwinds" :key="i">
-                    {{ item.desc }}
-                    <span class="evidence-tag" v-if="item.evidence_metric_ids && item.evidence_metric_ids.length">[{{ item.evidence_metric_ids.join(', ') }}]</span>
-                  </li>
-                </ul>
-              </div>
-              <a-empty v-if="(!model.tailwinds || !model.tailwinds.length) && (!model.headwinds || !model.headwinds.length)" description="当前无明确的宏观驱动力或数据不足" />
+
+              <transition name="slide-fade">
+                <div v-if="expandedCards[key]" class="card-expanded-content" @click.stop>
+                  <div class="education-block">
+                    <span class="block-title">{{ $t('macro.card.definition') }}</span>
+                    <p class="block-text">{{ getIndicatorMeta(key).what }}</p>
+                  </div>
+
+                  <div class="rule-block">
+                    <span class="block-title">{{ $t('macro.card.implication') }}</span>
+                    <p class="block-text meaning-text">{{ evaluateIndicator(key, getMetricData(key).value).meaning }}</p>
+                  </div>
+
+                  <div class="relationship-block" v-if="getIndicatorMeta(key).relationships && getIndicatorMeta(key).relationships.length">
+                    <span class="block-title">{{ $t('macro.card.relationships') }}</span>
+                    <div v-for="(rel, idx) in getIndicatorMeta(key).relationships" :key="idx" class="relationship-item">
+                      <a-icon type="swap-right" class="rel-icon" />
+                      <span class="rel-target">{{ getIndicatorMeta(rel.target).name || rel.target.toUpperCase() }}</span>
+                      <span class="rel-text">: {{ rel.label }}</span>
+                    </div>
+                  </div>
+
+                  <div class="provenance-block">
+                    <div class="prov-meta-line">
+                      <span>{{ $t('macro.card.source') }}: {{ getIndicatorMeta(key).sourceHint }}</span>
+                      <span>{{ $t('macro.card.frequency') }}: {{ getIndicatorMeta(key).frequency }}</span>
+                    </div>
+                    <div class="prov-meta-line" v-if="getMetricData(key).latestDataDate">
+                      <span>{{ $t('macro.card.lastUpdated') }}: {{ getMetricData(key).latestDataDate.split('T')[0] }}</span>
+                    </div>
+                    <div class="rule-badge-container">
+                      <span class="rule-badge">{{ $t('macro.nonAi') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </transition>
             </div>
-          </a-card>
-        </a-col>
-
-        <a-col :span="12">
-          <div class="changes-watch-container">
-            <!-- What Changed -->
-            <a-card :bordered="false" title="关键边际变化 (What Changed)" class="minimal-card side-card" style="margin-bottom: 24px;">
-              <ul class="catalyst-list" v-if="model.what_changed && model.what_changed.length">
-                <li v-for="(item, i) in model.what_changed" :key="i">
-                  <span class="cat-label">{{ item.label }}: </span>
-                  <span class="cat-desc">{{ item.desc }}</span>
-                  <span class="evidence-tag" v-if="item.evidence_metric_ids && item.evidence_metric_ids.length">[{{ item.evidence_metric_ids.join(', ') }}]</span>
-                </li>
-              </ul>
-              <a-empty v-else description="无显着边际变化" />
-            </a-card>
-
-            <!-- What To Watch -->
-            <a-card :bordered="false" title="未来观察点 (What To Watch)" class="minimal-card side-card">
-              <ul class="catalyst-list" v-if="model.what_to_watch && model.what_to_watch.length">
-                <li v-for="(item, i) in model.what_to_watch" :key="i">
-                  <span class="cat-label">{{ item.label }}: </span>
-                  <span class="cat-desc">{{ item.desc }}</span>
-                  <span class="evidence-tag" v-if="item.evidence_metric_ids && item.evidence_metric_ids.length">[{{ item.evidence_metric_ids.join(', ') }}]</span>
-                </li>
-              </ul>
-              <a-empty v-else description="暂无重点观察事件" />
-            </a-card>
-          </div>
-        </a-col>
-      </a-row>
-
-    <!-- Generic Asset Impact -->
-      <a-card :bordered="false" title="对主要资产类型的影响" class="minimal-card asset-impact-card" v-if="model.genericAssetImpact && model.genericAssetImpact.length">
-        <div class="asset-impact-grid">
-          <div class="asset-impact-row" v-for="(item, idx) in model.genericAssetImpact" :key="idx">
-            <span class="asset-type">{{ item.assetType }}</span>
-            <span class="asset-posture-badge" :class="item.posture">{{ { supports_risk: '支持', pressures_risk: '压制', neutral: '中性', mixed: '分歧' }[item.posture] || item.posture }}</span>
-            <span class="asset-impact-text">{{ item.impact }}</span>
           </div>
         </div>
-      </a-card>
+
+        <!-- Branch: Fundamentals -->
+        <div id="branch-section-fundamentals" class="branch-section-block fundamentals-block">
+          <div class="section-block-header">
+            <div class="header-left">
+              <a-icon type="line-chart" class="section-block-icon" style="color: #52c41a;" />
+              <h2>{{ $t('macro.branches.fundamentals.title') }}</h2>
+            </div>
+            <a-button type="link" size="small" @click="enterDomain('economy')">
+              {{ $t('macro.action.deepDive') }} <a-icon type="arrow-right" />
+            </a-button>
+          </div>
+          <p class="section-block-desc">{{ $t('macro.branches.fundamentals.desc') }}</p>
+
+          <div class="branch-cards-grid">
+            <div
+              v-for="key in overviewBranchMetrics.fundamentals"
+              :key="key"
+              :id="'card-' + key"
+              class="indicator-card"
+              :class="{ expanded: expandedCards[key] }"
+              @click="toggleCard(key)"
+            >
+              <div class="card-header-bar">
+                <div class="header-left">
+                  <span class="indicator-name">{{ getIndicatorMeta(key).name }}</span>
+                  <span class="indicator-label">{{ getIndicatorMeta(key).label }}</span>
+                </div>
+                <div class="header-right">
+                  <span class="indicator-value" :class="{ 'unavailable': getMetricData(key).value === null }">
+                    {{ getMetricDisplayValue(key) }}
+                  </span>
+                  <a-tag :color="statusToneColor(evaluateIndicator(key, getMetricData(key).value).tone)" class="status-tag">
+                    {{ evaluateIndicator(key, getMetricData(key).value).label }}
+                  </a-tag>
+                  <a-icon :type="expandedCards[key] ? 'up' : 'down'" class="toggle-icon" />
+                </div>
+              </div>
+
+              <transition name="slide-fade">
+                <div v-if="expandedCards[key]" class="card-expanded-content" @click.stop>
+                  <div class="education-block">
+                    <span class="block-title">{{ $t('macro.card.definition') }}</span>
+                    <p class="block-text">{{ getIndicatorMeta(key).what }}</p>
+                  </div>
+
+                  <div class="rule-block">
+                    <span class="block-title">{{ $t('macro.card.implication') }}</span>
+                    <p class="block-text meaning-text">{{ evaluateIndicator(key, getMetricData(key).value).meaning }}</p>
+                  </div>
+
+                  <div class="relationship-block" v-if="getIndicatorMeta(key).relationships && getIndicatorMeta(key).relationships.length">
+                    <span class="block-title">{{ $t('macro.card.relationships') }}</span>
+                    <div v-for="(rel, idx) in getIndicatorMeta(key).relationships" :key="idx" class="relationship-item">
+                      <a-icon type="swap-right" class="rel-icon" />
+                      <span class="rel-target">{{ getIndicatorMeta(rel.target).name || rel.target.toUpperCase() }}</span>
+                      <span class="rel-text">: {{ rel.label }}</span>
+                    </div>
+                  </div>
+
+                  <div class="provenance-block">
+                    <div class="prov-meta-line">
+                      <span>{{ $t('macro.card.source') }}: {{ getIndicatorMeta(key).sourceHint }}</span>
+                      <span>{{ $t('macro.card.frequency') }}: {{ getIndicatorMeta(key).frequency }}</span>
+                    </div>
+                    <div class="prov-meta-line" v-if="getMetricData(key).latestDataDate">
+                      <span>{{ $t('macro.card.lastUpdated') }}: {{ getMetricData(key).latestDataDate.split('T')[0] }}</span>
+                    </div>
+                    <div class="rule-badge-container">
+                      <span class="rule-badge">{{ $t('macro.nonAi') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </transition>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branch: Inflation -->
+        <div id="branch-section-inflation" class="branch-section-block inflation-block">
+          <div class="section-block-header">
+            <div class="header-left">
+              <a-icon type="fire" class="section-block-icon" style="color: #f5222d;" />
+              <h2>{{ $t('macro.branches.inflation.title') }}</h2>
+            </div>
+            <a-button type="link" size="small" @click="enterDomain('inflation')">
+              {{ $t('macro.action.deepDive') }} <a-icon type="arrow-right" />
+            </a-button>
+          </div>
+          <p class="section-block-desc">{{ $t('macro.branches.inflation.desc') }}</p>
+
+          <div class="branch-cards-grid">
+            <div
+              v-for="key in overviewBranchMetrics.inflation"
+              :key="key"
+              :id="'card-' + key"
+              class="indicator-card"
+              :class="{ expanded: expandedCards[key] }"
+              @click="toggleCard(key)"
+            >
+              <div class="card-header-bar">
+                <div class="header-left">
+                  <span class="indicator-name">{{ getIndicatorMeta(key).name }}</span>
+                  <span class="indicator-label">{{ getIndicatorMeta(key).label }}</span>
+                </div>
+                <div class="header-right">
+                  <span class="indicator-value" :class="{ 'unavailable': getMetricData(key).value === null }">
+                    {{ getMetricDisplayValue(key) }}
+                  </span>
+                  <a-tag :color="statusToneColor(evaluateIndicator(key, getMetricData(key).value).tone)" class="status-tag">
+                    {{ evaluateIndicator(key, getMetricData(key).value).label }}
+                  </a-tag>
+                  <a-icon :type="expandedCards[key] ? 'up' : 'down'" class="toggle-icon" />
+                </div>
+              </div>
+
+              <transition name="slide-fade">
+                <div v-if="expandedCards[key]" class="card-expanded-content" @click.stop>
+                  <div class="education-block">
+                    <span class="block-title">{{ $t('macro.card.definition') }}</span>
+                    <p class="block-text">{{ getIndicatorMeta(key).what }}</p>
+                  </div>
+
+                  <div class="rule-block">
+                    <span class="block-title">{{ $t('macro.card.implication') }}</span>
+                    <p class="block-text meaning-text">{{ evaluateIndicator(key, getMetricData(key).value).meaning }}</p>
+                  </div>
+
+                  <div class="relationship-block" v-if="getIndicatorMeta(key).relationships && getIndicatorMeta(key).relationships.length">
+                    <span class="block-title">{{ $t('macro.card.relationships') }}</span>
+                    <div v-for="(rel, idx) in getIndicatorMeta(key).relationships" :key="idx" class="relationship-item">
+                      <a-icon type="swap-right" class="rel-icon" />
+                      <span class="rel-target">{{ getIndicatorMeta(rel.target).name || rel.target.toUpperCase() }}</span>
+                      <span class="rel-text">: {{ rel.label }}</span>
+                    </div>
+                  </div>
+
+                  <div class="provenance-block">
+                    <div class="prov-meta-line">
+                      <span>{{ $t('macro.card.source') }}: {{ getIndicatorMeta(key).sourceHint }}</span>
+                      <span>{{ $t('macro.card.frequency') }}: {{ getIndicatorMeta(key).frequency }}</span>
+                    </div>
+                    <div class="prov-meta-line" v-if="getMetricData(key).latestDataDate">
+                      <span>{{ $t('macro.card.lastUpdated') }}: {{ getMetricData(key).latestDataDate.split('T')[0] }}</span>
+                    </div>
+                    <div class="rule-badge-container">
+                      <span class="rule-badge">{{ $t('macro.nonAi') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </transition>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branch: Sentiment -->
+        <div id="branch-section-sentiment" class="branch-section-block sentiment-block">
+          <div class="section-block-header">
+            <div class="header-left">
+              <a-icon type="smile" class="section-block-icon" style="color: #fa8c16;" />
+              <h2>{{ $t('macro.branches.sentiment.title') }}</h2>
+            </div>
+            <a-button type="link" size="small" @click="enterDomain('sentiment')">
+              {{ $t('macro.action.deepDive') }} <a-icon type="arrow-right" />
+            </a-button>
+          </div>
+          <p class="section-block-desc">{{ $t('macro.branches.sentiment.desc') }}</p>
+
+          <div class="branch-cards-grid">
+            <div
+              v-for="key in overviewBranchMetrics.sentiment"
+              :key="key"
+              :id="'card-' + key"
+              class="indicator-card"
+              :class="{ expanded: expandedCards[key] }"
+              @click="toggleCard(key)"
+            >
+              <div class="card-header-bar">
+                <div class="header-left">
+                  <span class="indicator-name">{{ getIndicatorMeta(key).name }}</span>
+                  <span class="indicator-label">{{ getIndicatorMeta(key).label }}</span>
+                </div>
+                <div class="header-right">
+                  <span class="indicator-value" :class="{ 'unavailable': getMetricData(key).value === null }">
+                    {{ getMetricDisplayValue(key) }}
+                  </span>
+                  <a-tag :color="statusToneColor(evaluateIndicator(key, getMetricData(key).value).tone)" class="status-tag">
+                    {{ evaluateIndicator(key, getMetricData(key).value).label }}
+                  </a-tag>
+                  <a-icon :type="expandedCards[key] ? 'up' : 'down'" class="toggle-icon" />
+                </div>
+              </div>
+
+              <transition name="slide-fade">
+                <div v-if="expandedCards[key]" class="card-expanded-content" @click.stop>
+                  <div class="education-block">
+                    <span class="block-title">{{ $t('macro.card.definition') }}</span>
+                    <p class="block-text">{{ getIndicatorMeta(key).what }}</p>
+                  </div>
+
+                  <div class="rule-block">
+                    <span class="block-title">{{ $t('macro.card.implication') }}</span>
+                    <p class="block-text meaning-text">{{ evaluateIndicator(key, getMetricData(key).value).meaning }}</p>
+                  </div>
+
+                  <div class="relationship-block" v-if="getIndicatorMeta(key).relationships && getIndicatorMeta(key).relationships.length">
+                    <span class="block-title">{{ $t('macro.card.relationships') }}</span>
+                    <div v-for="(rel, idx) in getIndicatorMeta(key).relationships" :key="idx" class="relationship-item">
+                      <a-icon type="swap-right" class="rel-icon" />
+                      <span class="rel-target">{{ getIndicatorMeta(rel.target).name || rel.target.toUpperCase() }}</span>
+                      <span class="rel-text">: {{ rel.label }}</span>
+                    </div>
+                  </div>
+
+                  <div class="provenance-block">
+                    <div class="prov-meta-line">
+                      <span>{{ $t('macro.card.source') }}: {{ getIndicatorMeta(key).sourceHint }}</span>
+                      <span>{{ $t('macro.card.frequency') }}: {{ getIndicatorMeta(key).frequency }}</span>
+                    </div>
+                    <div class="prov-meta-line" v-if="getMetricData(key).latestDataDate">
+                      <span>{{ $t('macro.card.lastUpdated') }}: {{ getMetricData(key).latestDataDate.split('T')[0] }}</span>
+                    </div>
+                    <div class="rule-badge-container">
+                      <span class="rule-badge">{{ $t('macro.nonAi') }}</span>
+                    </div>
+                  </div>
+                </div>
+              </transition>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
     </div>
   </div>
@@ -246,6 +434,9 @@
 
 <script>
 import { getMacroViewModel } from './adapters'
+import { MACRO_OVERVIEW_BRANCH_METRICS } from './adapters/metricConfig'
+import { INDICATOR_META } from './config/indicatorMeta'
+import { evaluateIndicator } from './config/indicatorRules'
 
 export default {
   name: 'MacroIntelligence',
@@ -255,22 +446,27 @@ export default {
       model: {
         headline: '',
         core_judgment: '',
-        risk_asset_implication: '',
-        confidence_level: '',
         generated_at: '',
         top_metrics: [],
         dimensions: {},
-        tailwinds: [],
-        headwinds: [],
-        what_changed: [],
-        what_to_watch: [],
-        missing_data: [],
         warnings: [],
-        isEmpty: true,
         health: {},
         provenance: {},
-        riskPostureSummary: { overallPosture: '', mainSupports: [], mainPressures: [], todayWatchPoint: '' },
-        genericAssetImpact: []
+        all_metrics: {}
+      },
+      overviewBranchMetrics: MACRO_OVERVIEW_BRANCH_METRICS,
+      expandedCards: {
+        dxy: false,
+        rrp: false,
+        nfci: false,
+        gdp: false,
+        us10y: false,
+        cpi: false,
+        pce_yoy: false,
+        core_pce_yoy: false,
+        breakeven_10y: false,
+        fear_greed: false,
+        vix: false
       }
     }
   },
@@ -280,26 +476,196 @@ export default {
   methods: {
     async fetchData () {
       this.loading = true
-      this.model = await getMacroViewModel()
-      this.loading = false
+      try {
+        this.model = await getMacroViewModel()
+      } catch (err) {
+        console.error('Failed to load macro view model:', err)
+      } finally {
+        this.loading = false
+      }
     },
     enterDomain (domainKey) {
       this.$router.push(`/macro/${domainKey}`)
     },
-    getConfidenceColor (level) {
-      if (!level || level === 'Unknown') return 'default'
-      const val = level.toLowerCase()
-      if (val === 'high') return 'green'
-      if (val === 'medium') return 'orange'
-      if (val === 'low') return 'red'
-      return 'default'
-    },
-    getOverviewTimestampLabel (model) {
-      const timeStr = new Date(model.generated_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-      if (model.provenance && model.provenance.isAIGenerated) {
-        return `AI 生成于: ${timeStr}`
+    getIndicatorMeta (key) {
+      const isZh = (this.$i18n.locale || 'zh-CN') === 'zh-CN'
+      const meta = INDICATOR_META[key] || {
+        name: key.toUpperCase(),
+        label: key,
+        unit: '',
+        what: isZh ? '暂无说明' : 'No description available',
+        relationships: [],
+        frequency: 'Daily',
+        sourceHint: '—'
       }
-      return `规则更新时间: ${timeStr}`
+
+      const labelKey = `macro.indicators.${key}.label`
+      const whatKey = `macro.indicators.${key}.what`
+      const whyItMattersKey = `macro.indicators.${key}.whyItMatters`
+
+      const localizedLabel = this.$te(labelKey) ? this.$t(labelKey) : meta.label
+      const localizedWhat = this.$te(whatKey) ? this.$t(whatKey) : meta.what
+      const localizedWhyItMatters = this.$te(whyItMattersKey) ? this.$t(whyItMattersKey) : meta.whyItMatters
+
+      const localizedRelationships = (meta.relationships || []).map(rel => {
+        const relKey = `macro.indicators.${key}.rel.${rel.target}`
+        return {
+          target: rel.target,
+          label: this.$te(relKey) ? this.$t(relKey) : rel.label
+        }
+      })
+
+      return {
+        ...meta,
+        label: localizedLabel,
+        what: localizedWhat,
+        whyItMatters: localizedWhyItMatters,
+        relationships: localizedRelationships
+      }
+    },
+    getMetricPillLabel (key) {
+      const metric = this.getMetricData(key)
+      if (metric && metric.label) return metric.label
+      return this.getIndicatorMeta(key).name || key.toUpperCase()
+    },
+    getMetricData (key) {
+      // Maps client keys to metricsMap keys
+      const lookupKey = key === 'fgi' ? 'fear_greed' : key
+      return this.model.all_metrics?.[lookupKey] || {
+        value: null,
+        formattedValue: '—',
+        displayValue: '—',
+        displayUnit: '',
+        latestDataDate: null,
+        source: '—',
+        frequency: '—'
+      }
+    },
+    getMetricDisplayValue (key) {
+      const metric = this.getMetricData(key)
+      if (!metric || metric.value === null || metric.value === undefined || metric.status === 'missing') {
+        return this.$t('macro.card.noData')
+      }
+      return metric.displayValue || metric.primary || metric.formattedValue || String(metric.value)
+    },
+    evaluateIndicator (key, value) {
+      const res = evaluateIndicator(key, value)
+      if (res) {
+        return {
+          ...res,
+          label: res.labelKey && this.$te(res.labelKey) ? this.$t(res.labelKey) : res.label,
+          meaning: res.meaningKey && this.$te(res.meaningKey) ? this.$t(res.meaningKey) : res.meaning
+        }
+      }
+      return res
+    },
+    statusToneColor (tone) {
+      const toneColorMap = {
+        green: 'green',
+        yellowGreen: 'green',
+        neutral: 'blue',
+        orange: 'orange',
+        red: 'red'
+      }
+      return toneColorMap[tone] || 'blue'
+    },
+    translateVerdict (v) {
+      if (!v) return '—'
+      const keySuffix = v.replace(/\s+/g, '')
+      const localeKey = `macro.verdicts.${keySuffix}`
+      if (this.$te(localeKey)) {
+        return this.$t(localeKey)
+      }
+      const mapping = {
+        Loose: '偏宽松',
+        Tight: '偏收紧',
+        Expanding: '强劲扩张',
+        Slowing: '温和放缓',
+        Contracting: '收缩衰退',
+        Easing: '通胀降温',
+        'High Yield': '高利率压制',
+        Greed: '情绪偏热',
+        Fear: '情绪偏冷',
+        Neutral: '中性平衡'
+      }
+      return mapping[v] || v
+    },
+    getBranchTone (branchKey) {
+      let verdict = null
+      if (branchKey === 'liquidity') {
+        verdict = this.model.dimensions?.liquidity?.verdict
+      } else if (branchKey === 'fundamentals') {
+        verdict = this.model.dimensions?.economy?.verdict
+      } else if (branchKey === 'inflation') {
+        verdict = this.model.dimensions?.inflationRates?.verdict
+      } else if (branchKey === 'sentiment') {
+        verdict = this.model.dimensions?.sentiment?.verdict
+      }
+
+      if (!verdict) return 'neutral'
+
+      const toneMap = {
+        Loose: 'positive',
+        Expanding: 'positive',
+        Easing: 'positive',
+        Tight: 'negative',
+        Contracting: 'negative',
+        'High Yield': 'negative',
+        HighYield: 'negative',
+        Greed: 'warning',
+        Fear: 'warning',
+        Slowing: 'warning',
+        Neutral: 'neutral'
+      }
+
+      return toneMap[verdict] || 'neutral'
+    },
+    getBranchSummary (branchKey) {
+      if (branchKey === 'liquidity') {
+        const verdict = this.model.dimensions?.liquidity?.verdict
+        return verdict ? this.$t('macro.branches.liquidity.summary', { state: this.translateVerdict(verdict) }) : this.$t('macro.card.calculating')
+      }
+      if (branchKey === 'fundamentals') {
+        const ecoVerdict = this.model.dimensions?.economy?.verdict
+        return ecoVerdict ? this.$t('macro.branches.fundamentals.summary', { state: this.translateVerdict(ecoVerdict) }) : this.$t('macro.card.calculating')
+      }
+      if (branchKey === 'inflation') {
+        const infVerdict = this.model.dimensions?.inflationRates?.verdict
+        return infVerdict ? this.$t('macro.branches.inflation.summary', { state: this.translateVerdict(infVerdict) }) : this.$t('macro.card.calculating')
+      }
+      if (branchKey === 'sentiment') {
+        const verdict = this.model.dimensions?.sentiment?.verdict
+        return verdict ? this.$t('macro.branches.sentiment.summary', { state: this.translateVerdict(verdict) }) : this.$t('macro.card.calculating')
+      }
+      return ''
+    },
+    scrollToBranch (branchId) {
+      const el = document.getElementById(`branch-section-${branchId}`)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    },
+    scrollToCard (cardId) {
+      this.$set(this.expandedCards, cardId, true)
+      this.$nextTick(() => {
+        const el = document.getElementById(`card-${cardId}`)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      })
+    },
+    toggleCard (key) {
+      this.$set(this.expandedCards, key, !this.expandedCards[key])
+    },
+    formatDateTime (isoStr) {
+      if (!isoStr) return '—'
+      try {
+        const d = new Date(isoStr)
+        const locale = this.$i18n.locale || 'zh-CN'
+        return d.toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      } catch (e) {
+        return isoStr
+      }
     }
   }
 }
@@ -312,13 +678,21 @@ export default {
   margin: 0 auto;
 }
 
+.non-ai-banner {
+  font-size: 12px;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .system-warnings {
   margin-bottom: 24px;
   border-radius: 8px;
-
-  &.ai-fallback-warning {
-    margin-top: -8px;
-  }
 
   .warning-list {
     margin: 0;
@@ -330,564 +704,417 @@ export default {
   }
 }
 
-/* ── Hero Section ── */
-.hero-card {
-  border-radius: 12px;
-  border: 1px solid #e8e8e8 !important;
-  margin-bottom: 32px;
-  background: #fff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-
-  .hero-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .eyebrow {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #8c8c8c;
-    display: block;
-    margin-bottom: 6px;
-  }
-  .title-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .verdict-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #111827;
-    margin: 0;
-  }
-  .hero-right {
-    display: flex;
-    gap: 8px;
-  }
-  .hero-thesis {
-    font-size: 16px;
-    color: #374151;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    max-width: 900px;
-  }
-  .implication-box {
-    background: rgba(24, 144, 255, 0.04);
-    border-left: 3px solid #1890ff;
-    padding: 16px 20px;
-    border-radius: 0 8px 8px 0;
-    
-    .implication-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 6px;
-    }
-    
-    .implication-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #1890ff;
-      display: block;
-      margin-bottom: 0 !important;
-      font-weight: 600;
-    }
-    .implication-text {
-      font-size: 15px;
-      color: #1f2937;
-      line-height: 1.6;
-      margin: 0;
-    }
-  }
-}
-
-.provenance-badge {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: normal;
-
-  &.ai {
-    background: #f6ffed;
-    color: #52c41a;
-    border: 1px solid #b7eb8f;
-  }
-  &.rule {
-    background: #e6f7ff;
-    color: #1890ff;
-    border: 1px solid #91d5ff;
-  }
-}
-
-
-
-.provenance-legend {
-  font-size: 12px;
-  color: #6b7280;
-  background: #f9fafb;
-  border: 1px dashed #e5e7eb;
-  border-radius: 6px;
-  padding: 8px 16px;
+.ai-deprecated-alert {
+  border-radius: 8px;
+  border: 1px solid #ffe58f !important;
+  background-color: #fffbe6 !important;
   margin-bottom: 24px;
-  text-align: center;
-  font-style: italic;
-}
 
-.neutral-timestamp-badge {
-  display: inline-block;
-  background: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 12px;
-  line-height: 20px;
-  white-space: nowrap;
-}
+  :deep(.ant-alert-message) {
+    color: rgba(0, 0, 0, 0.85);
+    font-weight: 600;
+  }
 
-/* ── Top Metrics Strip ── */
-.metrics-strip {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
+  .hero-thesis {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin: 8px 0;
+  }
 
-  .metric-item {
-    flex: 1;
-    background: #fff;
-    border: 1px solid #e8e8e8;
-    border-radius: 8px;
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  .posture-summary-grid {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #ffe58f;
 
-    .metric-label {
-      font-size: 12px;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-    .metric-value-wrapper {
+    .posture-row {
       display: flex;
-      align-items: baseline;
-    }
-    .metric-value {
-      font-size: 24px;
-      font-weight: 700;
-      font-family: 'SFMono-Regular', Consolas, monospace;
-      color: #111827;
+      gap: 8px;
+      font-size: 13px;
 
-      &.unavailable {
-        font-size: 14px;
-        color: #9ca3af;
-        font-family: inherit;
-        font-weight: 400;
+      .posture-label {
+        font-weight: 600;
+        color: #111827;
+      }
+      .posture-value {
+        color: #4b5563;
       }
     }
-    .metric-unit {
-      font-size: 14px;
-      font-weight: 600;
-      color: #6b7280;
-      margin-left: 6px;
-    }
-    .metric-meta {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
   }
 }
 
-/* ── Dimensions Grid ── */
-.dimensions-grid {
+/* ── Visual Branch Map ── */
+.visual-branch-map {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 32px 24px;
+  margin-bottom: 40px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+}
+
+.map-root {
+  display: inline-block;
+  margin-bottom: 24px;
+}
+
+.root-node {
+  background: #111827;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .node-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .node-subtitle {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 2px;
+  }
+}
+
+.map-branches {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
-  margin-bottom: 40px;
+  position: relative;
 
-  .dimension-card {
-    background: #fff;
-    border: 1px solid #e8e8e8;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.map-branch-box {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-top: 4px solid #1890ff; /* Default fallback color */
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  &.tone-positive {
+    border-top: 4px solid #52c41a;
+  }
+  &.tone-negative {
+    border-top: 4px solid #f5222d;
+  }
+  &.tone-warning {
+    border-top: 4px solid #fa8c16;
+  }
+  &.tone-neutral {
+    border-top: 4px solid #1890ff;
+  }
+
+  .branch-node {
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+    text-align: center;
+    width: 100%;
+    margin-bottom: 12px;
+
+    .branch-node-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+      display: block;
+    }
+    .branch-node-summary {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+      display: inline-block;
+      background: #f3f4f6;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+  }
+}
+
+.indicator-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  .pill-item {
+    font-size: 12px;
+    font-weight: 500;
+    color: #4b5563;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
 
     &:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-      transform: translateY(-2px);
-      border-color: #d9d9d9;
+      background: #111827;
+      color: #ffffff;
+      border-color: #111827;
     }
+  }
+}
 
-    .dim-header {
+/* ── Branch detailed blocks ── */
+.branch-section-block {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+
+  .section-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .header-left {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      gap: 12px;
 
-      .dim-title {
-        font-size: 18px;
+      .section-block-icon {
+        font-size: 20px;
+      }
+      h2 {
+        font-size: 20px;
         font-weight: 600;
         color: #111827;
         margin: 0;
-      }
-    }
 
-    .verdict-pill {
-      display: inline-block;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-
-      &.loose, &.expanding, &.greed, &.easing { background: rgba(16,185,129,0.1); color: #10b981; }
-      &.neutral { background: rgba(245,158,11,0.1); color: #d48806; }
-      &.tight, &.slowing, &.contracting, &.sticky, &.fear, &.high { background: rgba(239,68,68,0.1); color: #ef4444; }
-      &.cooling { background: rgba(59,130,246,0.1); color: #3b82f6; }
-    }
-
-    .dim-summary {
-      font-size: 14px;
-      color: #4b5563;
-      line-height: 1.5;
-      margin-bottom: 24px;
-      flex: 1;
-    }
-
-    .dim-metrics {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-top: 16px;
-      border-top: 1px dashed #f0f0f0;
-
-      .dm-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-
-        .dm-label {
+        .en-sub {
           font-size: 12px;
-          color: #6b7280;
-        }
-        .dm-value {
-          font-size: 15px;
-          font-weight: 600;
-          font-family: 'SFMono-Regular', Consolas, monospace;
-          color: #111827;
-
-          &.unavailable {
-            font-size: 12px;
-            color: #9ca3af;
-            font-family: inherit;
-            font-weight: 400;
-          }
-          .dm-unit {
-            font-size: 11px;
-            color: #9ca3af;
-            margin-left: 2px;
-            font-weight: normal;
-          }
+          color: #9ca3af;
+          font-weight: 400;
+          margin-left: 8px;
         }
       }
     }
+  }
 
-    .dim-footer {
-      text-align: right;
-      .dim-action {
-        font-size: 13px;
-        color: #1890ff;
-        font-weight: 500;
-      }
-    }
+  .section-block-desc {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 24px;
   }
 }
 
-/* ── Minimal Cards & Drivers ── */
-.minimal-card {
-  border-radius: 10px;
-  border: 1px solid #e8e8e8 !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.02);
-
-  :deep(.ant-card-head) {
-    border-bottom: 1px solid #f0f0f0;
-    min-height: 48px;
-    padding: 0 20px;
-  }
-  :deep(.ant-card-head-title) {
-    font-size: 15px;
-    font-weight: 600;
-    color: #111827;
-  }
-  :deep(.ant-card-body) {
-    padding: 20px;
-  }
-}
-
-.analysis-section {
-  margin-bottom: 32px;
-}
-
-.drivers-card {
-  height: 100%;
-}
-
-.tw-hw-container {
+/* ── Indicator detailed cards ── */
+.branch-cards-grid {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
-.drivers-list {
-  .list-title {
-    font-size: 13px;
-    font-weight: 600;
-    display: block;
-    margin-bottom: 12px;
-  }
-  &.tailwinds .list-title { color: #10b981; }
-  &.headwinds .list-title { color: #d48806; }
+.indicator-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    li {
-      font-size: 14px;
-      color: #374151;
-      line-height: 1.5;
-      margin-bottom: 10px;
-      padding-left: 14px;
-      position: relative;
-      &:last-child { margin-bottom: 0; }
-      &::before {
-        content: '•';
-        position: absolute;
-        left: 0;
-        color: #9ca3af;
-      }
-    }
+  &:hover {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+  }
+
+  &.expanded {
+    background: #ffffff;
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
 }
 
-.catalyst-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  li {
-    margin-bottom: 16px;
-    line-height: 1.5;
-    &:last-child { margin-bottom: 0; }
-    .cat-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #111827;
-      display: block;
-    }
-    .cat-desc {
-      font-size: 14px;
-      color: #4b5563;
-      display: block;
-      margin: 4px 0;
-    }
-  }
-}
-
-.evidence-tag {
-  font-size: 11px;
-  color: #9ca3af;
-  font-family: 'SFMono-Regular', Consolas, monospace;
-  background: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-left: 4px;
-}
-
-
-/* ── Risk Posture Summary in Hero ── */
-.posture-summary-grid {
+.card-header-bar {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: baseline;
   gap: 8px;
 
-  .posture-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .posture-label {
-    font-size: 11px;
+  .indicator-name {
+    font-size: 16px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #1890ff;
-    white-space: nowrap;
-    min-width: 60px;
-
-    &.supports { color: #10b981; }
-    &.pressures { color: #ef4444; }
-    &.watch { color: #d48806; }
+    color: #111827;
+    font-family: 'SFMono-Regular', Consolas, monospace;
   }
-  .posture-value {
+  .indicator-label {
     font-size: 14px;
-    color: #1f2937;
-    line-height: 1.5;
-
-    &.posture-headline {
-      font-size: 15px;
-      font-weight: 600;
-      color: #111827;
-    }
-    &.watch-text {
-      color: #374151;
-    }
-  }
-}
-
-/* ── Dimension Card: Posture Row ── */
-.dim-posture {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: #fafafa;
-  border-radius: 6px;
-  border: 1px solid #f0f0f0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  .dim-posture-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .dim-posture-label {
-    font-size: 10px;
-    color: #9ca3af;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-  }
-  .dim-posture-badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 3px;
-    white-space: nowrap;
-
-    &.supports_risk { background: rgba(16,185,129,0.1); color: #10b981; }
-    &.pressures_risk { background: rgba(239,68,68,0.1); color: #ef4444; }
-    &.neutral { background: rgba(107,114,128,0.1); color: #6b7280; }
-    &.mixed { background: rgba(245,158,11,0.1); color: #d48806; }
-  }
-  .dim-posture-reason {
-    font-size: 12px;
     color: #4b5563;
-    line-height: 1.4;
-    flex: 1;
-  }
-  .dim-watch-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-  }
-  .dim-watch-label {
-    font-size: 10px;
-    color: #d48806;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-  }
-  .dim-watch-text {
-    font-size: 11px;
-    color: #6b7280;
-    line-height: 1.4;
-    flex: 1;
   }
 }
 
-/* ── Dimension Card: Provenance Footer ── */
-.dim-provenance {
-  display: block;
-  font-size: 10px;
-  color: #9ca3af;
-  margin-top: 4px;
-  letter-spacing: 0.3px;
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  @media (max-width: 576px) {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .indicator-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+
+    &.unavailable {
+      color: #9ca3af;
+      font-weight: 400;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .indicator-unit {
+      font-size: 12px;
+      color: #6b7280;
+      margin-left: 2px;
+      font-weight: 500;
+    }
+  }
+
+  .status-tag {
+    font-weight: 600;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  .toggle-icon {
+    font-size: 14px;
+    color: #9ca3af;
+  }
 }
 
-/* ── Generic Asset Impact Card ── */
-.asset-impact-card {
-  margin-bottom: 32px;
+/* ── Collapsed Content ── */
+.card-expanded-content {
+  padding: 20px;
+  border-top: 1px solid #f3f4f6;
+  background: #ffffff;
 
-  .asset-impact-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .asset-impact-row {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid #f5f5f5;
-    flex-wrap: wrap;
+  .education-block, .rule-block, .relationship-block {
+    margin-bottom: 16px;
 
-    &:last-child { border-bottom: none; }
+    .block-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .block-text {
+      font-size: 14px;
+      color: #1f2937;
+      line-height: 1.6;
+      margin: 0;
+
+      &.meaning-text {
+        font-weight: 500;
+        color: #111827;
+      }
+    }
   }
-  .asset-type {
-    font-size: 13px;
+}
+
+.relationship-item {
+  display: flex;
+  align-items: baseline;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .rel-icon {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-right: 8px;
+  }
+
+  .rel-target {
     font-weight: 600;
     color: #111827;
-    white-space: nowrap;
-    min-width: 90px;
-  }
-  .asset-posture-badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 3px;
-    white-space: nowrap;
-    flex-shrink: 0;
-
-    &.supports_risk { background: rgba(16,185,129,0.1); color: #10b981; }
-    &.pressures_risk { background: rgba(239,68,68,0.1); color: #ef4444; }
-    &.neutral { background: rgba(107,114,128,0.1); color: #6b7280; }
-    &.mixed { background: rgba(245,158,11,0.1); color: #d48806; }
-  }
-  .asset-impact-text {
-    font-size: 13px;
-    color: #4b5563;
-    line-height: 1.5;
-    flex: 1;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    margin-right: 4px;
   }
 }
 
-@media (max-width: 1200px) {
-  .dimensions-grid { grid-template-columns: repeat(2, 1fr); }
+.provenance-block {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .prov-meta-line {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  .rule-badge-container {
+    .rule-badge {
+      font-size: 11px;
+      background: #f3f4f6;
+      color: #4b5563;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+  }
 }
+
 @media (max-width: 768px) {
-  .macro-intelligence-page { padding: 16px; }
-  .dimensions-grid { grid-template-columns: 1fr; }
-  .metrics-strip .metric-item { flex-basis: calc(50% - 12px); }
-  .hero-header { flex-direction: column; gap: 12px; }
+  .macro-intelligence-page {
+    padding: 16px;
+  }
 }
 </style>

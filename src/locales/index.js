@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 import storage from 'store'
 import moment from 'moment'
+import { APP_LANGUAGE } from '@/store/mutation-types'
 
 // default lang
 import enUS from './lang/en-US'
@@ -38,13 +39,17 @@ function setI18nLanguage (lang) {
     document.body.setAttribute('dir', isRtl ? 'rtl' : 'ltr')
     document.body.classList.toggle('rtl', isRtl)
   }
+  const locale = i18n.getLocaleMessage(lang)
+  if (locale && locale.momentName) {
+    moment.locale(locale.momentName)
+  }
   return lang
 }
 
 export function loadLanguageAsync (lang = defaultLang) {
   return new Promise(resolve => {
     // 缓存语言设置
-    storage.set('lang', lang)
+    storage.set(APP_LANGUAGE, lang)
     if (i18n.locale !== lang) {
       if (!loadedLanguages.includes(lang)) {
         return import(/* webpackChunkName: "lang-[request]" */ `./lang/${lang}`).then(msg => {
@@ -52,12 +57,12 @@ export function loadLanguageAsync (lang = defaultLang) {
           i18n.setLocaleMessage(lang, locale)
           loadedLanguages.push(lang)
           moment.updateLocale(locale.momentName, locale.momentLocale)
-          return setI18nLanguage(lang)
+          return resolve(setI18nLanguage(lang))
         })
       }
       return resolve(setI18nLanguage(lang))
     }
-    return resolve(lang)
+    return resolve(setI18nLanguage(lang))
   })
 }
 

@@ -1,26 +1,26 @@
 <template>
   <div class="trade-plan-container">
     <div class="tp-header">
-      <h1 class="tp-title">交易计划 / Trade Plan</h1>
+      <h1 class="tp-title">{{ $t('tradePlan.title') }}</h1>
       <p class="tp-subtitle">
-        输入你的标的、预算、周期和风险偏好，让 AI 帮你生成纪律化计划草案。计划不预测价格，也不构成投资建议。
+        {{ $t('tradePlan.subtitle') }}
       </p>
     </div>
 
     <div class="tp-content-layout">
       <!-- Left Column: Form -->
       <div class="tp-form-col">
-        <a-card class="tp-card" :bordered="false" title="计划参数配置">
+        <a-card class="tp-card" :bordered="false" :title="$t('tradePlan.configTitle')">
           <a-form-model :model="form" :label-col="{ span: 24 }" :wrapper-col="{ span: 24 }">
 
             <a-row :gutter="16">
               <a-col :span="12">
-                <a-form-model-item label="Symbol / 标的代码">
-                  <a-input v-model="form.symbol" placeholder="例如 AAPL / QQQ / BTC" size="large" />
+                <a-form-model-item :label="$t('tradePlan.symbolLabel')">
+                  <a-input v-model="form.symbol" :placeholder="$t('tradePlan.symbolPlaceholder')" size="large" />
                 </a-form-model-item>
               </a-col>
               <a-col :span="12">
-                <a-form-model-item label="Asset Type / 资产类型">
+                <a-form-model-item :label="$t('tradePlan.assetTypeLabel')">
                   <a-select v-model="form.assetType" size="large">
                     <a-select-option value="Stock">Stock</a-select-option>
                     <a-select-option value="ETF">ETF</a-select-option>
@@ -32,16 +32,16 @@
 
             <a-row :gutter="16">
               <a-col :span="12">
-                <a-form-model-item label="Plan Type / 计划类型">
+                <a-form-model-item :label="$t('tradePlan.planTypeLabel')">
                   <a-select v-model="form.planType" size="large">
-                    <a-select-option value="Long-term DCA">Long-term DCA / 长期定投</a-select-option>
-                    <a-select-option value="Staged Entry">Staged Entry / 分批买入</a-select-option>
-                    <a-select-option value="Risk Control">Risk Control / 风险控制</a-select-option>
+                    <a-select-option value="Long-term DCA">{{ $t('tradePlan.planType.longTermDca') }}</a-select-option>
+                    <a-select-option value="Staged Entry">{{ $t('tradePlan.planType.stagedEntry') }}</a-select-option>
+                    <a-select-option value="Risk Control">{{ $t('tradePlan.planType.riskControl') }}</a-select-option>
                   </a-select>
                 </a-form-model-item>
               </a-col>
               <a-col :span="12">
-                <a-form-model-item label="Total Budget / 总预算 ($)">
+                <a-form-model-item :label="$t('tradePlan.budgetLabel')">
                   <a-input-number v-model="form.budget" style="width: 100%" size="large" :min="0" placeholder="0.00" />
                 </a-form-model-item>
               </a-col>
@@ -49,7 +49,7 @@
 
             <a-row :gutter="16">
               <a-col :span="8">
-                <a-form-model-item label="Duration / 执行周期">
+                <a-form-model-item :label="$t('tradePlan.durationLabel')">
                   <a-select v-model="form.duration" size="large">
                     <a-select-option value="3 months">3 months</a-select-option>
                     <a-select-option value="6 months">6 months</a-select-option>
@@ -59,7 +59,7 @@
                 </a-form-model-item>
               </a-col>
               <a-col :span="8">
-                <a-form-model-item label="Frequency / 投入频率">
+                <a-form-model-item :label="$t('tradePlan.frequencyLabel')">
                   <a-select v-model="form.frequency" size="large">
                     <a-select-option value="Weekly">Weekly</a-select-option>
                     <a-select-option value="Bi-weekly">Bi-weekly</a-select-option>
@@ -68,21 +68,21 @@
                 </a-form-model-item>
               </a-col>
               <a-col :span="8">
-                <a-form-model-item label="Risk Profile / 风险偏好">
+                <a-form-model-item :label="$t('tradePlan.riskLabel')">
                   <a-select v-model="form.riskProfile" size="large">
-                    <a-select-option value="Conservative">Conservative / 保守</a-select-option>
-                    <a-select-option value="Balanced">Balanced / 平衡</a-select-option>
-                    <a-select-option value="Aggressive">Aggressive / 积极</a-select-option>
+                    <a-select-option value="Conservative">{{ $t('tradePlan.risk.conservative') }}</a-select-option>
+                    <a-select-option value="Balanced">{{ $t('tradePlan.risk.balanced') }}</a-select-option>
+                    <a-select-option value="Aggressive">{{ $t('tradePlan.risk.aggressive') }}</a-select-option>
                   </a-select>
                 </a-form-model-item>
               </a-col>
             </a-row>
 
-            <a-form-model-item label="Optional Thesis / 关注理由">
+            <a-form-model-item :label="$t('tradePlan.thesisLabel')">
               <a-textarea
                 v-model="form.thesis"
                 :rows="4"
-                placeholder="为什么你想关注这个标的？例如：长期配置、行业成长、分散风险等。"
+                :placeholder="$t('tradePlan.thesisPlaceholder')"
               />
             </a-form-model-item>
 
@@ -93,29 +93,29 @@
       <!-- Right Column: Sidebar / Action -->
       <div class="tp-sidebar-col">
         <a-card class="tp-card tp-action-card" :bordered="false">
-          <h3 class="action-title">AI Plan Builder 会做什么？</h3>
+          <h3 class="action-title">{{ $t('tradePlan.sidebar.title') }}</h3>
           <ul class="action-list">
-            <li><a-icon type="check-circle" class="list-icon" /> 生成分批投入节奏</li>
-            <li><a-icon type="check-circle" class="list-icon" /> 帮你定义计划失效条件</li>
-            <li><a-icon type="check-circle" class="list-icon" /> 提醒需要复查的风险点</li>
-            <li><a-icon type="check-circle" class="list-icon" /> 用情景模拟替代收益预测</li>
+            <li><a-icon type="check-circle" class="list-icon" /> {{ $t('tradePlan.sidebar.item1') }}</li>
+            <li><a-icon type="check-circle" class="list-icon" /> {{ $t('tradePlan.sidebar.item2') }}</li>
+            <li><a-icon type="check-circle" class="list-icon" /> {{ $t('tradePlan.sidebar.item3') }}</li>
+            <li><a-icon type="check-circle" class="list-icon" /> {{ $t('tradePlan.sidebar.item4') }}</li>
           </ul>
 
           <div class="tp-disclaimer">
             <a-icon type="warning" />
-            <span>本工具生成的是计划草案，不是投资建议，不预测价格走势，也不承诺收益。</span>
+            <span>{{ $t('tradePlan.disclaimer') }}</span>
           </div>
 
-          <a-button 
-            type="primary" 
-            size="large" 
-            block 
-            class="generate-btn" 
-            :disabled="!isValid || loading" 
+          <a-button
+            type="primary"
+            size="large"
+            block
+            class="generate-btn"
+            :disabled="!isValid || loading"
             :loading="loading"
             @click="handleGenerate"
           >
-            {{ loading ? '正在生成...' : '生成计划草案' }}
+            {{ loading ? $t('tradePlan.button.generating') : $t('tradePlan.button.generate') }}
           </a-button>
           <div v-if="error" style="color: #dc2626; font-size: 13px; margin-top: 12px;">
             <a-icon type="close-circle" /> {{ error }}
@@ -123,16 +123,16 @@
         </a-card>
 
         <a-card class="tp-card tp-tech-card" :bordered="false">
-          <h3 class="action-title">技术分析辅助 / Technical Workspace</h3>
+          <h3 class="action-title">{{ $t('tradePlan.tech.title') }}</h3>
           <p class="tw-desc">
-            如果你希望使用图表、指标或自定义 trading code 辅助判断入场区间、分批价格和止损条件，可以打开高级技术分析工作区。
+            {{ $t('tradePlan.tech.desc') }}
           </p>
           <p class="tw-desc tw-note">
-            这些工具只用于辅助计划参数，不构成投资建议，也不预测价格走势。
+            {{ $t('tradePlan.tech.note') }}
           </p>
           <router-link to="/legacy-indicator-ide">
             <a-button type="dashed" block class="tw-btn">
-              打开技术分析工作区
+              {{ $t('tradePlan.tech.button') }}
             </a-button>
           </router-link>
         </a-card>
@@ -141,133 +141,133 @@
 
     <!-- Generated Draft Section -->
     <div v-if="draft" class="tp-draft-section">
-      <a-card class="tp-card" :bordered="false" title="AI 计划草案">
+      <a-card class="tp-card" :bordered="false" :title="$t('tradePlan.draft.title')">
         <div class="draft-grid">
           <div class="draft-main">
-            <h3 class="draft-title">计划摘要</h3>
+            <h3 class="draft-title">{{ $t('tradePlan.draft.summary') }}</h3>
             <p class="draft-text">{{ draft.plan_summary }}</p>
 
-            <h3 class="draft-title" v-if="draft.budget_allocation">资金池分配 (Budget Allocation)</h3>
+            <h3 class="draft-title" v-if="draft.budget_allocation">{{ $t('tradePlan.draft.budgetAllocation') }}</h3>
             <a-row :gutter="16" v-if="draft.budget_allocation" style="margin-bottom: 24px;">
               <a-col :span="8">
                 <div class="budget-card base-pool">
-                  <div class="bc-title">基础定投池</div>
+                  <div class="bc-title">{{ $t('tradePlan.draft.basePool') }}</div>
                   <div class="bc-amount">${{ formatMoney(draft.budget_allocation.base_dca_pool.amount) }} <span class="bc-pct">({{ draft.budget_allocation.base_dca_pool.percentage }}%)</span></div>
                   <div class="bc-desc">{{ draft.budget_allocation.base_dca_pool.explanation }}</div>
                 </div>
               </a-col>
               <a-col :span="8">
                 <div class="budget-card reserve-pool">
-                  <div class="bc-title">回撤备用池</div>
+                  <div class="bc-title">{{ $t('tradePlan.draft.reservePool') }}</div>
                   <div class="bc-amount">${{ formatMoney(draft.budget_allocation.opportunity_reserve.amount) }} <span class="bc-pct">({{ draft.budget_allocation.opportunity_reserve.percentage }}%)</span></div>
                   <div class="bc-desc">{{ draft.budget_allocation.opportunity_reserve.explanation }}</div>
                 </div>
               </a-col>
               <a-col :span="8">
                 <div class="budget-card cash-pool">
-                  <div class="bc-title">现金缓冲</div>
+                  <div class="bc-title">{{ $t('tradePlan.draft.cashPool') }}</div>
                   <div class="bc-amount">${{ formatMoney(draft.budget_allocation.cash_buffer.amount) }} <span class="bc-pct">({{ draft.budget_allocation.cash_buffer.percentage }}%)</span></div>
                   <div class="bc-desc">{{ draft.budget_allocation.cash_buffer.explanation }}</div>
                 </div>
               </a-col>
             </a-row>
 
-            <h3 class="draft-title">投入节奏</h3>
+            <h3 class="draft-title">{{ $t('tradePlan.draft.cadence') }}</h3>
             <p class="draft-text">{{ draft.dca_cadence }}</p>
-            
-            <h3 class="draft-title" v-if="draft.budget_schedule && draft.budget_schedule.length">预算排期</h3>
-            <a-table 
+
+            <h3 class="draft-title" v-if="draft.budget_schedule && draft.budget_schedule.length">{{ $t('tradePlan.draft.schedule') }}</h3>
+            <a-table
               v-if="draft.budget_schedule && draft.budget_schedule.length"
-              :dataSource="draft.budget_schedule" 
-              :columns="budgetColumns" 
-              size="small" 
+              :dataSource="draft.budget_schedule"
+              :columns="budgetColumns"
+              size="small"
               :pagination="false"
               class="draft-table"
               rowKey="period"
             />
 
-            <h3 class="draft-title" v-if="draft.action_rules">执行规则 (Action Rules)</h3>
+            <h3 class="draft-title" v-if="draft.action_rules">{{ $t('tradePlan.draft.actionRules') }}</h3>
             <div v-if="draft.action_rules" class="action-rules-section">
               <div class="rule-group" v-if="draft.action_rules.continue_when && draft.action_rules.continue_when.length">
-                <h4><a-icon type="check-circle" style="color: #10b981; margin-right: 6px;" />继续执行条件</h4>
+                <h4><a-icon type="check-circle" style="color: #10b981; margin-right: 6px;" />{{ $t('tradePlan.draft.rules.continue') }}</h4>
                 <ul class="draft-list">
                   <li v-for="(r, i) in draft.action_rules.continue_when" :key="'c'+i">{{ r }}</li>
                 </ul>
               </div>
               <div class="rule-group" v-if="draft.action_rules.pause_when && draft.action_rules.pause_when.length">
-                <h4><a-icon type="pause-circle" style="color: #f59e0b; margin-right: 6px;" />暂停条件</h4>
+                <h4><a-icon type="pause-circle" style="color: #f59e0b; margin-right: 6px;" />{{ $t('tradePlan.draft.rules.pause') }}</h4>
                 <ul class="draft-list">
                   <li v-for="(r, i) in draft.action_rules.pause_when" :key="'p'+i">{{ r }}</li>
                 </ul>
               </div>
               <div class="rule-group" v-if="draft.action_rules.use_reserve_when && draft.action_rules.use_reserve_when.length">
-                <h4><a-icon type="thunderbolt" style="color: #8b5cf6; margin-right: 6px;" />使用备用资金条件</h4>
+                <h4><a-icon type="thunderbolt" style="color: #8b5cf6; margin-right: 6px;" />{{ $t('tradePlan.draft.rules.reserve') }}</h4>
                 <ul class="draft-list">
                   <li v-for="(r, i) in draft.action_rules.use_reserve_when" :key="'u'+i">{{ r }}</li>
                 </ul>
               </div>
               <div class="rule-group" v-if="draft.action_rules.review_when && draft.action_rules.review_when.length">
-                <h4><a-icon type="search" style="color: #3b82f6; margin-right: 6px;" />复查条件</h4>
+                <h4><a-icon type="search" style="color: #3b82f6; margin-right: 6px;" />{{ $t('tradePlan.draft.rules.review') }}</h4>
                 <ul class="draft-list">
                   <li v-for="(r, i) in draft.action_rules.review_when" :key="'r'+i">{{ r }}</li>
                 </ul>
               </div>
             </div>
 
-            <h3 class="draft-title" v-if="draft.staged_entry_rules && draft.staged_entry_rules.length">分批规则</h3>
+            <h3 class="draft-title" v-if="draft.staged_entry_rules && draft.staged_entry_rules.length">{{ $t('tradePlan.draft.stagedEntry') }}</h3>
             <ul class="draft-list" v-if="draft.staged_entry_rules && draft.staged_entry_rules.length">
               <li v-for="(rule, idx) in draft.staged_entry_rules" :key="idx">{{ rule }}</li>
             </ul>
           </div>
 
           <div class="draft-side">
-            <h3 class="draft-title" v-if="draft.asset_specific_checklist && draft.asset_specific_checklist.length">资产自检清单</h3>
+            <h3 class="draft-title" v-if="draft.asset_specific_checklist && draft.asset_specific_checklist.length">{{ $t('tradePlan.draft.checklist') }}</h3>
             <ul class="draft-list" v-if="draft.asset_specific_checklist && draft.asset_specific_checklist.length">
               <li v-for="(item, idx) in draft.asset_specific_checklist" :key="idx">{{ item }}</li>
             </ul>
 
-            <h3 class="draft-title">失效条件</h3>
+            <h3 class="draft-title">{{ $t('tradePlan.draft.invalidation') }}</h3>
             <ul class="draft-list">
               <li v-for="(cond, idx) in draft.invalidation_conditions" :key="idx">{{ cond }}</li>
             </ul>
 
-            <h3 class="draft-title">现金保留</h3>
+            <h3 class="draft-title">{{ $t('tradePlan.draft.cashReserve') }}</h3>
             <p class="draft-text">{{ draft.cash_reserve_suggestion }}</p>
 
-            <h3 class="draft-title">风险提醒</h3>
+            <h3 class="draft-title">{{ $t('tradePlan.draft.riskReminder') }}</h3>
             <ul class="draft-list">
               <li v-for="(risk, idx) in draft.risk_notes" :key="idx">{{ risk }}</li>
             </ul>
-            
-            <h3 class="draft-title">复查频率</h3>
+
+            <h3 class="draft-title">{{ $t('tradePlan.draft.reviewFreq') }}</h3>
             <p class="draft-text">{{ draft.review_frequency }}</p>
           </div>
         </div>
 
         <div class="draft-scenarios" v-if="draft.scenario_simulation">
-          <h3 class="draft-title">情景模拟</h3>
+          <h3 class="draft-title">{{ $t('tradePlan.draft.scenarios') }}</h3>
           <a-row :gutter="16">
             <a-col :span="6">
               <div class="scenario-box">
-                <h4>基准情景</h4>
+                <h4>{{ $t('tradePlan.draft.scenarios.base') }}</h4>
                 <p>{{ draft.scenario_simulation.base_case }}</p>
               </div>
             </a-col>
             <a-col :span="6">
               <div class="scenario-box">
-                <h4>上行/暴涨情景</h4>
+                <h4>{{ $t('tradePlan.draft.scenarios.upside') }}</h4>
                 <p>{{ draft.scenario_simulation.upside_or_fast_rise_case }}</p>
               </div>
             </a-col>
             <a-col :span="6">
               <div class="scenario-box">
-                <h4>震荡情景</h4>
+                <h4>{{ $t('tradePlan.draft.scenarios.sideways') }}</h4>
                 <p>{{ draft.scenario_simulation.sideways_case }}</p>
               </div>
             </a-col>
             <a-col :span="6">
               <div class="scenario-box">
-                <h4>压力情景</h4>
+                <h4>{{ $t('tradePlan.draft.scenarios.stress') }}</h4>
                 <p>{{ draft.scenario_simulation.stress_case }}</p>
               </div>
             </a-col>
@@ -276,7 +276,7 @@
 
         <div class="draft-disclaimer">
           <a-icon type="info-circle" />
-          {{ draft.disclaimer || '本计划为 AI 生成的纪律化草案，不构成投资建议，不预测价格走势，也不承诺收益。' }}
+          {{ draft.disclaimer || $t('tradePlan.draft.disclaimer') }}
         </div>
 
         <div class="save-section">
@@ -290,11 +290,11 @@
             @click="handleSave"
           >
             <a-icon type="save" />
-            {{ saving ? '正在保存...' : '保存到 My Plan' }}
+            {{ saving ? $t('tradePlan.button.saving') : $t('tradePlan.button.save') }}
           </a-button>
           <div v-if="saved" class="save-success">
-            <a-icon type="check-circle" /> 计划已保存到 My Plan
-            <router-link to="/my-plan" class="view-plan-link">查看我的计划 →</router-link>
+            <a-icon type="check-circle" /> {{ $t('tradePlan.saveSuccess') }}
+            <router-link to="/my-plan" class="view-plan-link">{{ $t('tradePlan.viewPlan') }}</router-link>
           </div>
           <div v-if="saveError" class="save-error">
             <a-icon type="close-circle" /> {{ saveError }}
@@ -328,24 +328,35 @@ export default {
       saving: false,
       saved: false,
       saveError: null,
-      draft: null,
-      budgetColumns: [
-        { title: '投入周期', dataIndex: 'period', key: 'period' },
-        { title: '建议金额', dataIndex: 'amount', key: 'amount' },
-        { title: '说明', dataIndex: 'note', key: 'note' }
-      ]
+      draft: null
     }
   },
   computed: {
     isValid () {
       const f = this.form
-      return f.symbol.trim() !== '' && 
-             f.assetType && 
-             f.planType && 
-             f.budget > 0 && 
-             f.duration && 
-             f.frequency && 
+      return f.symbol.trim() !== '' &&
+             f.assetType &&
+             f.planType &&
+             f.budget > 0 &&
+             f.duration &&
+             f.frequency &&
              f.riskProfile
+    },
+    budgetColumns () {
+      return [
+        { title: this.$t('tradePlan.draft.columns.period'), dataIndex: 'period', key: 'period' },
+        { title: this.$t('tradePlan.draft.columns.amount'), dataIndex: 'amount', key: 'amount' },
+        { title: this.$t('tradePlan.draft.columns.note'), dataIndex: 'note', key: 'note' }
+      ]
+    }
+  },
+  watch: {
+    '$i18n.locale' () {
+      // Clear draft when locale switches to prevent displaying a stale draft in the wrong language
+      this.draft = null
+      this.saved = false
+      this.saveError = null
+      this.error = null
     }
   },
   methods: {
@@ -364,11 +375,11 @@ export default {
     },
     async handleGenerate () {
       if (!this.isValid) return
-      
+
       this.loading = true
       this.error = null
       this.draft = null
-      
+
       this.saved = false
       this.saveError = null
 
@@ -381,11 +392,12 @@ export default {
           duration: this.form.duration,
           frequency: this.form.frequency,
           risk_profile: this.form.riskProfile,
-          thesis: this.form.thesis
+          thesis: this.form.thesis,
+          locale: this.$i18n.locale || 'zh-CN'
         }
-        
+
         const res = await generatePlan(payload)
-        
+
         if (res && res.code === 1 && res.data) {
           this.draft = res.data
         } else {
@@ -393,7 +405,7 @@ export default {
         }
       } catch (err) {
         console.error('Plan generation error:', err)
-        this.error = '暂时无法生成计划草案，请稍后重试。'
+        this.error = this.$t('tradePlan.error.generate')
       } finally {
         this.loading = false
       }
@@ -426,7 +438,7 @@ export default {
         }
       } catch (err) {
         console.error('Plan save error:', err)
-        this.saveError = '暂时无法保存计划，请稍后重试。'
+        this.saveError = this.$t('tradePlan.error.save')
       } finally {
         this.saving = false
       }
@@ -606,7 +618,7 @@ export default {
   border-color: #d1d5db;
   color: #374151;
   border-radius: 8px;
-  
+
   &:hover {
     border-color: #9ca3af;
     color: #111827;
@@ -640,7 +652,7 @@ export default {
   margin-bottom: 8px;
   padding-bottom: 4px;
   border-bottom: 1px solid #f3f4f6;
-  
+
   &:first-child {
     margin-top: 0;
   }
@@ -656,7 +668,7 @@ export default {
 .draft-list {
   padding-left: 20px;
   margin-bottom: 16px;
-  
+
   li {
     font-size: 14px;
     color: #4b5563;
@@ -680,14 +692,14 @@ export default {
   border-radius: 8px;
   padding: 16px;
   height: 100%;
-  
+
   h4 {
     font-size: 14px;
     font-weight: 600;
     color: #374151;
     margin-bottom: 8px;
   }
-  
+
   p {
     font-size: 13px;
     color: #4b5563;
@@ -706,7 +718,7 @@ export default {
   align-items: center;
   gap: 8px;
   margin-top: 24px;
-  
+
   i {
     font-size: 14px;
   }

@@ -93,14 +93,6 @@ export const asyncRouterMap = [
         hidden: true,
         meta: { title: 'menu.macro', keepAlive: false, permission: ['dashboard'] }
       },
-      // Indicator Community / 指标市场（隐藏）
-      {
-        path: '/indicator-community',
-        name: 'IndicatorCommunity',
-        component: () => import('@/views/indicator-community'),
-        hidden: true,
-        meta: { title: 'menu.dashboard.community', keepAlive: false, icon: 'shop', permission: ['dashboard'] }
-      },
       // Billing / 会员充值（隐藏，可从 Profile 内访问）
       {
         path: '/billing',
@@ -116,6 +108,37 @@ export const asyncRouterMap = [
         component: () => import('@/views/user-manage'),
         hidden: true,
         meta: { title: 'menu.userManage', keepAlive: false, icon: 'team', permission: ['admin'] }
+      },
+      // AI Analysis（隐藏，被 ai-asset-analysis 内嵌为子组件，禁止删除）
+      {
+        path: '/ai-analysis/:pageNo([1-9]\\d*)?',
+        name: 'Analysis',
+        component: () => import('@/views/ai-analysis'),
+        hidden: true,
+        meta: { title: 'menu.dashboard.analysis', keepAlive: false, icon: 'thunderbolt', permission: ['dashboard'] }
+      },
+      // Legacy Indicator IDE / 高级技术分析工作区 (reconnected route to fix 404)
+      {
+        path: '/legacy-indicator-ide',
+        name: 'LegacyIndicatorIde',
+        component: () => import('@/views/indicator-ide'),
+        hidden: true,
+        meta: { title: 'Technical Workspace', keepAlive: true, icon: 'line-chart', permission: ['dashboard'] }
+      }
+
+      // ── Legacy / Frozen Routes ──────────────────────────────────────────
+      // QuantBrew keeps the app focused on observation, research, planning and review.
+      // Execution/trading-terminal routes are intentionally frozen and excluded from the active route tree.
+      // Do not re-enable without product review.
+      /*
+      ,
+      // Indicator Community / 指标市场（隐藏）
+      {
+        path: '/indicator-community',
+        name: 'IndicatorCommunity',
+        component: () => import('@/views/indicator-community'),
+        hidden: true,
+        meta: { title: 'menu.dashboard.community', keepAlive: false, icon: 'shop', permission: ['dashboard'] }
       },
       // Strategy & Live（隐藏）
       {
@@ -156,14 +179,6 @@ export const asyncRouterMap = [
         hidden: true,
         meta: { title: 'menu.dashboard.tradingBot', keepAlive: true, icon: 'robot', permission: ['dashboard'] }
       },
-      // AI Analysis（隐藏，被 ai-asset-analysis 内嵌为子组件，禁止删除）
-      {
-        path: '/ai-analysis/:pageNo([1-9]\\d*)?',
-        name: 'Analysis',
-        component: () => import('@/views/ai-analysis'),
-        hidden: true,
-        meta: { title: 'menu.dashboard.analysis', keepAlive: false, icon: 'thunderbolt', permission: ['dashboard'] }
-      },
       // Portfolio（隐藏）
       {
         path: '/portfolio',
@@ -171,15 +186,6 @@ export const asyncRouterMap = [
         component: () => import('@/views/portfolio'),
         hidden: true,
         meta: { title: 'menu.dashboard.portfolio', keepAlive: true, icon: 'fund', permission: ['dashboard'] }
-      },
-
-      // Legacy Indicator IDE / 高级技术分析工作区（隐藏）
-      {
-        path: '/legacy-indicator-ide',
-        name: 'LegacyIndicatorIde',
-        component: () => import('@/views/indicator-ide'),
-        hidden: true,
-        meta: { title: 'Technical Workspace', keepAlive: true, icon: 'line-chart', permission: ['dashboard'] }
       },
 
       // ── Legacy compatibility redirects ──────────────────────────────────
@@ -204,6 +210,7 @@ export const asyncRouterMap = [
         hidden: true,
         meta: { title: 'menu.dashboard.tradingAssistant', keepAlive: false, icon: 'deployment-unit', permission: ['dashboard'] }
       }
+      */
     ]
   },
   {

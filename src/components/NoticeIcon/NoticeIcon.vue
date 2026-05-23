@@ -411,7 +411,8 @@ export default {
     },
     goToPortfolio () {
       this.detailVisible = false
-      this.$router.push({ path: '/portfolio' }).catch(() => {})
+      // Redirect to /ai-asset-analysis as /portfolio is frozen for QuantBrew.
+      this.$router.push({ path: '/ai-asset-analysis' }).catch(() => {})
     },
     async markAsRead (id) {
       const item = this.notifications.find(n => n.id === id)

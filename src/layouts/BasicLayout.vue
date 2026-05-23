@@ -13,9 +13,9 @@
 
       <template #menuHeaderRender>
         <div class="sidebar-logo-wrapper" :class="{ 'sidebar-logo-wrapper--collapsed': collapsed }">
-          <div class="sidebar-text-logo" :title="collapsed ? 'PostSoma Core' : ''">
-            <img v-if="collapsed" src="/assets/brand/icon-primary.svg" alt="PostSoma Core" style="width: 20px; height: 20px;" />
-            <img v-else src="/assets/brand/lockup.svg" alt="PostSoma Core" style="height: 20px; width: auto;" />
+          <div class="sidebar-text-logo" :title="collapsed ? 'QuantBrew' : ''">
+            <img v-if="collapsed" src="/assets/brand/icon-primary.svg" alt="QuantBrew" style="width: 20px; height: 20px;" />
+            <img v-else src="/assets/brand/lockup.svg" alt="QuantBrew" style="height: 20px; width: auto;" />
           </div>
         </div>
       </template>

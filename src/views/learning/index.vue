@@ -1,15 +1,19 @@
 <template>
   <div class="learning-page">
+
+    <!-- Page Header -->
     <div class="page-header">
       <div class="header-main">
         <a-icon type="read" class="header-icon" />
         <div>
-          <h1 class="page-title">学习中心</h1>
-          <p class="page-sub">Learning</p>
+          <h1 class="page-title">{{ $t('learning.title') }}</h1>
+          <p class="page-sub">{{ $t('learning.subtitle') }}</p>
         </div>
       </div>
     </div>
 
+    <!-- Section 1: Core Framework -->
+    <div class="section-label">{{ $t('learning.corePlatformKicker') }}</div>
     <a
       class="core-card"
       :href="corePlatform.url"
@@ -20,78 +24,119 @@
         <a-icon type="compass" class="core-icon" />
       </div>
       <div class="core-body">
-        <p class="section-kicker">核心投资体系</p>
         <h2 class="core-title">{{ corePlatform.title }}</h2>
         <p class="core-subtitle">{{ corePlatform.subtitle }}</p>
       </div>
       <a-icon type="export" class="core-external" />
     </a>
 
+    <!-- Section 2: Connected Workspaces -->
     <div class="section-heading">
-      <h2>生态资源</h2>
-      <p>Ecosystem & Tools</p>
+      <h2>{{ $t('learning.ecosystemTitle') }}</h2>
+      <p>{{ $t('learning.ecosystemSubtitle') }}</p>
     </div>
 
     <div class="ecosystem-grid">
       <a
-        v-for="platform in platforms"
-        :key="platform.title"
+        v-for="workspace in workspaces"
+        :key="workspace.title"
         class="ecosystem-card"
-        :href="platform.url"
+        :href="workspace.url"
         target="_blank"
         rel="noopener noreferrer"
       >
         <div class="card-top">
           <div class="platform-icon">
-            <a-icon :type="platform.icon" />
+            <a-icon :type="workspace.icon" />
           </div>
           <a-icon type="export" class="external-icon" />
         </div>
         <div class="card-body">
-          <h2 class="card-title">{{ platform.title }}</h2>
-          <p class="card-subtitle">{{ platform.subtitle }}</p>
-          <p v-if="platform.note" class="card-note">{{ platform.note }}</p>
+          <h2 class="card-title">{{ workspace.title }}</h2>
+          <p class="card-subtitle">{{ workspace.subtitle }}</p>
         </div>
+        <div class="card-meta">{{ workspace.badge }}</div>
       </a>
     </div>
+
+    <!-- Section 3: Library & Notes -->
+    <div class="section-heading section-heading--library">
+      <h2>{{ $t('learning.libraryTitle') }}</h2>
+      <p>{{ $t('learning.librarySubtitle') }}</p>
+    </div>
+
+    <div class="library-grid">
+      <a
+        v-for="item in library"
+        :key="item.title"
+        class="library-card"
+        :href="item.url"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div class="card-top">
+          <div class="platform-icon platform-icon--library">
+            <a-icon :type="item.icon" />
+          </div>
+          <a-icon type="export" class="external-icon" />
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">{{ item.title }}</h2>
+          <p class="card-subtitle">{{ item.subtitle }}</p>
+          <span v-if="item.note" class="card-note">{{ item.note }}</span>
+        </div>
+        <div class="card-meta card-meta--library">{{ item.badge }}</div>
+      </a>
+    </div>
+
   </div>
 </template>
 
 <script>
 export default {
   name: 'Learning',
-  data () {
-    return {
-      corePlatform: {
-        title: 'PostSoma Investing',
-        subtitle: '投资体系、思考框架与深度长文 (Investing Framework & Deep Dives)',
+  computed: {
+    corePlatform () {
+      return {
+        title: 'QuantBrew Investing',
+        subtitle: this.$t('learning.corePlatform.subtitle'),
         url: 'https://www.postsoma-2050.com/investing'
-      },
-      platforms: [
+      }
+    },
+    workspaces () {
+      return [
         {
           icon: 'read',
           title: 'NewsHub',
-          subtitle: '新闻聚合平台 (News Aggregation Platform)',
+          subtitle: this.$t('learning.platforms.newshub.subtitle'),
+          badge: this.$t('learning.externalBadge'),
           url: 'https://205077.xyz/'
         },
         {
           icon: 'tool',
           title: 'AI Skills',
-          subtitle: 'AI 技能与工具聚合 (AI Skills & Tools Hub)',
-          url: 'https://aiskills888.dpdns.org/'
-        },
-        {
-          icon: 'experiment',
-          title: 'AI Prompts & Testing',
-          subtitle: '个人提示词分享与测试平台 (Prompt Sharing & Testing)',
-          url: 'https://www.205011.xyz/'
+          subtitle: this.$t('learning.platforms.aiskills.subtitle'),
+          badge: this.$t('learning.externalBadge'),
+          url: 'https://205055.xyz/'
         },
         {
           icon: 'book',
-          title: 'PostSoma Books',
-          subtitle: '个人精选书库 (Personal Library)',
-          note: 'Access Code: 3yyD9R4tUa8y',
-          url: 'https://postsomabooks.qzz.io/'
+          title: 'ReadSelah',
+          subtitle: this.$t('learning.platforms.readselah.subtitle'),
+          badge: this.$t('learning.readingBadge'),
+          url: 'https://www.readselah.org/'
+        }
+      ]
+    },
+    library () {
+      return [
+        {
+          icon: 'book',
+          title: 'postsoma-2050 library',
+          subtitle: this.$t('learning.platforms.books.subtitle'),
+          note: this.$t('learning.platforms.books.note'),
+          badge: this.$t('learning.referenceBadge'),
+          url: 'https://quantbrewbooks.qzz.io/'
         }
       ]
     }
@@ -102,11 +147,12 @@ export default {
 <style scoped lang="less">
 .learning-page {
   width: 100%;
-  max-width: 1180px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 32px 32px 56px;
 }
 
+/* ── Page Header ─────────────────────────────── */
 .page-header {
   margin-bottom: 28px;
 }
@@ -118,48 +164,81 @@ export default {
 }
 
 .header-icon {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
   background: #f3f4f6;
   color: #111827;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .page-title {
   margin: 0;
   color: #1f2933;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 650;
   letter-spacing: 0;
 }
 
 .page-sub {
-  margin: 2px 0 0;
+  margin: 3px 0 0;
   color: #6b7280;
   font-size: 13px;
+  line-height: 1.5;
 }
 
+/* ── Section Labels ──────────────────────────── */
+.section-label {
+  margin: 0 0 10px;
+  color: #1d6f4f;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.section-heading {
+  margin: 32px 0 14px;
+
+  h2 {
+    margin: 0;
+    color: #1f2933;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+
+  p {
+    margin: 3px 0 0;
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+.section-heading--library {
+  margin-top: 36px;
+}
+
+/* ── Core Framework Card ─────────────────────── */
 .core-card {
-  min-height: 164px;
   display: flex;
   align-items: center;
-  gap: 22px;
-  margin-bottom: 32px;
-  padding: 32px;
+  gap: 20px;
+  margin-bottom: 4px;
+  padding: 24px 26px;
   border: 1px solid #e6e2dc;
   border-radius: 8px;
   background: #ffffff;
   color: inherit;
   text-decoration: none;
-  box-shadow: none;
   transition: border-color 0.18s ease, background 0.18s ease;
 
   &:hover {
-    border-color: #cfd8d2;
+    border-color: #c8d5ce;
     background: #fbfaf8;
     color: inherit;
     text-decoration: none;
@@ -172,8 +251,8 @@ export default {
 }
 
 .core-icon-wrap {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,7 +263,7 @@ export default {
 }
 
 .core-icon {
-  font-size: 30px;
+  font-size: 26px;
 }
 
 .core-body {
@@ -192,19 +271,10 @@ export default {
   flex: 1;
 }
 
-.section-kicker {
-  margin: 0 0 8px;
-  color: #1d6f4f;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .core-title {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: #1f2933;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 650;
   line-height: 1.25;
   letter-spacing: 0;
@@ -213,65 +283,64 @@ export default {
 .core-subtitle {
   margin: 0;
   color: #374151;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .core-external {
   align-self: flex-start;
   color: #9ca3af;
-  font-size: 17px;
+  font-size: 15px;
   transition: color 0.18s ease, transform 0.18s ease;
 }
 
-.section-heading {
-  margin: 0 0 18px;
-
-  h2 {
-    margin: 0;
-    color: #1f2933;
-    font-size: 16px;
-    font-weight: 650;
-    letter-spacing: 0;
-  }
-
-  p {
-    margin: 2px 0 0;
-    color: #6b7280;
-    font-size: 12px;
-  }
-}
-
+/* ── Workspace Grid (3 cards) ────────────────── */
 .ecosystem-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.ecosystem-card {
-  min-height: 172px;
+/* ── Library Grid (1 card, narrower) ─────────── */
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ── Shared Card Styles ──────────────────────── */
+.ecosystem-card,
+.library-card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 24px;
+  padding: 20px;
   border: 1px solid #e6e2dc;
   border-radius: 8px;
   background: #ffffff;
   color: inherit;
   text-decoration: none;
-  box-shadow: none;
   transition: border-color 0.18s ease, background 0.18s ease;
 
   &:hover {
-    border-color: #cfd8d2;
+    border-color: #c8d5ce;
     background: #fbfaf8;
     color: inherit;
     text-decoration: none;
 
     .external-icon {
-      color: #111827;
+      color: #374151;
       transform: translate(2px, -2px);
     }
+  }
+}
+
+.library-card {
+  border-color: #ece9e4;
+  background: #fafaf9;
+
+  &:hover {
+    border-color: #c8d5ce;
+    background: #f5f4f0;
   }
 }
 
@@ -280,12 +349,12 @@ export default {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 
 .platform-icon {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -293,24 +362,31 @@ export default {
   background: #eef7f1;
   color: #1d6f4f;
   border: 1px solid #dbeadf;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
+}
+
+.platform-icon--library {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #e5e7eb;
 }
 
 .external-icon {
   color: #9ca3af;
-  font-size: 16px;
+  font-size: 14px;
   transition: color 0.18s ease, transform 0.18s ease;
 }
 
 .card-body {
   min-width: 0;
+  flex: 1;
 }
 
 .card-title {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: #1f2933;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 650;
   line-height: 1.3;
   letter-spacing: 0;
@@ -319,19 +395,45 @@ export default {
 .card-subtitle {
   margin: 0;
   color: #4b5563;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
 .card-note {
   display: inline-flex;
-  margin: 14px 0 0;
-  padding: 5px 8px;
-  border-radius: 6px;
-  background: #f3f4f6;
+  margin: 12px 0 0;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: #f0f0ee;
   color: #374151;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
+  font-family: 'SF Mono', 'Fira Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+/* ── Card Metadata Badge ─────────────────────── */
+.card-meta {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f0eeeb;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.card-meta--library {
+  border-top-color: #ece9e4;
+  color: #a0aec0;
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 900px) {
+  .ecosystem-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -339,35 +441,28 @@ export default {
     padding: 20px 16px 36px;
   }
 
-  .ecosystem-grid {
+  .ecosystem-grid,
+  .library-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
   .core-card {
-    min-height: 0;
-    align-items: flex-start;
     gap: 16px;
-    margin-bottom: 24px;
     padding: 20px;
   }
 
   .core-icon-wrap {
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
   }
 
   .core-icon {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .core-title {
-    font-size: 20px;
-  }
-
-  .ecosystem-card {
-    min-height: 156px;
-    padding: 18px;
+    font-size: 19px;
   }
 }
 </style>

@@ -15,8 +15,8 @@
     </div>
 
     <a-page-header
-      title="早报·晚报"
-      sub-title="每日市场开盘前后的核心判断摘要"
+      :title="$t('dailyBriefing.title')"
+      :sub-title="$t('dailyBriefing.subtitle')"
       :back-icon="false"
       style="padding-top: 12px;"
     />
@@ -35,7 +35,7 @@
         <a-row :gutter="24">
           <!-- 左侧：高亮与市场数据 (替换为 Radar Carousel) -->
           <a-col :span="16">
-            <a-card :bordered="false" title="今日市场 (AI 信号池)" style="margin-bottom: 24px;">
+            <a-card :bordered="false" :title="$t('dailyBriefing.todayMarket')" style="margin-bottom: 24px;">
               <template #extra>
                 <a-tag color="blue">{{ todayDate }}</a-tag>
               </template>
@@ -50,33 +50,33 @@
                       </div>
                       <div class="rc-metrics">
                         <div class="rc-metric">
-                          <span class="rc-metric-label">价格</span>
+                          <span class="rc-metric-label">{{ $t('dailyBriefing.price') }}</span>
                           <span class="rc-metric-value">${{ opp.price }}</span>
                         </div>
                         <div class="rc-metric">
-                          <span class="rc-metric-label">24h涨跌</span>
+                          <span class="rc-metric-label">{{ $t('dailyBriefing.change24h') }}</span>
                           <span class="rc-metric-value" :class="(opp.change_24h || 0) >= 0 ? 'rc-up' : 'rc-down'">
                             {{ (opp.change_24h || 0) >= 0 ? '+' : '' }}{{ (opp.change_24h || 0).toFixed(2) }}%
                           </span>
                         </div>
                         <div class="rc-metric">
-                          <span class="rc-metric-label">信号</span>
-                          <span class="rc-metric-value">{{ opp.signal || 'Notice' }}</span>
+                          <span class="rc-metric-label">{{ $t('dailyBriefing.signal') }}</span>
+                          <span class="rc-metric-value">{{ opp.signal || $t('dailyBriefing.notice') }}</span>
                         </div>
                       </div>
                       <div class="rc-footer">
-                        <span class="rc-reason">{{ opp.reason || 'AI 探测到异常波动' }}</span>
+                        <span class="rc-reason">{{ opp.reason || $t('dailyBriefing.defaultReason') }}</span>
                         <!-- Execution button completely removed for narrative UI -->
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <a-empty v-else description="暂无市场波动数据" />
+              <a-empty v-else :description="$t('dailyBriefing.noMarketData')" />
 
               <!-- 情绪高亮 -->
               <div v-if="model.highlights.length" style="margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.02); border-radius: 8px;">
-                <h4 style="font-size: 13px; color: #999; margin-bottom: 8px;">补充宏观情绪</h4>
+                <h4 style="font-size: 13px; color: #999; margin-bottom: 8px;">{{ $t('dailyBriefing.macroSentiment') }}</h4>
                 <ul class="highlights-list" style="margin: 0;">
                   <li v-for="(highlight, idx) in model.highlights" :key="idx">{{ highlight }}</li>
                 </ul>
@@ -86,23 +86,23 @@
 
           <!-- 右侧：前瞻与日历 -->
           <a-col :span="8">
-            <a-card :bordered="false" title="重点关注" style="margin-bottom: 24px;">
+            <a-card :bordered="false" :title="$t('dailyBriefing.upcomingFocus')" style="margin-bottom: 24px;">
               <a-list
                 v-if="model.upcomingEvents.length"
                 item-layout="horizontal"
                 :data-source="model.upcomingEvents"
               >
                 <a-list-item slot="renderItem" slot-scope="item">
-                  <a-list-item-meta :title="item.title || item.event || '事件'" :description="item.time" />
+                  <a-list-item-meta :title="item.title || item.event || $t('dailyBriefing.defaultEvent')" :description="item.time" />
                 </a-list-item>
               </a-list>
-              <a-empty v-else description="今日无重大事件预告" />
+              <a-empty v-else :description="$t('dailyBriefing.noUpcomingEvents')" />
             </a-card>
           </a-col>
         </a-row>
       </div>
 
-      <a-empty v-else description="无简报数据" />
+      <a-empty v-else :description="$t('dailyBriefing.noBriefingData')" />
     </a-skeleton>
   </div>
 </template>
@@ -131,7 +131,8 @@ export default {
   },
   computed: {
     todayDate () {
-      return new Date().toLocaleDateString('zh-CN', {
+      const locale = this.$store.getters.lang || 'zh-CN'
+      return new Date().toLocaleDateString(locale, {
         month: 'long',
         day: 'numeric',
         weekday: 'short'
@@ -139,6 +140,11 @@ export default {
     },
     isEmpty () {
       return this.model.isEmpty
+    }
+  },
+  watch: {
+    '$store.getters.lang' () {
+      this.fetchData()
     }
   },
   mounted () {

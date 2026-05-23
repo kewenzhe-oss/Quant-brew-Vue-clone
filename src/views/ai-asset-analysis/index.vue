@@ -73,34 +73,21 @@
             <!-- Card footer -->
             <div class="rc-footer">
               <span class="rc-reason">{{ getReasonText(opp) }}</span>
-              <span class="rc-cta" v-if="opp.market === 'Crypto'" @click.stop="openQuickTradeFromOpp(opp)">
-                <a-icon type="transaction" /> {{ $t('quickTrade.tradeNow') }}
-              </span>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- ======== Floating Quick Trade Button (only show when analyzing a Crypto symbol) ======== -->
-    <a-tooltip :title="$t('quickTrade.openPanel')" placement="left">
-      <div class="qt-floating-btn" @click="openQuickTradeFromCurrent" v-if="!showQuickTrade && currentAnalysisSymbol">
-        <a-icon type="thunderbolt" theme="filled" />
+      <!-- Provenance warning/trust label -->
+      <div class="provenance-footer">
+        <span>{{ $t('aiAssetAnalysis.opportunities.provenance.ruleBased') }}</span>
+        <span class="divider">·</span>
+        <span>{{ $t('aiAssetAnalysis.opportunities.provenance.basis') }}</span>
+        <span class="divider" v-if="provenanceMeta && provenanceMeta.as_of">·</span>
+        <span v-if="provenanceMeta && provenanceMeta.as_of">{{ $t('aiAssetAnalysis.opportunities.provenance.asOf', { time: formatProvenanceTime(provenanceMeta.as_of) }) }}</span>
+        <span class="divider">·</span>
+        <span class="warning-text">{{ $t('aiAssetAnalysis.opportunities.provenance.observationOnly') }}</span>
       </div>
-    </a-tooltip>
-
-    <!-- ======== Quick Trade Panel ======== -->
-    <quick-trade-panel
-      :visible="showQuickTrade"
-      :symbol="qtSymbol"
-      :preset-side="qtSide"
-      :preset-price="qtPrice"
-      :source="qtSource"
-      market-type="swap"
-      @close="showQuickTrade = false"
-      @order-success="onQuickTradeSuccess"
-      @update:symbol="handleQuickTradeSymbolChange"
-    />
+    </div>
 
     <!-- ======== Main Workspace Card with Tabs ======== -->
     <a-card :bordered="false" class="workspace-card">
@@ -160,14 +147,12 @@
 import { mapState } from 'vuex'
 import AnalysisView from '@/views/ai-analysis'
 import { getTradingOpportunities } from '@/api/global-market'
-import QuickTradePanel from '@/components/QuickTradePanel/QuickTradePanel'
 import PolymarketAnalysisModal from '@/components/PolymarketAnalysisModal'
 
 export default {
   name: 'AIAssetAnalysis',
   components: {
     AnalysisView,
-    QuickTradePanel,
     PolymarketAnalysisModal
   },
   data () {
@@ -175,17 +160,12 @@ export default {
       activeTab: 'quick',
       // Opportunities (Carousel)
       opportunities: [],
+      provenanceMeta: null,
       oppLoading: false,
       oppHover: false,
       // Props passed to AnalysisView
       presetSymbol: '',
       autoAnalyzeSignal: 0,
-      // Quick Trade Panel
-      showQuickTrade: false,
-      qtSymbol: '',
-      qtSide: '',
-      qtPrice: 0,
-      qtSource: 'ai_radar',
       // Current analysis symbol (from AnalysisView)
       currentAnalysisSymbol: '',
       currentAnalysisMarket: '',
@@ -224,9 +204,10 @@ export default {
       try {
         const params = force ? { force: true } : {}
         const res = await getTradingOpportunities(params)
-        if (res && res.code === 1 && Array.isArray(res.data)) {
-          this.opportunities = res.data.slice(0, 20)
-        }
+        const payload = res && res.data
+        const list = Array.isArray(payload) ? payload : (payload && (payload.items || payload.opportunities)) || []
+        this.opportunities = list.slice(0, 20)
+        this.provenanceMeta = (!Array.isArray(payload) && payload && payload.meta) || null
       } catch (e) {
         console.warn('Load opportunities failed:', e)
       } finally {
@@ -283,6 +264,16 @@ export default {
       if (price >= 1) return price.toFixed(2)
       return price.toFixed(4)
     },
+    formatProvenanceTime (val) {
+      if (!val) return ''
+      try {
+        const d = new Date(val)
+        const pad = (n) => String(n).padStart(2, '0')
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+      } catch (e) {
+        return val
+      }
+    },
     analyzeOpportunity (opp) {
       // 如果是预测市场，打开分析对话框
       if (opp.market === 'PredictionMarket') {
@@ -329,39 +320,6 @@ export default {
         this.currentAnalysisSymbol = symbol
       } else {
         this.currentAnalysisSymbol = ''
-      }
-    },
-    openQuickTradeFromCurrent () {
-      if (!this.currentAnalysisSymbol) return
-      this.qtSymbol = this.currentAnalysisSymbol
-      this.qtSide = ''
-      this.qtPrice = 0
-      this.qtSource = 'ai_analysis'
-      this.showQuickTrade = true
-    },
-    openQuickTradeFromOpp (opp) {
-      // Quick Trade only supports Crypto
-      if (opp.market !== 'Crypto') return
-      this.qtSymbol = opp.symbol || ''
-      const signal = (opp.signal || '').toLowerCase()
-      // Map opp signals to buy/sell
-      if (signal.includes('oversold') || signal.includes('bullish')) {
-        this.qtSide = 'buy'
-      } else if (signal.includes('overbought') || signal.includes('bearish')) {
-        this.qtSide = 'sell'
-      } else {
-        this.qtSide = ''
-      }
-      this.qtPrice = opp.price || 0
-      this.qtSource = 'ai_radar'
-      this.showQuickTrade = true
-    },
-    onQuickTradeSuccess () {
-      this.$message.success(this.$t('quickTrade.orderSuccess'))
-    },
-    handleQuickTradeSymbolChange (newSymbol) {
-      if (newSymbol) {
-        this.qtSymbol = newSymbol
       }
     }
   }
@@ -596,6 +554,29 @@ export default {
         }
       }
     }
+
+    .provenance-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: #999;
+      padding: 0 4px;
+      line-height: 1.5;
+
+      .divider {
+        color: #ccc;
+        user-select: none;
+      }
+
+      .warning-text {
+        font-weight: 500;
+        color: #888;
+      }
+    }
   }
 
   /* ===== Floating QT Button ===== */
@@ -686,6 +667,12 @@ export default {
       .radar-carousel {
         &::before { background: linear-gradient(to right, #141414, transparent); }
         &::after  { background: linear-gradient(to left, #141414, transparent); }
+      }
+
+      .provenance-footer {
+        color: #555;
+        .divider { color: #333; }
+        .warning-text { color: #666; }
       }
 
       .radar-card {

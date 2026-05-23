@@ -5,52 +5,56 @@
         <h3 class="metric-title">{{ metric.label || metric.name }}</h3>
         <div class="value-block">
           <span class="metric-value" :class="{ 'unavailable': !hasValue }">{{ displayValue }}</span>
-          <span v-if="displayUnit && hasValue" class="metric-unit">{{ displayUnit }}</span>
+          <a-tag v-if="hasValue && statusInfo" :color="statusInfo.color" class="status-badge">
+            {{ statusInfo.label }}
+          </a-tag>
         </div>
       </div>
       <div class="header-meta">
         <span class="meta-item data-source" v-if="displayMeta">{{ displayMeta }}</span>
-        <span v-if="derivedFromSeries" class="provenance-badge derived">最新值由历史序列推导</span>
+        <span v-if="derivedFromSeries" class="provenance-badge derived">{{ $t('macro.detail.derivedFromSeries') }}</span>
       </div>
     </div>
 
     <div class="card-body">
       <div class="insight-content">
-        <div class="meaning-block" v-if="metric.meaning || metric.currentMeaning || metric.explanation">
+        <div class="meaning-block" v-if="localCurrentMeaning">
           <div class="label-with-provenance">
-            <span class="insight-label">当前含义</span>
-            <span class="provenance-badge static">指标说明</span>
+            <span class="insight-label">{{ $t('macro.detail.currentMeaning') }}</span>
+            <span class="provenance-badge static">{{ $t('macro.detail.indicatorSpec') }}</span>
           </div>
-          <p class="insight-text">{{ metric.meaning || metric.currentMeaning || metric.explanation }}</p>
+          <p class="insight-text">{{ localCurrentMeaning }}</p>
         </div>
 
-        <div class="direction-grid" v-if="metric.risingMeans || metric.fallingMeans">
-          <div class="direction-item up" v-if="metric.risingMeans">
-            <span class="insight-label">↑ 上升意味着</span>
-            <p class="insight-text">{{ metric.risingMeans }}</p>
+        <div class="direction-grid" v-if="localRisingMeans || localFallingMeans">
+          <div class="direction-item up" v-if="localRisingMeans">
+            <span class="insight-label">{{ $t('macro.detail.risingMeans') }}</span>
+            <p class="insight-text">{{ localRisingMeans }}</p>
           </div>
-          <div class="direction-item down" v-if="metric.fallingMeans">
-            <span class="insight-label">↓ 下降意味着</span>
-            <p class="insight-text">{{ metric.fallingMeans }}</p>
+          <div class="direction-item down" v-if="localFallingMeans">
+            <span class="insight-label">{{ $t('macro.detail.fallingMeans') }}</span>
+            <p class="insight-text">{{ localFallingMeans }}</p>
           </div>
         </div>
 
-        <div class="impact-block" v-if="metric.riskAssetImplication || metric.riskAssetImpact">
+        <div class="impact-block" v-if="localRiskAssetImpact">
           <div class="label-with-provenance">
-            <span class="insight-label highlight">对风险资产的影响</span>
-            <span class="provenance-badge static">指标说明</span>
+            <span class="insight-label highlight">{{ $t('macro.detail.riskAssetImplication') }}</span>
+            <span class="provenance-badge static">{{ $t('macro.detail.indicatorSpec') }}</span>
           </div>
-          <p class="insight-text">{{ metric.riskAssetImplication || metric.riskAssetImpact }}</p>
+          <p class="insight-text">{{ localRiskAssetImpact }}</p>
         </div>
       </div>
+    </div>
 
-      <div class="chart-container">
-        <div v-if="metric.chartId" class="chart-wrapper">
+    <div class="card-footer-charts">
+      <div v-if="metric.chartId" class="charts-section">
+        <div class="chart-wrapper">
           <macro-metric-chart :metric-id="metric.chartId" @chart-data-loaded="onChartData" />
         </div>
-        <div v-else class="no-chart-placeholder">
-          <a-empty description="图表暂不可用" :image="simpleImage" />
-        </div>
+      </div>
+      <div v-else class="no-chart-placeholder">
+        <a-empty :description="$t('macro.detail.chartUnavailable')" :image="simpleImage" />
       </div>
     </div>
   </div>
@@ -60,6 +64,7 @@
 import { Empty } from 'ant-design-vue'
 import MacroMetricChart from './MacroMetricChart.vue'
 import { formatMacroMetric } from '../adapters/metricConfig'
+import { evaluateIndicator } from '../config/indicatorRules'
 
 export default {
   name: 'MetricInsightCard',
@@ -94,23 +99,60 @@ export default {
       // Snapshot value acts only as a placeholder while the chart is loading.
       if (this.derivedValue !== null) {
         const formatted = formatMacroMetric(this.metric.id, this.derivedValue)
-        return formatted.primary
+        return formatted.displayValue
       }
       if (!this.isOriginalMissing) {
-        return this.metric.primary || this.metric.formattedValue || this.metric.value
+        return this.metric.displayValue || this.metric.primary || this.metric.formattedValue || this.metric.value
       }
-      return '数据暂不可用'
-    },
-    displayUnit () {
-      return this.metric.displayUnit || this.metric.unit
+      return this.$t('macro.detail.dataUnavailable')
     },
     displayMeta () {
+      if (!this.hasValue) return this.$t('macro.detail.dataUnavailable')
       // If we have a chart-derived date, use it (matches chart's provenance)
       if (this.derivedDate) {
         const config = formatMacroMetric(this.metric.id, this.derivedValue, this.derivedDate)
         return config.meta
       }
-      return this.metric.meta || (this.metric.source ? `${this.metric.source}` : 'Data unavailable')
+      return this.metric.meta || (this.metric.source ? `${this.metric.source}` : this.$t('macro.detail.dataUnavailable'))
+    },
+    statusInfo () {
+      const val = this.derivedValue !== null ? this.derivedValue : this.metric.value
+      if (val === null || val === undefined || this.isOriginalMissing) return null
+      const evalResult = evaluateIndicator(this.metric.id, val)
+      // Treat unknown/missing evaluation as no badge
+      if (!evalResult || !evalResult.labelKey || evalResult.labelKey === 'macro.rules.unknown.label') return null
+
+      const toneColorMap = {
+        green: 'green',
+        yellowGreen: 'green',
+        neutral: 'blue',
+        orange: 'orange',
+        red: 'red'
+      }
+      return {
+        label: this.$te(evalResult.labelKey) ? this.$t(evalResult.labelKey) : evalResult.label,
+        color: toneColorMap[evalResult.tone] || 'blue'
+      }
+    },
+    localCurrentMeaning () {
+      const key = `macro.registry.${this.metric.id}.currentMeaning`
+      if (this.$te(key)) return this.$t(key)
+      return this.metric.meaning || this.metric.currentMeaning || this.metric.explanation || ''
+    },
+    localRisingMeans () {
+      const key = `macro.registry.${this.metric.id}.risingMeans`
+      if (this.$te(key)) return this.$t(key)
+      return this.metric.risingMeans || ''
+    },
+    localFallingMeans () {
+      const key = `macro.registry.${this.metric.id}.fallingMeans`
+      if (this.$te(key)) return this.$t(key)
+      return this.metric.fallingMeans || ''
+    },
+    localRiskAssetImpact () {
+      const key = `macro.registry.${this.metric.id}.riskAssetImpact`
+      if (this.$te(key)) return this.$t(key)
+      return this.metric.riskAssetImplication || this.metric.riskAssetImpact || ''
     }
   },
   methods: {
@@ -167,8 +209,17 @@ export default {
 
 .value-block {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 6px;
+  border-radius: 4px;
+  line-height: 18px;
+  margin-left: 4px;
 }
 
 .metric-value {
@@ -203,27 +254,15 @@ export default {
 }
 
 .card-body {
-  display: flex;
-  flex-direction: column;
-
-  @media (min-width: 900px) {
-    flex-direction: row;
-  }
+  display: block;
 }
 
 .insight-content {
-  flex: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border-bottom: 1px solid #f0f0f0;
-
-  @media (min-width: 900px) {
-    border-bottom: none;
-    border-right: 1px solid #f0f0f0;
-    width: 50%;
-  }
+  width: 100%;
 }
 
 .label-with-provenance {
@@ -285,21 +324,30 @@ export default {
   border-radius: 6px;
 }
 
-.chart-container {
+.card-footer-charts {
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
   padding: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 250px;
+  width: 100%;
+}
 
-  @media (min-width: 900px) {
-    width: 50%;
-  }
+.charts-section {
+  width: 100%;
 }
 
 .chart-wrapper {
   width: 100%;
-  height: 100%;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #d9d9d9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
 }
 
 .no-chart-placeholder {
@@ -307,7 +355,8 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  padding: 40px 0;
+  width: 100%;
   color: #9ca3af;
 }
 

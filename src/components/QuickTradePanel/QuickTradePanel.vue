@@ -388,7 +388,7 @@ import { listExchangeCredentials } from '@/api/credentials'
 import ExchangeAccountModal from '@/components/ExchangeAccountModal/ExchangeAccountModal.vue'
 import { placeQuickOrder, getQuickTradeBalance, getQuickTradePosition, getQuickTradeHistory, closeQuickTradePosition } from '@/api/quick-trade'
 import { searchSymbols, getWatchlist } from '@/api/market'
-import { getUserInfo } from '@/api/login'
+import { getUserInfo } from '@/api/auth'
 import request from '@/utils/request'
 
 export default {

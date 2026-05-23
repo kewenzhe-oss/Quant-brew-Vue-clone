@@ -21,10 +21,10 @@
       <div>
         <p class="brand-kicker">
           <img src="/assets/brand/icon-monochrome.svg" alt="" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 8px; margin-top: -2px;" />
-          PostSoma Core
+          QuantBrew
         </p>
         <h2 class="page-title">{{ $t('settings.title') }}</h2>
-        <p class="page-desc">Manage appearance, security, providers, and operational preferences for a disciplined research workspace.</p>
+        <p class="page-desc">{{ $t('settings.subtitle') }}</p>
       </div>
       <a-button type="primary" class="header-action" @click="handleSave" :loading="saving">
         <a-icon type="save" />
@@ -35,9 +35,9 @@
     <section class="settings-section-card appearance-card">
       <div class="section-card-header">
         <div>
-          <p class="section-eyebrow">Restored interface settings</p>
-          <h3>Appearance</h3>
-          <p>These controls use the original PostSoma Core theme engine and persist through the existing Vuex/localStorage settings model.</p>
+          <p class="section-eyebrow">{{ $t('settings.appearanceRestored') }}</p>
+          <h3>{{ $t('settings.appearance') }}</h3>
+          <p>{{ $t('settings.appearanceDesc') }}</p>
         </div>
         <a-tag color="green">Connected</a-tag>
       </div>
@@ -47,7 +47,7 @@
           <div class="appearance-control">
             <div class="control-copy">
               <span class="control-label">{{ $t('app.setting.pagestyle') }}</span>
-              <span class="control-helper">Choose the sidebar and global surface tone.</span>
+              <span class="control-helper">{{ $t('settings.pagestyleDesc') }}</span>
             </div>
             <a-radio-group :value="currentNavTheme" button-style="solid" @change="handleMenuTheme">
               <a-radio-button value="light">{{ $t('app.setting.pagestyle.light') }}</a-radio-button>
@@ -60,7 +60,7 @@
           <div class="appearance-control">
             <div class="control-copy">
               <span class="control-label">{{ $t('app.setting.themecolor') }}</span>
-              <span class="control-helper">Use accents sparingly for states and selected navigation.</span>
+              <span class="control-helper">{{ $t('settings.themecolorDesc') }}</span>
             </div>
             <div class="color-swatch-row">
               <a-tooltip v-for="item in colorList" :key="item.color" :title="item.key">
@@ -83,14 +83,14 @@
             <div class="switch-row">
               <div class="control-copy">
                 <span class="control-label">{{ $t('app.setting.weakmode') }}</span>
-                <span class="control-helper">Accessibility color adjustment.</span>
+                <span class="control-helper">{{ $t('settings.weakmodeDesc') }}</span>
               </div>
               <a-switch :checked="currentColorWeak" @change="onColorWeak" />
             </div>
             <div class="switch-row">
               <div class="control-copy">
                 <span class="control-label">{{ $t('app.setting.multitab') }}</span>
-                <span class="control-helper">Preserve multi-page workspace tabs.</span>
+                <span class="control-helper">{{ $t('settings.multitabDesc') }}</span>
               </div>
               <a-switch :checked="currentMultiTab" @change="onMultiTab" />
             </div>
@@ -103,10 +103,10 @@
       <div class="settings-content">
         <div class="settings-section-intro">
           <div>
-            <p class="section-eyebrow">Operational settings</p>
-            <h3>Security, AI, data, and providers</h3>
+            <p class="section-eyebrow">{{ $t('settings.operationalSettings') }}</p>
+            <h3>{{ $t('settings.operationalSubtitle') }}</h3>
           </div>
-          <p>Loaded from the active backend schema. Saving here preserves the existing server-side settings flow.</p>
+          <p>{{ $t('settings.operationalDesc') }}</p>
         </div>
         <a-collapse v-model="activeKeys" :bordered="false" class="settings-collapse">
           <a-collapse-panel v-for="(group, groupKey) in sortedSchema" :key="groupKey">
@@ -123,18 +123,18 @@
                 <div class="balance-header">
                   <span class="balance-title">
                     <a-icon type="wallet" style="margin-right: 6px;" />
-                    {{ $t('settings.openrouterBalance') || 'OpenRouter 账户余额' }}
+                    {{ $t('settings.openrouterBalance') }}
                   </span>
                   <a-button size="small" type="primary" ghost :loading="balanceLoading" @click="queryOpenRouterBalance">
                     <a-icon type="sync" />
-                    {{ $t('settings.queryBalance') || '查询余额' }}
+                    {{ $t('settings.queryBalance') }}
                   </a-button>
                 </div>
                 <div v-if="openrouterBalance" class="balance-info">
                   <a-row :gutter="16">
                     <a-col :span="8">
                       <a-statistic
-                        :title="$t('settings.balanceUsage') || '已使用'"
+                        :title="$t('settings.balanceUsage')"
                         :value="openrouterBalance.usage"
                         prefix="$"
                         :precision="4"
@@ -143,7 +143,7 @@
                     </a-col>
                     <a-col :span="8">
                       <a-statistic
-                        :title="$t('settings.balanceRemaining') || '剩余额度'"
+                        :title="$t('settings.balanceRemaining')"
                         :value="openrouterBalance.limit_remaining !== null ? openrouterBalance.limit_remaining : '∞'"
                         :prefix="openrouterBalance.limit_remaining !== null ? '$' : ''"
                         :precision="openrouterBalance.limit_remaining !== null ? 4 : 0"
@@ -152,7 +152,7 @@
                     </a-col>
                     <a-col :span="8">
                       <a-statistic
-                        :title="$t('settings.balanceLimit') || '总限额'"
+                        :title="$t('settings.balanceLimit')"
                         :value="openrouterBalance.limit !== null ? openrouterBalance.limit : '∞'"
                         :prefix="openrouterBalance.limit !== null ? '$' : ''"
                         :precision="openrouterBalance.limit !== null ? 2 : 0"
@@ -165,7 +165,7 @@
                 </div>
                 <div v-else class="balance-empty">
                   <a-icon type="info-circle" style="margin-right: 6px;" />
-                  {{ $t('settings.balanceNotQueried') || '点击"查询余额"获取账户信息' }}
+                  {{ $t('settings.balanceNotQueried') }}
                 </div>
               </a-card>
             </div>
@@ -312,7 +312,7 @@ export default {
       showRestartTip: false,
       // OpenRouter 余额
       balanceLoading: false,
-      openrouterBalance: null,
+      openrouterBalance: null
 
     }
   },
@@ -433,12 +433,12 @@ export default {
         const res = await getOpenRouterBalance()
         if (res.code === 1 && res.data) {
           this.openrouterBalance = res.data
-          this.$message.success(this.$t('settings.balanceQuerySuccess') || '余额查询成功')
+          this.$message.success(this.$t('settings.balanceQuerySuccess'))
         } else {
-          this.$message.error(res.msg || this.$t('settings.balanceQueryFailed') || '余额查询失败')
+          this.$message.error(res.msg || this.$t('settings.balanceQueryFailed'))
         }
       } catch (error) {
-        this.$message.error(this.$t('settings.balanceQueryFailed') || '余额查询失败')
+        this.$message.error(this.$t('settings.balanceQueryFailed'))
       } finally {
         this.balanceLoading = false
       }

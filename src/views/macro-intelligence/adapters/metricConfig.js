@@ -6,6 +6,95 @@ export const STALE_AFTER_DAYS = {
   irregular: 30
 }
 
+export const MACRO_METRIC_ALIASES = {
+  fgi: 'fear_greed',
+  cpi_yoy: 'cpi',
+  dollar_index: 'dxy',
+  us10y_yield: 'us10y',
+  rrp_balance: 'rrp',
+  financial_conditions_index: 'nfci',
+  gdp_growth: 'gdp'
+}
+
+export const MACRO_METRIC_DISPLAY_SPEC = {
+  fear_greed: { decimals: 0, unit: '/ 100', inlineUnit: '/100' },
+  vix: { decimals: 2, unit: '' },
+  dxy: { decimals: 2, unit: '' },
+  us10y: { decimals: 2, unit: '%', inlineUnit: '%' },
+  us2y: { decimals: 2, unit: '%', inlineUnit: '%' },
+  '10y_2y_spread': { decimals: 2, unit: '%', inlineUnit: '%', showSign: true },
+  rrp: { decimals: 1, unit: 'B USD', inlineUnit: 'B USD' },
+  nfci: { decimals: 2, unit: '' },
+  gdp: { decimals: 2, unit: '%', inlineUnit: '%', showSign: true },
+  cpi: { decimals: 2, unit: '%', inlineUnit: '%' },
+  pce_yoy: { decimals: 2, unit: '%', inlineUnit: '%' },
+  core_pce_yoy: { decimals: 2, unit: '%', inlineUnit: '%' },
+  breakeven_10y: { decimals: 2, unit: '%', inlineUnit: '%' },
+  fed_balance_sheet: { decimals: 2, unit: 'T USD', inlineUnit: 'T USD' },
+  us_net_liquidity: { decimals: 2, unit: 'T USD', inlineUnit: 'T USD' }
+}
+
+export const MACRO_OVERVIEW_TOP_METRICS = ['fear_greed', 'vix', 'dxy', 'us10y']
+
+export const MACRO_OVERVIEW_DIMENSION_METRICS = {
+  liquidity: ['dxy', 'rrp', 'nfci'],
+  economy: ['gdp', 'us10y'],
+  inflationRates: ['cpi', 'pce_yoy', 'core_pce_yoy', 'breakeven_10y'],
+  sentiment: ['fear_greed', 'vix']
+}
+
+export const MACRO_OVERVIEW_BRANCH_METRICS = {
+  liquidity: MACRO_OVERVIEW_DIMENSION_METRICS.liquidity,
+  fundamentals: MACRO_OVERVIEW_DIMENSION_METRICS.economy,
+  inflation: MACRO_OVERVIEW_DIMENSION_METRICS.inflationRates,
+  sentiment: MACRO_OVERVIEW_DIMENSION_METRICS.sentiment
+}
+
+export function normalizeMacroMetricId (metricId) {
+  return MACRO_METRIC_ALIASES[metricId] || metricId
+}
+
+export function isMacroMetricMissingValue (value) {
+  return value === null || value === undefined || Number.isNaN(Number(value)) || value === '—' || value === '--'
+}
+
+export function getMacroMetricDisplaySpec (metricId) {
+  const normalizedId = normalizeMacroMetricId(metricId)
+  return MACRO_METRIC_DISPLAY_SPEC[metricId] || MACRO_METRIC_DISPLAY_SPEC[normalizedId] || {
+    decimals: 2,
+    unit: ''
+  }
+}
+
+function formatFixedNumber (value, decimals, showSign = false) {
+  const numericValue = Number(value)
+  if (Number.isNaN(numericValue)) return '—'
+  const formatted = numericValue.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  })
+  return showSign && numericValue > 0 ? `+${formatted}` : formatted
+}
+
+export function formatMacroMetricValue (metricId, value) {
+  if (isMacroMetricMissingValue(value)) return '—'
+  const spec = getMacroMetricDisplaySpec(metricId)
+  return formatFixedNumber(value, spec.decimals, spec.showSign)
+}
+
+export function formatMacroMetricDisplayValue (metricId, value) {
+  if (isMacroMetricMissingValue(value)) return '—'
+  const spec = getMacroMetricDisplaySpec(metricId)
+  const formattedValue = formatMacroMetricValue(metricId, value)
+  if (!spec.inlineUnit) return formattedValue
+  if (spec.inlineUnit === '%' || spec.inlineUnit.startsWith('/')) return `${formattedValue}${spec.inlineUnit}`
+  return `${formattedValue} ${spec.inlineUnit}`
+}
+
+export function pickMacroMetrics (metricsMap, metricIds) {
+  return metricIds.map(id => metricsMap[id]).filter(Boolean)
+}
+
 export const MACRO_METRIC_CONFIG = {
   fear_greed: {
     id: 'fear_greed',
@@ -13,7 +102,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: '/ 100',
     source: 'CNN Business',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : Math.round(val).toString(),
+    formatFn: (val) => formatMacroMetricValue('fear_greed', val),
     meaning: 'CNN Fear & Greed Index measures market emotion.',
     risingMeans: 'Market is becoming more greedy.',
     fallingMeans: 'Market is becoming more fearful.',
@@ -22,10 +111,10 @@ export const MACRO_METRIC_CONFIG = {
   vix: {
     id: 'vix',
     label: 'VIX',
-    unit: 'Index',
+    unit: '',
     source: 'CBOE / Yahoo Finance',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('vix', val),
     meaning: 'CBOE Volatility Index representing market expectation of 30-day volatility.',
     risingMeans: 'Expected volatility and uncertainty are increasing.',
     fallingMeans: 'Market uncertainty is decreasing.',
@@ -34,10 +123,10 @@ export const MACRO_METRIC_CONFIG = {
   dxy: {
     id: 'dxy',
     label: 'DXY',
-    unit: 'Index',
+    unit: '',
     source: 'Yahoo Finance',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('dxy', val),
     meaning: 'US Dollar Index, measuring the value of USD relative to a basket of foreign currencies.',
     risingMeans: 'The US Dollar is strengthening.',
     fallingMeans: 'The US Dollar is weakening.',
@@ -49,7 +138,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: '%',
     source: 'FRED',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('us10y', val),
     meaning: '10-Year US Treasury yield, a benchmark for borrowing costs.',
     risingMeans: 'Long-term borrowing costs are increasing.',
     fallingMeans: 'Long-term borrowing costs are decreasing.',
@@ -61,7 +150,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: '%',
     source: 'FRED',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('us2y', val),
     meaning: '2-Year US Treasury yield, highly sensitive to Fed policy.',
     risingMeans: 'Short-term rates and Fed expectations are rising.',
     fallingMeans: 'Short-term rates and Fed expectations are falling.',
@@ -73,7 +162,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: '%',
     source: 'Calculated from FRED US10Y and US2Y',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : (val > 0 ? '+' : '') + Number(val).toFixed(2),
+    formatFn: (val) => isMacroMetricMissingValue(val) ? '—' : formatFixedNumber(val, 2, true),
     meaning: 'Yield curve spread between 10-Year and 2-Year Treasuries.',
     risingMeans: 'Yield curve is steepening.',
     fallingMeans: 'Yield curve is flattening or inverting.',
@@ -85,7 +174,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: 'B USD',
     source: 'FRED',
     frequency: 'daily',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(1),
+    formatFn: (val) => formatMacroMetricValue('rrp', val),
     meaning: 'Overnight Reverse Repurchase Agreements, acting as a liquidity drain/buffer.',
     risingMeans: 'Excess liquidity is being parked at the Fed.',
     fallingMeans: 'Liquidity is leaving the Fed, potentially entering the financial system.',
@@ -94,10 +183,10 @@ export const MACRO_METRIC_CONFIG = {
   nfci: {
     id: 'nfci',
     label: 'NFCI',
-    unit: 'Index',
+    unit: '',
     source: 'Chicago Fed / FRED',
     frequency: 'weekly',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('nfci', val),
     meaning: 'National Financial Conditions Index.',
     risingMeans: 'Financial conditions are tightening.',
     fallingMeans: 'Financial conditions are loosening.',
@@ -109,7 +198,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: '%',
     source: 'BEA / FRED',
     frequency: 'quarterly',
-    formatFn: (val) => val === null ? '—' : (val > 0 ? '+' : '') + Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('gdp', val),
     meaning: 'US Gross Domestic Product annualized growth rate.',
     risingMeans: 'Economic output is expanding faster.',
     fallingMeans: 'Economic expansion is slowing or contracting.',
@@ -121,11 +210,47 @@ export const MACRO_METRIC_CONFIG = {
     unit: '%',
     source: 'BLS / FRED',
     frequency: 'monthly',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('cpi', val),
     meaning: 'Consumer Price Index year-over-year change.',
     risingMeans: 'Inflation is accelerating.',
     fallingMeans: 'Inflation is decelerating.',
     riskAssetImplication: 'Rising inflation pressures the Fed to raise rates, which is generally negative for risk assets.'
+  },
+  pce_yoy: {
+    id: 'pce_yoy',
+    label: 'PCE YoY',
+    unit: '%',
+    source: 'BEA / FRED',
+    frequency: 'monthly',
+    formatFn: (val) => formatMacroMetricValue('pce_yoy', val),
+    meaning: 'Personal Consumption Expenditures Price Index year-over-year.',
+    risingMeans: 'Inflation as measured by PCE is accelerating.',
+    fallingMeans: 'PCE inflation is decelerating toward the Fed target.',
+    riskAssetImplication: "The Fed's preferred inflation gauge; above 2% limits rate-cut prospects."
+  },
+  core_pce_yoy: {
+    id: 'core_pce_yoy',
+    label: 'Core PCE YoY',
+    unit: '%',
+    source: 'BEA / FRED',
+    frequency: 'monthly',
+    formatFn: (val) => formatMacroMetricValue('core_pce_yoy', val),
+    meaning: 'Core PCE (excl. food & energy) year-over-year, the Fed\'s most-watched inflation measure.',
+    risingMeans: 'Underlying inflation trend is rising.',
+    fallingMeans: 'Underlying inflation is easing toward the 2% target.',
+    riskAssetImplication: 'Persistent core PCE above 2% keeps rate-cut expectations suppressed.'
+  },
+  breakeven_10y: {
+    id: 'breakeven_10y',
+    label: 'Breakeven 10Y',
+    unit: '%',
+    source: 'FRED (T10YIE)',
+    frequency: 'daily',
+    formatFn: (val) => formatMacroMetricValue('breakeven_10y', val),
+    meaning: '10-Year Breakeven Inflation Rate — the bond market\'s consensus inflation expectation.',
+    risingMeans: 'Bond traders expect higher long-run inflation.',
+    fallingMeans: 'Inflation expectations are anchoring down.',
+    riskAssetImplication: 'High breakeven rates can push nominal yields up and compress equity valuations.'
   },
   fed_balance_sheet: {
     id: 'fed_balance_sheet',
@@ -133,7 +258,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: 'T USD',
     source: 'FRED',
     frequency: 'weekly',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('fed_balance_sheet', val),
     meaning: 'Total assets held by the Federal Reserve.',
     risingMeans: 'The Fed is injecting liquidity (QE).',
     fallingMeans: 'The Fed is draining liquidity (QT).',
@@ -145,7 +270,7 @@ export const MACRO_METRIC_CONFIG = {
     unit: 'T USD',
     source: 'Calculated (FRED)',
     frequency: 'weekly',
-    formatFn: (val) => val === null ? '—' : Number(val).toFixed(2),
+    formatFn: (val) => formatMacroMetricValue('us_net_liquidity', val),
     meaning: 'Fed Balance Sheet minus TGA minus RRP.',
     risingMeans: 'Net liquidity available to financial markets is increasing.',
     fallingMeans: 'Net liquidity is decreasing.',
@@ -155,19 +280,21 @@ export const MACRO_METRIC_CONFIG = {
 
 /**
  * Normalizes raw macro data into a strict schema
- * @param {string} metricId 
- * @param {number|null} value 
+ * @param {string} metricId
+ * @param {number|null} value
  * @param {string|null} fetchedAtStr - ISO string date
  * @returns {MacroMetric}
  */
-export function formatMacroMetric(metricId, value, fetchedAtStr = null) {
-  const config = MACRO_METRIC_CONFIG[metricId] || {
+export function formatMacroMetric (metricId, value, fetchedAtStr = null) {
+  const normalizedMetricId = normalizeMacroMetricId(metricId)
+  const displaySpec = getMacroMetricDisplaySpec(metricId)
+  const config = MACRO_METRIC_CONFIG[metricId] || MACRO_METRIC_CONFIG[normalizedMetricId] || {
     id: metricId,
     label: metricId,
-    unit: '',
+    unit: displaySpec.unit,
     source: 'Unknown',
     frequency: 'irregular',
-    formatFn: (val) => val === null ? '—' : String(val),
+    formatFn: (val) => formatMacroMetricValue(metricId, val),
     meaning: '',
     risingMeans: '',
     fallingMeans: '',
@@ -178,7 +305,7 @@ export function formatMacroMetric(metricId, value, fetchedAtStr = null) {
   let latestDataDate = null
   let fetchedAt = null
   let isStale = false
-  let staleAfterDays = STALE_AFTER_DAYS[config.frequency] || 30
+  const staleAfterDays = STALE_AFTER_DAYS[config.frequency] || 30
 
   if (fetchedAtStr) {
     fetchedAt = new Date(fetchedAtStr)
@@ -191,13 +318,15 @@ export function formatMacroMetric(metricId, value, fetchedAtStr = null) {
     isStale = diffDays > staleAfterDays
   }
 
-  const isNull = value === null || value === undefined || Number.isNaN(Number(value)) || value === '—' || value === '--'
-  
+  const isNull = isMacroMetricMissingValue(value)
+
   let formattedValue = '—'
   let primary = '—'
+  let displayValue = '—'
   if (!isNull) {
-     formattedValue = config.formatFn(Number(value))
-     primary = formattedValue
+    formattedValue = formatMacroMetricValue(metricId, Number(value))
+    primary = formattedValue
+    displayValue = formatMacroMetricDisplayValue(metricId, Number(value))
   }
 
   let status = 'missing'
@@ -205,8 +334,8 @@ export function formatMacroMetric(metricId, value, fetchedAtStr = null) {
     status = isStale ? 'stale' : 'available'
   }
 
-  let dateDisplay = latestDataDate ? latestDataDate.split('T')[0] : 'Unknown Date'
-  
+  const dateDisplay = latestDataDate ? latestDataDate.split('T')[0] : 'Unknown Date'
+
   let freshnessLabel = ''
   if (status === 'missing') {
     freshnessLabel = 'Data unavailable'
@@ -219,14 +348,18 @@ export function formatMacroMetric(metricId, value, fetchedAtStr = null) {
     }
   }
 
-  let statusLabel = isStale ? '数据滞后' : (status === 'missing' ? '数据暂不可用' : '正常')
+  const statusLabel = isStale ? '数据滞后' : (status === 'missing' ? '数据暂不可用' : '正常')
 
   return {
     ...config,
+    id: metricId,
+    canonicalId: normalizedMetricId,
+    unit: displaySpec.unit,
     value: isNull ? null : Number(value),
     formattedValue,
     primary,
-    displayUnit: isNull ? '' : config.unit,
+    displayValue,
+    displayUnit: isNull ? '' : displaySpec.unit,
     meta: freshnessLabel,
     latestDataDate,
     fetchedAt: fetchedAtStr,
@@ -240,6 +373,6 @@ export function formatMacroMetric(metricId, value, fetchedAtStr = null) {
 }
 
 // Keep formatMacroValue for backwards compatibility while migrating
-export function formatMacroValue(metricId, value, lastUpdated = null) {
+export function formatMacroValue (metricId, value, lastUpdated = null) {
   return formatMacroMetric(metricId, value, lastUpdated)
 }

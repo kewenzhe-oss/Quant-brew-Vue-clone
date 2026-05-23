@@ -5,18 +5,21 @@
         <a-icon type="setting" style="font-size: 16px;"/>
       </span>
     </a-tooltip>
+    <select-lang class="ant-pro-global-header-index-action" />
     <avatar-dropdown :menu="true" :current-user="currentUser" :class="prefixCls" />
   </div>
 </template>
 
 <script>
 import AvatarDropdown from './AvatarDropdown'
+import SelectLang from '@/components/SelectLang'
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'RightContent',
   components: {
-    AvatarDropdown
+    AvatarDropdown,
+    SelectLang
   },
   props: {
     prefixCls: {

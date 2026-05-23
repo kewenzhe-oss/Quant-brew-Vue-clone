@@ -1,5 +1,10 @@
 import { getMacroSection } from '@/api/global-market'
-import { formatMacroMetric } from './metricConfig'
+import {
+  formatMacroMetric,
+  MACRO_OVERVIEW_DIMENSION_METRICS,
+  MACRO_OVERVIEW_TOP_METRICS,
+  pickMacroMetrics
+} from './metricConfig'
 import axios from 'axios'
 
 export async function getMacroViewModel () {
@@ -12,19 +17,31 @@ export async function getMacroViewModel () {
     risk_asset_implication: '数据盲区期，暂无可靠的资产配置建议。',
     top_metrics: [],
     dimensions: {
-      liquidity: { title: '流动性', verdict: 'Neutral', summary: '数据暂不可用。', key_metrics: [],
+      liquidity: { title: '流动性',
+verdict: 'Neutral',
+summary: '数据暂不可用。',
+key_metrics: [],
         provenance: { statusSource: 'static', summarySource: 'static', basedOnMetricIds: ['nfci', 'rrp'], updatedAt: null, confidence: 'Unknown' },
         posture: { section: 'liquidity', posture: 'neutral', reason: '底层指标载入中，暂无法评估流动性姿态。', watchPoint: '关注 NFCI 是否维持负值区间。', basedOnMetricIds: ['nfci', 'rrp'], source: 'rule_based' }
       },
-      economy: { title: '经济', verdict: 'Neutral', summary: '数据暂不可用。', key_metrics: [],
+      economy: { title: '经济',
+verdict: 'Neutral',
+summary: '数据暂不可用。',
+key_metrics: [],
         provenance: { statusSource: 'static', summarySource: 'static', basedOnMetricIds: ['gdp'], updatedAt: null, confidence: 'Unknown' },
         posture: { section: 'economy', posture: 'neutral', reason: '底层指标载入中，暂无法评估经济姿态。', watchPoint: '关注 GDP 增速是否维持正值。', basedOnMetricIds: ['gdp'], source: 'rule_based' }
       },
-      inflationRates: { title: '通胀与利率', verdict: 'Neutral', summary: '数据暂不可用。', key_metrics: [],
+      inflationRates: { title: '通胀与利率',
+verdict: 'Neutral',
+summary: '数据暂不可用。',
+key_metrics: [],
         provenance: { statusSource: 'static', summarySource: 'static', basedOnMetricIds: ['cpi', 'us10y'], updatedAt: null, confidence: 'Unknown' },
         posture: { section: 'inflation_rates', posture: 'neutral', reason: '底层指标载入中，暂无法评估利率姿态。', watchPoint: '关注 US10Y 是否突破 4.5% 关键位。', basedOnMetricIds: ['cpi', 'us10y'], source: 'rule_based' }
       },
-      sentiment: { title: '市场情绪', verdict: 'Neutral', summary: '数据暂不可用。', key_metrics: [],
+      sentiment: { title: '市场情绪',
+verdict: 'Neutral',
+summary: '数据暂不可用。',
+key_metrics: [],
         provenance: { statusSource: 'static', summarySource: 'static', basedOnMetricIds: ['fear_greed', 'vix'], updatedAt: null, confidence: 'Unknown' },
         posture: { section: 'sentiment', posture: 'neutral', reason: '底层指标载入中，暂无法评估情绪姿态。', watchPoint: '关注 FGI 是否进入极端贪婪区间（>70）。', basedOnMetricIds: ['fear_greed', 'vix'], source: 'rule_based' }
       }
@@ -54,7 +71,8 @@ export async function getMacroViewModel () {
       mainPressures: [],
       todayWatchPoint: ''
     },
-    genericAssetImpact: []
+    genericAssetImpact: [],
+    all_metrics: {}
   }
 
   let aiData = null
@@ -64,7 +82,7 @@ export async function getMacroViewModel () {
     const aiRes = await axios.get('/api/global-market/briefing/latest')
     if (aiRes.data && aiRes.data.code === 1 && aiRes.data.data) {
       aiData = aiRes.data.data
-      
+
       // Determine True AI Provenance
       if (aiData.model && aiData.generatedAt) {
         briefing.provenance.isAIGenerated = true
@@ -73,7 +91,7 @@ export async function getMacroViewModel () {
         briefing.provenance.isAIGenerated = false
         briefing.health.aiSummaryStatus = 'degraded' // Mock or fallback
       }
-      
+
       const sourceKey = briefing.provenance.isAIGenerated ? 'ai_generated' : 'mock_ai'
 
       briefing.generated_at = aiData.generatedAt || briefing.generated_at
@@ -82,7 +100,7 @@ export async function getMacroViewModel () {
       briefing.headline = aiData.overall?.tone || '规则摘要 · AI 暂不可用'
       briefing.core_judgment = aiData.overall?.summary || ''
       briefing.risk_asset_implication = aiData.overall?.riskAssetImplication || ''
-      
+
       if (aiData.sections) {
         if (aiData.sections.liquidity) {
           briefing.dimensions.liquidity.verdict = aiData.sections.liquidity.statusLabel
@@ -105,7 +123,7 @@ export async function getMacroViewModel () {
           briefing.dimensions.sentiment.provenance.summarySource = sourceKey
         }
       }
-      
+
       briefing.isEmpty = false
     }
   } catch (err) {
@@ -136,11 +154,18 @@ export async function getMacroViewModel () {
       rrp: formatMacroMetric('rrp', liqData.rrp_balance?.value, liqData.rrp_balance?.date),
       nfci: formatMacroMetric('nfci', liqData.nfci?.value, liqData.nfci?.date),
       gdp: formatMacroMetric('gdp', ecoData.gdp_growth?.value, ecoData.gdp_growth?.date),
-      cpi: formatMacroMetric('cpi', infData.cpi_yoy?.value, infData.cpi_yoy?.date)
+      cpi: formatMacroMetric('cpi', infData.cpi_yoy?.value, infData.cpi_yoy?.date),
+      // Inflation branch — restored from backend inflation_rates section
+      pce_yoy: formatMacroMetric('pce_yoy', infData.pce_yoy?.value, infData.pce_yoy?.date),
+      core_pce_yoy: formatMacroMetric('core_pce_yoy', infData.core_pce_yoy?.value, infData.core_pce_yoy?.date),
+      breakeven_10y: formatMacroMetric('breakeven_10y', infData.breakeven_10y?.value, infData.breakeven_10y?.date)
     }
+    briefing.all_metrics = metricsMap
+    const metricText = (id) => metricsMap[id]?.formattedValue || '—'
+    const metricDisplay = (id) => metricsMap[id]?.displayValue || metricsMap[id]?.formattedValue || '—'
 
     const expectedMetrics = Object.keys(metricsMap)
-    
+
     // Check Health
     for (const key of expectedMetrics) {
       const m = metricsMap[key]
@@ -223,7 +248,7 @@ export async function getMacroViewModel () {
     if (briefing.headline === '数据校验中...' || briefing.headline === 'AI Briefing Active') {
       const fgiRaw = metricsMap.fear_greed.value
       const vixRaw = metricsMap.vix.value
-      
+
       if (fgiRaw !== null) {
         if (fgiRaw >= 75) {
           briefing.headline = '防守反击 / 极度贪婪'
@@ -269,72 +294,62 @@ export async function getMacroViewModel () {
     }
 
     // 4. Top Metrics
-    briefing.top_metrics = [
-      metricsMap.fear_greed,
-      metricsMap.vix,
-      metricsMap.dxy,
-      metricsMap.us10y
-    ]
+    briefing.top_metrics = pickMacroMetrics(metricsMap, MACRO_OVERVIEW_TOP_METRICS)
 
     // 5. Dimensions Deterministic Summaries
-    briefing.dimensions.liquidity.key_metrics = [
-      metricsMap.nfci,
-      metricsMap.rrp
-    ]
+    briefing.dimensions.liquidity.key_metrics = pickMacroMetrics(metricsMap, MACRO_OVERVIEW_DIMENSION_METRICS.liquidity)
     if (briefing.dimensions.liquidity.summary === '数据暂不可用。') {
       const nfciRaw = metricsMap.nfci.value
       if (nfciRaw !== null) {
         briefing.dimensions.liquidity.verdict = nfciRaw < 0 ? 'Loose' : 'Tight'
         briefing.dimensions.liquidity.summary = nfciRaw < 0
-          ? `当前 NFCI 为 ${nfciRaw.toFixed(2)}，整体金融条件保持相对宽松。`
-          : `当前 NFCI 为 ${nfciRaw.toFixed(2)}，信用与融资环境正在实质性收紧。`
+          ? `当前 NFCI 为 ${metricText('nfci')}，整体金融条件保持相对宽松。`
+          : `当前 NFCI 为 ${metricText('nfci')}，信用与融资环境正在实质性收紧。`
       } else {
         briefing.dimensions.liquidity.summary = '金融条件指数缺失，无法评估底层流动性水位。'
       }
     }
 
-    briefing.dimensions.economy.key_metrics = [
-      metricsMap.gdp
-    ]
+    briefing.dimensions.economy.key_metrics = pickMacroMetrics(metricsMap, MACRO_OVERVIEW_DIMENSION_METRICS.economy)
     if (briefing.dimensions.economy.summary === '数据暂不可用。') {
       const gdpRaw = metricsMap.gdp.value
       if (gdpRaw !== null) {
         briefing.dimensions.economy.verdict = gdpRaw > 2 ? 'Expanding' : gdpRaw > 0 ? 'Slowing' : 'Contracting'
         briefing.dimensions.economy.summary = gdpRaw > 2
-          ? `GDP 增速达 ${gdpRaw.toFixed(1)}%，宏观经济动能强劲。`
-          : gdpRaw > 0 ? `经济保持 ${gdpRaw.toFixed(1)}% 的温和扩张，未见断崖式衰退。` : '产出萎缩，经济衰退风险兑现。'
+          ? `GDP 增速达 ${metricDisplay('gdp')}，宏观经济动能强劲。`
+          : gdpRaw > 0 ? `经济保持 ${metricDisplay('gdp')} 的温和扩张，未见断崖式衰退。` : '产出萎缩，经济衰退风险兑现。'
       } else {
         briefing.dimensions.economy.summary = '产出数据缺失，无法确认经济周期位置。'
       }
     }
 
-    briefing.dimensions.inflationRates.key_metrics = [
-      metricsMap.cpi,
-      metricsMap.us10y
-    ]
+    briefing.dimensions.inflationRates.key_metrics = pickMacroMetrics(metricsMap, MACRO_OVERVIEW_DIMENSION_METRICS.inflationRates)
     if (briefing.dimensions.inflationRates.summary === '数据暂不可用。') {
-      const us10yRaw = metricsMap.us10y.value
-      if (us10yRaw !== null) {
-        briefing.dimensions.inflationRates.verdict = us10yRaw > 4 ? 'High Yield' : 'Easing'
-        briefing.dimensions.inflationRates.summary = us10yRaw > 4
-          ? `十年期美债高企于 ${us10yRaw.toFixed(2)}%，无风险利率高位运行压制估值。`
-          : `长端利率回落至 ${us10yRaw.toFixed(2)}%，流动性宽松预期开始主导定价。`
+      const cpiRaw = metricsMap.cpi.value
+      const corePceRaw = metricsMap.core_pce_yoy.value
+      const breakevenRaw = metricsMap.breakeven_10y.value
+      if (cpiRaw !== null || corePceRaw !== null || breakevenRaw !== null) {
+        const highInflation = (cpiRaw !== null && cpiRaw > 3.5) || (corePceRaw !== null && corePceRaw > 3.5) || (breakevenRaw !== null && breakevenRaw > 2.5)
+        const easingInflation = (cpiRaw === null || cpiRaw < 2.5) && (corePceRaw === null || corePceRaw < 2.5) && (breakevenRaw === null || breakevenRaw < 2.5)
+        briefing.dimensions.inflationRates.verdict = highInflation ? 'High Yield' : easingInflation ? 'Easing' : 'Neutral'
+        briefing.dimensions.inflationRates.summary = highInflation
+          ? `通胀压力仍偏高：CPI ${metricDisplay('cpi')}，核心 PCE ${metricDisplay('core_pce_yoy')}。`
+          : easingInflation
+            ? `通胀指标回落：CPI ${metricDisplay('cpi')}，核心 PCE ${metricDisplay('core_pce_yoy')}。`
+            : `通胀信号中性：CPI ${metricDisplay('cpi')}，核心 PCE ${metricDisplay('core_pce_yoy')}。`
       } else {
-        briefing.dimensions.inflationRates.summary = '长端收益率缺失，无风险定价锚失效。'
+        briefing.dimensions.inflationRates.summary = '通胀指标缺失，无法确认价格压力。'
       }
     }
 
-    briefing.dimensions.sentiment.key_metrics = [
-      metricsMap.fear_greed,
-      metricsMap.vix
-    ]
+    briefing.dimensions.sentiment.key_metrics = pickMacroMetrics(metricsMap, MACRO_OVERVIEW_DIMENSION_METRICS.sentiment)
     if (briefing.dimensions.sentiment.summary === '数据暂不可用。') {
       const vixRaw = metricsMap.vix.value
       if (vixRaw !== null) {
         briefing.dimensions.sentiment.verdict = vixRaw < 15 ? 'Greed' : vixRaw > 25 ? 'Fear' : 'Neutral'
         briefing.dimensions.sentiment.summary = vixRaw < 15
-          ? `VIX 下探至 ${vixRaw.toFixed(2)}，市场处于防备极度空虚的温室期。`
-          : vixRaw > 25 ? `恐慌指数飙升至 ${vixRaw.toFixed(2)}，系统性避险情绪主导市场。` : '隐含波动率处于正常均值区间。'
+          ? `VIX 下探至 ${metricText('vix')}，市场处于防备极度空虚的温室期。`
+          : vixRaw > 25 ? `恐慌指数飙升至 ${metricText('vix')}，系统性避险情绪主导市场。` : '隐含波动率处于正常均值区间。'
       } else {
         briefing.dimensions.sentiment.summary = '情绪量化指标缺失。'
       }
@@ -351,7 +366,7 @@ export async function getMacroViewModel () {
     {
       const nfciRaw = metricsMap.nfci.value
       const rrpRaw = metricsMap.rrp.value
-      const ids = ['nfci', 'rrp']
+      const ids = MACRO_OVERVIEW_DIMENSION_METRICS.liquidity
       const avail = ids.filter(id => metricsMap[id].status === 'available').length
       const conf = _confFromCompleteness(avail / ids.length)
       briefing.dimensions.liquidity.provenance.basedOnMetricIds = ids
@@ -361,17 +376,17 @@ export async function getMacroViewModel () {
         briefing.dimensions.liquidity.provenance.summarySource = nfciRaw !== null ? 'rule_based' : 'static'
       }
       briefing.dimensions.liquidity.provenance.statusSource = nfciRaw !== null ? 'rule_based' : 'static'
-      let liqPosture = 'neutral', liqReason = '金融條件處于歷史平均区间，对风险资产无明显幫助或阻力。', liqWatch = '观察 NFCI 是否跌破 -0.1，确认宽松趋势延續。'
+      let liqPosture = 'neutral'; let liqReason = '金融條件處于歷史平均区间，对风险资产无明显幫助或阻力。'; let liqWatch = '观察 NFCI 是否跌破 -0.1，确认宽松趋势延續。'
       if (nfciRaw === null) {
         liqPosture = 'mixed'; liqReason = '流动性核心指标数据不足，判断降級，請以保守姿态评估。'; liqWatch = '等待 NFCI 与 RRP 数据更新后重新评估。'
       } else if (nfciRaw < -0.1) {
-        liqPosture = 'supports_risk'; liqReason = `NFCI 處于 ${nfciRaw.toFixed(2)} 宽松区间，信用管道暢通，整體金融环境有利于风险资产。`
+        liqPosture = 'supports_risk'; liqReason = `NFCI 處于 ${metricText('nfci')} 宽松区间，信用管道暢通，整體金融环境有利于风险资产。`
         liqWatch = `若 NFCI 回升至 0 附近，宽松环境邊际收窄，应留意信用利差变化。`
       } else if (nfciRaw > 0.3) {
-        liqPosture = 'pressures_risk'; liqReason = `NFCI 升至 ${nfciRaw.toFixed(2)}，金融條件显着收紧，信用成本上升压制风险资产估值。`
+        liqPosture = 'pressures_risk'; liqReason = `NFCI 升至 ${metricText('nfci')}，金融條件显着收紧，信用成本上升压制风险资产估值。`
         liqWatch = `持續观察 NFCI 是否回落至 0 以下，信用利差收窄是环境改善的先行讯号。`
       } else if (rrpRaw !== null && rrpRaw < 200) {
-        liqPosture = 'mixed'; liqReason = `逆回購余额降至 ${rrpRaw.toFixed(0)}B，流动性缓冲墊趋薄，对整體流动性的支撐正在邊际減弱。`
+        liqPosture = 'mixed'; liqReason = `逆回購余额降至 ${metricDisplay('rrp')}，流动性缓冲墊趋薄，对整體流动性的支撐正在邊际減弱。`
         liqWatch = `若 RRP 繼續下降趋近于零，需留意缺乏缓冲后缩表对市场的直接冲击。`
       }
       briefing.dimensions.liquidity.posture = { section: 'liquidity', posture: liqPosture, reason: liqReason, watchPoint: liqWatch, basedOnMetricIds: ids, source: 'rule_based' }
@@ -380,8 +395,9 @@ export async function getMacroViewModel () {
     // Economy posture
     {
       const gdpRaw = metricsMap.gdp.value
-      const ids = ['gdp']
-      const conf = gdpRaw !== null ? 'Medium' : 'Low'
+      const ids = MACRO_OVERVIEW_DIMENSION_METRICS.economy
+      const avail = ids.filter(id => metricsMap[id].status === 'available').length
+      const conf = _confFromCompleteness(avail / ids.length)
       briefing.dimensions.economy.provenance.basedOnMetricIds = ids
       briefing.dimensions.economy.provenance.updatedAt = briefing.dimensions.economy.provenance.updatedAt || _latestUpdatedAt(ids)
       briefing.dimensions.economy.provenance.confidence = conf
@@ -389,14 +405,14 @@ export async function getMacroViewModel () {
         briefing.dimensions.economy.provenance.summarySource = gdpRaw !== null ? 'rule_based' : 'static'
       }
       briefing.dimensions.economy.provenance.statusSource = gdpRaw !== null ? 'rule_based' : 'static'
-      let ecoPosture = 'neutral', ecoReason = '经济增速维持温和，当前宏观基本面对风险资产无明显加分或減分。', ecoWatch = '关注下一季度 GDP 修正值与非農就业数据的方向。'
+      let ecoPosture = 'neutral'; let ecoReason = '经济增速维持温和，当前宏观基本面对风险资产无明显加分或減分。'; let ecoWatch = '关注下一季度 GDP 修正值与非農就业数据的方向。'
       if (gdpRaw === null) {
         ecoPosture = 'mixed'; ecoReason = '产出数据缺失，无法确认当前经济周期位置，判断降級。'; ecoWatch = '等待 GDP 数据更新。'
       } else if (gdpRaw > 2.5) {
-        ecoPosture = 'supports_risk'; ecoReason = `GDP 增速 ${gdpRaw.toFixed(1)}% 显示经济动能強勁，企业盈利环境有支撐。`
+        ecoPosture = 'supports_risk'; ecoReason = `GDP 增速 ${metricDisplay('gdp')} 显示经济动能強勁，企业盈利环境有支撐。`
         ecoWatch = `若 GDP 超预期強勁，留意美联储是否重新评估降息路徑。`
       } else if (gdpRaw < 0) {
-        ecoPosture = 'pressures_risk'; ecoReason = `GDP 轉负（${gdpRaw.toFixed(1)}%），经济衰退风险已兌现，企业盈利面臨下行压力。`
+        ecoPosture = 'pressures_risk'; ecoReason = `GDP 轉负（${metricDisplay('gdp')}），经济衰退风险已兌现，企业盈利面臨下行压力。`
         ecoWatch = `观察初請失业金人數与高收益债信用利差，确认衰退深度。`
       }
       briefing.dimensions.economy.posture = { section: 'economy', posture: ecoPosture, reason: ecoReason, watchPoint: ecoWatch, basedOnMetricIds: ids, source: 'rule_based' }
@@ -404,29 +420,28 @@ export async function getMacroViewModel () {
 
     // Inflation & Rates posture
     {
-      const us10yRaw = metricsMap.us10y.value
       const cpiRaw = metricsMap.cpi.value
-      const ids = ['cpi', 'us10y']
+      const corePceRaw = metricsMap.core_pce_yoy.value
+      const breakevenRaw = metricsMap.breakeven_10y.value
+      const ids = MACRO_OVERVIEW_DIMENSION_METRICS.inflationRates
       const avail = ids.filter(id => metricsMap[id].status === 'available').length
       const conf = _confFromCompleteness(avail / ids.length)
       briefing.dimensions.inflationRates.provenance.basedOnMetricIds = ids
       briefing.dimensions.inflationRates.provenance.updatedAt = briefing.dimensions.inflationRates.provenance.updatedAt || _latestUpdatedAt(ids)
       briefing.dimensions.inflationRates.provenance.confidence = conf
+      const hasInflationData = cpiRaw !== null || corePceRaw !== null || breakevenRaw !== null
       if (briefing.dimensions.inflationRates.provenance.summarySource !== 'ai_generated') {
-        briefing.dimensions.inflationRates.provenance.summarySource = us10yRaw !== null ? 'rule_based' : 'static'
+        briefing.dimensions.inflationRates.provenance.summarySource = hasInflationData ? 'rule_based' : 'static'
       }
-      briefing.dimensions.inflationRates.provenance.statusSource = us10yRaw !== null ? 'rule_based' : 'static'
-      let infPosture = 'neutral', infReason = '长端利率處于中性区间，对风险资产估值无显着压制。', infWatch = '关注 US10Y 是否突破 4.5% 压力位，或跌破 4.0% 支撐位。'
-      if (us10yRaw === null) {
-        infPosture = 'mixed'; infReason = '长端利率数据缺失，无风险定价錨失效，判断降級。'; infWatch = '等待 US10Y 数据更新。'
-      } else if (us10yRaw < 4.0) {
-        infPosture = 'supports_risk'; infReason = `US10Y 回落至 ${us10yRaw.toFixed(2)}%，貼现率下行利好长久期资产估值，流动性宽松预期升温。`
-        infWatch = `观察 US10Y 是否能持續低于 4.0%；若 CPI 数据超预期，利率或再度反彈。`
-      } else if (us10yRaw > 4.5) {
-        infPosture = 'pressures_risk'; infReason = `US10Y 高企于 ${us10yRaw.toFixed(2)}%，无风险利率高位運行持續压制成长股与长久期资产估值。`
-        infWatch = `关注 CPI 下行趋势是否明确，若通胀黏性持續，利率难有实质性回落空间。`
-      } else if (cpiRaw !== null && cpiRaw > 3.5) {
-        infPosture = 'mixed'; infReason = `CPI 年率仍高于 ${cpiRaw.toFixed(1)}%，通胀黏性制約美联储宽松空间，利率环境保持中性偏紧。`
+      briefing.dimensions.inflationRates.provenance.statusSource = hasInflationData ? 'rule_based' : 'static'
+      let infPosture = 'neutral'; let infReason = '通胀处于中性区间，对风险资产估值无显着压制。'; let infWatch = '关注 CPI 与核心 PCE 是否继续向 2% 目标回落。'
+      if (!hasInflationData) {
+        infPosture = 'mixed'; infReason = '通胀关键指标缺失，判断降級。'; infWatch = '等待 CPI、PCE 与 Breakeven 数据更新。'
+      } else if ((cpiRaw !== null && cpiRaw < 2.5) && (corePceRaw === null || corePceRaw < 2.5) && (breakevenRaw === null || breakevenRaw < 2.5)) {
+        infPosture = 'supports_risk'; infReason = `CPI 回落至 ${metricDisplay('cpi')}，核心 PCE ${metricDisplay('core_pce_yoy')}，通胀压力趋于受控。`
+        infWatch = `观察核心 PCE 是否能持續低于 2.5%；若 CPI 数据超预期，利率或再度反彈。`
+      } else if ((cpiRaw !== null && cpiRaw > 3.5) || (corePceRaw !== null && corePceRaw > 3.5) || (breakevenRaw !== null && breakevenRaw > 2.5)) {
+        infPosture = 'pressures_risk'; infReason = `通胀仍偏高：CPI ${metricDisplay('cpi')}，核心 PCE ${metricDisplay('core_pce_yoy')}，Breakeven ${metricDisplay('breakeven_10y')}。`
         infWatch = `持續追蹤 CPI 月率环比趋势；若連續兩月超预期，降息時间表将进一步推后。`
       }
       briefing.dimensions.inflationRates.posture = { section: 'inflation_rates', posture: infPosture, reason: infReason, watchPoint: infWatch, basedOnMetricIds: ids, source: 'rule_based' }
@@ -446,20 +461,20 @@ export async function getMacroViewModel () {
         briefing.dimensions.sentiment.provenance.summarySource = (fgiRaw !== null || vixRaw !== null) ? 'rule_based' : 'static'
       }
       briefing.dimensions.sentiment.provenance.statusSource = (fgiRaw !== null || vixRaw !== null) ? 'rule_based' : 'static'
-      let senPosture = 'neutral', senReason = '市场情绪處于中性区间，对风险资产无明显方向性偏向。', senWatch = '持續观察 FGI 是否进入极端区间（>75 或 <25）。'
+      let senPosture = 'neutral'; let senReason = '市场情绪處于中性区间，对风险资产无明显方向性偏向。'; let senWatch = '持續观察 FGI 是否进入极端区间（>75 或 <25）。'
       if (fgiRaw === null && vixRaw === null) {
         senPosture = 'mixed'; senReason = '情绪量化指标缺失，无法评估当前市场风险偏好，判断降級。'; senWatch = '等待 FGI 与 VIX 数据更新。'
       } else if (fgiRaw !== null && fgiRaw < 25) {
-        senPosture = 'supports_risk'; senReason = `FGI 降至 ${Math.round(fgiRaw)}，市场进入恐慌区，从逆向視角看具备中长期支撐條件。`
+        senPosture = 'supports_risk'; senReason = `FGI 降至 ${metricText('fear_greed')}，市场进入恐慌区，从逆向視角看具备中长期支撐條件。`
         senWatch = `若 VIX 同步高企，恐慌情绪尚未到极值；观察 FGI 是否二次探底确认底部。`
       } else if (fgiRaw !== null && fgiRaw > 75) {
-        senPosture = 'mixed'; senReason = `FGI 升至 ${Math.round(fgiRaw)}，市场情绪极度亢奮，短期容错率下降，不宜追高建立新仓位。`
+        senPosture = 'mixed'; senReason = `FGI 升至 ${metricText('fear_greed')}，市场情绪极度亢奮，短期容错率下降，不宜追高建立新仓位。`
         senWatch = `若 VIX 同步低迷，动能尚存但尾部风险上升；持續观察 FGI 是否出现頂背離。`
       } else if (vixRaw !== null && vixRaw < 13) {
-        senPosture = 'mixed'; senReason = `VIX 跌至 ${vixRaw.toFixed(1)}，市场对下行风险的防备极度空虛，需警惕突发事件的放大效应。`
+        senPosture = 'mixed'; senReason = `VIX 跌至 ${metricText('vix')}，市场对下行风险的防备极度空虛，需警惕突发事件的放大效应。`
         senWatch = `若 VIX 在低位出现突然跳升，通常伴隨快速修正；不宜在 VIX 极低時大幅加碼。`
       } else if (vixRaw !== null && vixRaw > 25) {
-        senPosture = 'pressures_risk'; senReason = `VIX 升至 ${vixRaw.toFixed(1)}，系統性避險情绪主导市场，风险溢价显着上升。`
+        senPosture = 'pressures_risk'; senReason = `VIX 升至 ${metricText('vix')}，系統性避險情绪主导市场，风险溢价显着上升。`
         senWatch = `观察 VIX 是否在 20 以下企稳，波动率回落是情绪修復的先行讯号。`
       }
       briefing.dimensions.sentiment.posture = { section: 'sentiment', posture: senPosture, reason: senReason, watchPoint: senWatch, basedOnMetricIds: ids, source: 'rule_based' }
@@ -485,8 +500,8 @@ export async function getMacroViewModel () {
       if (dims.liquidity.posture.posture === 'pressures_risk') mainPressures.push('金融條件收紧')
       if (dims.economy.posture.posture === 'supports_risk') mainSupports.push('经济动能強勁')
       if (dims.economy.posture.posture === 'pressures_risk') mainPressures.push('经济下行压力')
-      if (dims.inflationRates.posture.posture === 'supports_risk') mainSupports.push('利率环境宽松')
-      if (dims.inflationRates.posture.posture === 'pressures_risk') mainPressures.push('高利率压制估值')
+      if (dims.inflationRates.posture.posture === 'supports_risk') mainSupports.push('通胀压力降温')
+      if (dims.inflationRates.posture.posture === 'pressures_risk') mainPressures.push('通胀黏性压制估值')
       if (dims.sentiment.posture.posture === 'supports_risk') mainSupports.push('情绪處恐慌区（逆向支撐）')
       if (dims.sentiment.posture.posture === 'pressures_risk') mainPressures.push('情绪极端恐慌')
       if (dims.sentiment.posture.posture === 'mixed') mainPressures.push('情绪偏熱或波动率異常')
@@ -496,11 +511,11 @@ export async function getMacroViewModel () {
       const us10yRaw2 = metricsMap.us10y.value
       let todayWatchPoint = '持續观察核心指标邊际变化，若出现惡化应降低计划執行速度而非情绪化操作。'
       if (fgiRaw2 !== null && fgiRaw2 > 70 && vixRaw2 !== null && vixRaw2 < 15) {
-        todayWatchPoint = `FGI（${Math.round(fgiRaw2)}）偏高且 VIX（${vixRaw2.toFixed(1)}）极低，市场防备空虛；若兩者同步反轉，短期容错率将快速下降。`
+        todayWatchPoint = `FGI（${metricText('fear_greed')}）偏高且 VIX（${metricText('vix')}）极低，市场防备空虛；若兩者同步反轉，短期容错率将快速下降。`
       } else if (us10yRaw2 !== null && us10yRaw2 > 4.5) {
-        todayWatchPoint = `US10Y（${us10yRaw2.toFixed(2)}%）仍在高位，貼现率压力持續；观察是否有降温跡象，否则成长资产估值擴张空间有限。`
+        todayWatchPoint = `US10Y（${metricDisplay('us10y')}）仍在高位，貼现率压力持續；观察是否有降温跡象，否则成长资产估值擴张空间有限。`
       } else if (fgiRaw2 !== null && fgiRaw2 < 30) {
-        todayWatchPoint = `FGI（${Math.round(fgiRaw2)}）處于恐慌区，观察 VIX 是否同步企稳回落；若同時出现，中期入場條件逐步成熟。`
+        todayWatchPoint = `FGI（${metricText('fear_greed')}）處于恐慌区，观察 VIX 是否同步企稳回落；若同時出现，中期入場條件逐步成熟。`
       }
 
       briefing.riskPostureSummary = { overallPosture, mainSupports, mainPressures, todayWatchPoint }
@@ -513,14 +528,13 @@ export async function getMacroViewModel () {
       const senP = briefing.dimensions.sentiment.posture.posture
       const ecoP = briefing.dimensions.economy.posture.posture
       const us10yRaw3 = metricsMap.us10y.value
-      const fgiRaw3 = metricsMap.fear_greed.value
 
       const techPosture = (liqP === 'supports_risk' && infP !== 'pressures_risk') ? 'supports_risk'
         : (infP === 'pressures_risk' || us10yRaw3 > 4.5) ? 'pressures_risk' : 'neutral'
       const techImpact = techPosture === 'supports_risk'
         ? '流动性宽松且利率压力有限，成长股估值倍數擴张有空间；维持计划既定配置。'
         : techPosture === 'pressures_risk'
-        ? `高利率（US10Y ${us10yRaw3 ? us10yRaw3.toFixed(2) + '%' : '偏高'}）持續压制长久期成长股估值，新增投入应審慎控制仓位集中度。`
+        ? `高利率（US10Y ${us10yRaw3 ? metricDisplay('us10y') : '偏高'}）持續压制长久期成长股估值，新增投入应審慎控制仓位集中度。`
         : '利率与流动性环境中性，成长股表现将更依賴個股盈利，選股重于擇時。'
 
       const cryptoPosture = (liqP === 'supports_risk' && senP !== 'pressures_risk') ? 'supports_risk'
@@ -560,10 +574,10 @@ export async function getMacroViewModel () {
       const dxyRaw = metricsMap.dxy.value
       const nfciRaw = metricsMap.nfci.value
       const us10yRaw = metricsMap.us10y.value
-      
+
       if (dxyRaw !== null && dxyRaw < 100) {
         briefing.tailwinds.push({
-          desc: `弱美元环境 (DXY = ${dxyRaw.toFixed(2)}) 显着降低全球融资成本，支持非美风险资产。`,
+          desc: `弱美元环境 (DXY = ${metricText('dxy')}) 显着降低全球融资成本，支持非美风险资产。`,
           evidence_metric_ids: ['dxy']
         })
       }
@@ -576,13 +590,13 @@ export async function getMacroViewModel () {
 
       if (us10yRaw !== null && us10yRaw > 4.3) {
         briefing.headwinds.push({
-          desc: `长端利率 (US10Y = ${us10yRaw.toFixed(2)}%) 处于极高水平，持续压制长久期成长股估值。`,
+          desc: `长端利率 (US10Y = ${metricDisplay('us10y')}) 处于极高水平，持续压制长久期成长股估值。`,
           evidence_metric_ids: ['us10y']
         })
       }
       if (dxyRaw !== null && dxyRaw > 105) {
         briefing.headwinds.push({
-          desc: `强势美元周期 (DXY = ${dxyRaw.toFixed(2)}) 形成流动性虹吸效应，压制离岸资产定价。`,
+          desc: `强势美元周期 (DXY = ${metricText('dxy')}) 形成流动性虹吸效应，压制离岸资产定价。`,
           evidence_metric_ids: ['dxy']
         })
       }
@@ -605,7 +619,7 @@ export async function getMacroViewModel () {
       if (rrpRaw !== null && rrpRaw < 500) {
         briefing.what_to_watch.push({
           label: '流动性枯竭点',
-          desc: `逆回购余额（RRP）已降至 ${rrpRaw}B 低位，若缓冲垫耗尽，基础流动性将直面缩表冲击。`,
+          desc: `逆回购余额（RRP）已降至 ${metricDisplay('rrp')} 低位，若缓冲垫耗尽，基础流动性将直面缩表冲击。`,
           evidence_metric_ids: ['rrp']
         })
       }

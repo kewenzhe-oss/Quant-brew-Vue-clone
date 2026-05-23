@@ -947,7 +947,7 @@ export default {
     }
   },
   mounted () {
-    this.addLog('SYSTEM', 'PostSoma Core Intelligence Engine Initialized.', '#52c41a')
+    this.addLog('SYSTEM', 'QuantBrew Intelligence Engine Initialized.', '#52c41a')
     this.addLog('SYSTEM', 'Awaiting target coordinates...', '#8c8c8c')
   },
   beforeDestroy () {

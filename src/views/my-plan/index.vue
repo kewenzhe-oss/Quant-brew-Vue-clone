@@ -6,36 +6,35 @@
       <div class="header-main">
         <a-icon type="book" class="header-icon" />
         <div>
-          <h1 class="page-title">我的计划</h1>
-          <p class="page-sub">My Plan</p>
+          <h1 class="page-title">{{ $t('myPlan.title') }}</h1>
+          <p class="page-sub">{{ $t('myPlan.subtitle') }}</p>
         </div>
       </div>
       <p class="page-desc">
-        保存你的长期 DCA 计划、分批买入计划和风险纪律。计划不是为了预测市场，
-        而是帮助你在波动中坚持自己的规则。
+        {{ $t('myPlan.desc') }}
       </p>
     </div>
 
     <!-- Loading state -->
     <div v-if="plansLoading" class="state-box">
-      <a-spin tip="加载中..." />
+      <a-spin :tip="$t('myPlan.loading')" />
     </div>
 
     <!-- Error state -->
     <div v-else-if="plansError" class="state-box error-state">
       <a-icon type="warning" class="state-icon" />
       <p>{{ plansError }}</p>
-      <a-button @click="loadPlans">重试</a-button>
+      <a-button @click="loadPlans">{{ $t('myPlan.retry') }}</a-button>
     </div>
 
     <template v-else>
       <!-- Tabs -->
       <div class="plan-tabs-wrap">
         <a-tabs v-model="currentTab" @change="handleTabChange">
-          <a-tab-pane key="active" tab="执行中" />
-          <a-tab-pane key="paused" tab="已暂停" />
-          <a-tab-pane key="completed" tab="已完成" />
-          <a-tab-pane key="archived" tab="已归档" />
+          <a-tab-pane key="active" :tab="$t('myPlan.tabs.active')" />
+          <a-tab-pane key="paused" :tab="$t('myPlan.tabs.paused')" />
+          <a-tab-pane key="completed" :tab="$t('myPlan.tabs.completed')" />
+          <a-tab-pane key="archived" :tab="$t('myPlan.tabs.archived')" />
         </a-tabs>
       </div>
 
@@ -57,15 +56,15 @@
                   <a-icon type="ellipsis" style="font-size: 20px; transform: rotate(90deg);" />
                 </a>
                 <a-menu slot="overlay" @click="({ key }) => handleMenuClick(key, plan)">
-                  <a-menu-item key="view">查看详情</a-menu-item>
-                  <a-menu-item key="edit">编辑计划</a-menu-item>
+                  <a-menu-item key="view">{{ $t('myPlan.menu.view') }}</a-menu-item>
+                  <a-menu-item key="edit">{{ $t('myPlan.menu.edit') }}</a-menu-item>
                   <a-menu-divider />
-                  <a-menu-item v-if="plan.status === 'active'" key="pause">暂停计划</a-menu-item>
-                  <a-menu-item v-if="plan.status === 'paused'" key="activate">恢复计划</a-menu-item>
-                  <a-menu-item v-if="['active', 'paused', 'completed'].includes(plan.status)" key="archive">归档计划</a-menu-item>
-                  <a-menu-item v-if="plan.status === 'archived'" key="pause">恢复到已暂停</a-menu-item>
+                  <a-menu-item v-if="plan.status === 'active'" key="pause">{{ $t('myPlan.menu.pause') }}</a-menu-item>
+                  <a-menu-item v-if="plan.status === 'paused'" key="activate">{{ $t('myPlan.menu.activate') }}</a-menu-item>
+                  <a-menu-item v-if="['active', 'paused', 'completed'].includes(plan.status)" key="archive">{{ $t('myPlan.menu.archive') }}</a-menu-item>
+                  <a-menu-item v-if="plan.status === 'archived'" key="pause">{{ $t('myPlan.menu.resumePaused') }}</a-menu-item>
                   <a-menu-divider />
-                  <a-menu-item key="delete" style="color: #dc2626;">删除计划</a-menu-item>
+                  <a-menu-item key="delete" style="color: #dc2626;">{{ $t('myPlan.menu.delete') }}</a-menu-item>
                 </a-menu>
               </a-dropdown>
             </div>
@@ -78,31 +77,31 @@
           <!-- Budget allocation preview -->
           <div v-if="plan.plan && plan.plan.budget_allocation" class="budget-preview">
             <div class="bp-item">
-              <span class="bp-label">基础定投池</span>
+              <span class="bp-label">{{ $t('myPlan.preview.basePool') }}</span>
               <span class="bp-amount">${{ formatMoney(plan.plan.budget_allocation.base_dca_pool && plan.plan.budget_allocation.base_dca_pool.amount) }}</span>
             </div>
             <div class="bp-divider" />
             <div class="bp-item">
-              <span class="bp-label">回撤备用池</span>
+              <span class="bp-label">{{ $t('myPlan.preview.reservePool') }}</span>
               <span class="bp-amount">${{ formatMoney(plan.plan.budget_allocation.opportunity_reserve && plan.plan.budget_allocation.opportunity_reserve.amount) }}</span>
             </div>
             <div class="bp-divider" />
             <div class="bp-item">
-              <span class="bp-label">现金缓冲</span>
+              <span class="bp-label">{{ $t('myPlan.preview.cashPool') }}</span>
               <span class="bp-amount">${{ formatMoney(plan.plan.budget_allocation.cash_buffer && plan.plan.budget_allocation.cash_buffer.amount) }}</span>
             </div>
           </div>
 
           <div class="plan-card-footer">
             <div class="plan-attrs">
-              <span v-if="plan.total_budget">总预算 ${{ formatMoney(plan.total_budget) }}</span>
+              <span v-if="plan.total_budget">{{ $t('myPlan.preview.budget') }} ${{ formatMoney(plan.total_budget) }}</span>
               <span v-if="plan.duration">· {{ plan.duration }}</span>
               <span v-if="plan.frequency">· {{ plan.frequency }}</span>
               <span v-if="plan.risk_profile">· {{ plan.risk_profile }}</span>
             </div>
             <div class="plan-dates">
-              <span v-if="plan.created_at">创建于 {{ formatDate(plan.created_at) }}</span>
-              <span v-if="plan.next_review_at"> · 复查 {{ formatDate(plan.next_review_at) }}</span>
+              <span v-if="plan.created_at">{{ $t('myPlan.preview.created') }} {{ formatDate(plan.created_at) }}</span>
+              <span v-if="plan.next_review_at"> · {{ $t('myPlan.preview.review') }} {{ formatDate(plan.next_review_at) }}</span>
             </div>
           </div>
         </div>
@@ -113,15 +112,15 @@
         <div class="empty-icon-wrap">
           <a-icon type="file-text" class="empty-icon" />
         </div>
-        <h2 class="empty-title">{{ currentTab === 'active' ? '你还没有执行中的计划' : (currentTab === 'archived' ? '你还没有归档的计划' : '没有相关的计划记录') }}</h2>
+        <h2 class="empty-title">{{ currentTab === 'active' ? $t('myPlan.empty.noActive') : (currentTab === 'archived' ? $t('myPlan.empty.noArchived') : $t('myPlan.empty.noRecords')) }}</h2>
         <p class="empty-body" v-if="currentTab === 'active'">
-          创建一个长期定投或分批买入计划，帮助你在波动中坚持自己的规则。
+          {{ $t('myPlan.empty.desc') }}
         </p>
         <div class="empty-actions" v-if="currentTab === 'active'">
           <router-link to="/indicator-ide">
             <a-button type="primary" class="action-btn action-primary">
               <a-icon type="fund" />
-              去创建计划
+              {{ $t('myPlan.empty.actionCreate') }}
             </a-button>
           </router-link>
           <a
@@ -132,42 +131,41 @@
           >
             <a-button class="action-btn action-secondary">
               <a-icon type="read" />
-              了解 DCA 计划
+              {{ $t('myPlan.empty.actionLearn') }}
             </a-button>
           </a>
         </div>
       </div>
 
-      <!-- Educational block shown even when empty -->
       <div class="info-card">
-        <h3 class="info-title">什么是交易计划？</h3>
+        <h3 class="info-title">{{ $t('myPlan.edu.title') }}</h3>
         <div class="info-grid">
           <div class="info-item">
             <a-icon type="check-circle" class="info-check" />
             <div>
-              <p class="info-item-title">入场逻辑</p>
-              <p class="info-item-desc">记录你买入的理由，而不是依赖直觉或消息。</p>
+              <p class="info-item-title">{{ $t('myPlan.edu.item1.title') }}</p>
+              <p class="info-item-desc">{{ $t('myPlan.edu.item1.desc') }}</p>
             </div>
           </div>
           <div class="info-item">
             <a-icon type="check-circle" class="info-check" />
             <div>
-              <p class="info-item-title">失效条件</p>
-              <p class="info-item-desc">预设什么情况代表这个计划的前提不再成立。</p>
+              <p class="info-item-title">{{ $t('myPlan.edu.item2.title') }}</p>
+              <p class="info-item-desc">{{ $t('myPlan.edu.item2.desc') }}</p>
             </div>
           </div>
           <div class="info-item">
             <a-icon type="check-circle" class="info-check" />
             <div>
-              <p class="info-item-title">分批执行</p>
-              <p class="info-item-desc">不一次全仓，而是根据计划分批买入，管理不确定性。</p>
+              <p class="info-item-title">{{ $t('myPlan.edu.item3.title') }}</p>
+              <p class="info-item-desc">{{ $t('myPlan.edu.item3.desc') }}</p>
             </div>
           </div>
           <div class="info-item">
             <a-icon type="check-circle" class="info-check" />
             <div>
-              <p class="info-item-title">纪律回顾</p>
-              <p class="info-item-desc">定期检视执行情况，而不是频繁修改计划。</p>
+              <p class="info-item-title">{{ $t('myPlan.edu.item4.title') }}</p>
+              <p class="info-item-desc">{{ $t('myPlan.edu.item4.desc') }}</p>
             </div>
           </div>
         </div>
@@ -206,16 +204,12 @@ export default {
   mounted () {
     this.loadPlans()
   },
+  watch: {
+    '$store.getters.lang' () {
+      this.loadPlans()
+    }
+  },
   methods: {
-    async loadUserId () {
-      try {
-        const res = await request({ url: '/api/users/me', method: 'get' })
-        if (res && res.data) return res.data.id || res.data.user_id || 1
-      } catch (e) {
-        return 1
-      }
-      return 1
-    },
     handleTabChange () {
       this.loadPlans()
     },
@@ -231,7 +225,7 @@ export default {
         }
       } catch (err) {
         console.error('loadPlans error:', err)
-        this.plansError = '暂时无法加载计划列表，请稍后重试。'
+        this.plansError = this.$t('myPlan.message.loadFailed')
       } finally {
         this.plansLoading = false
       }
@@ -256,15 +250,7 @@ export default {
       return map[status] || 'default'
     },
     statusLabel (status) {
-      const map = {
-        active: '执行中',
-        paused: '已暂停',
-        draft: '草稿',
-        completed: '已完成',
-        cancelled: '已取消',
-        archived: '已归档'
-      }
-      return map[status] || status
+      return this.$t('myPlan.status.' + status)
     },
     handleMenuClick (key, plan) {
       if (key === 'view' || key === 'edit') {
@@ -275,64 +261,60 @@ export default {
 
       if (key === 'pause') {
         this.$confirm({
-          title: '暂停这个计划？',
-          content: '暂停后，该计划将不再出现在 Today 的 Active Plans 中，但计划内容和历史记录会保留。',
-          okText: '确认暂停',
-          cancelText: '取消',
+          title: this.$t('myPlan.confirm.pause.title'),
+          content: this.$t('myPlan.confirm.pause.content'),
+          okText: this.$t('myPlan.confirm.pause.ok'),
+          cancelText: this.$t('common.cancel'),
           onOk: () => this.doChangeStatus(plan, 'pause')
         })
       } else if (key === 'activate') {
         this.$confirm({
-          title: '恢复这个计划？',
-          content: '恢复后，该计划将重新出现在 Today 的 Active Plans 中，并继续作为执行中的纪律计划进行跟踪。',
-          okText: '确认恢复',
-          cancelText: '取消',
+          title: this.$t('myPlan.confirm.activate.title'),
+          content: this.$t('myPlan.confirm.activate.content'),
+          okText: this.$t('myPlan.confirm.activate.ok'),
+          cancelText: this.$t('common.cancel'),
           onOk: () => this.doChangeStatus(plan, 'activate')
         })
       } else if (key === 'archive') {
         this.$confirm({
-          title: '归档这个计划？',
-          content: '归档后，该计划将从默认列表和 Today 中隐藏，但你仍可以在“已归档”中查看。',
-          okText: '确认归档',
-          cancelText: '取消',
+          title: this.$t('myPlan.confirm.archive.title'),
+          content: this.$t('myPlan.confirm.archive.content'),
+          okText: this.$t('myPlan.confirm.archive.ok'),
+          cancelText: this.$t('common.cancel'),
           onOk: () => this.doChangeStatus(plan, 'archive')
         })
       } else if (key === 'delete') {
         this.handleDeleteClick(plan)
       }
     },
-    
+
     // Proper handler for Delete menu item
     handleDeleteClick (plan) {
       this.$confirm({
-        title: '永久删除这个计划？',
-        content: '归档后，该计划不会出现在默认列表和 Today 中，但你仍可在“已归档”中查看。永久删除后，该计划将不可恢复。此操作不会影响券商账户。',
-        okText: '永久删除',
+        title: this.$t('myPlan.confirm.delete.title'),
+        content: this.$t('myPlan.confirm.delete.content'),
+        okText: this.$t('myPlan.confirm.delete.ok'),
         okType: 'danger',
-        cancelText: '改为归档',
+        cancelText: this.$t('myPlan.confirm.delete.cancel'),
         onOk: () => this.doChangeStatus(plan, 'delete'),
         onCancel: () => {
-          // In antd, onCancel is called if user clicks cancel button OR closes modal.
-          // Since PRD asks for a MVP with secondary "改为归档" button, we execute archive here.
-          // To prevent accidental archive when user just clicks 'X', we could check arguments, but for MVP this is acceptable or we just use standard cancel text.
-          // Actually, antd passes no args on cancel click, but we can do it:
           this.doChangeStatus(plan, 'archive')
         }
       })
     },
-    
+
     async doChangeStatus (plan, action) {
-      const hide = this.$message.loading('处理中...', 0)
+      const hide = this.$message.loading(this.$t('myPlan.message.processing'), 0)
       try {
         const res = await updatePlanStatus(plan.id, action)
         if (res && res.code === 1) {
-          this.$message.success('操作成功')
+          this.$message.success(this.$t('myPlan.message.success'))
           this.loadPlans() // Refresh list (optimistic or just reload)
         } else {
-          this.$message.error(res?.msg || '操作失败')
+          this.$message.error(res?.msg || this.$t('myPlan.message.failed'))
         }
       } catch (err) {
-        this.$message.error('操作失败，请重试')
+        this.$message.error(this.$t('myPlan.message.failedRetry'))
         console.error(err)
       } finally {
         hide()

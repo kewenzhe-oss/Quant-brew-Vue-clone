@@ -2,13 +2,13 @@
   <div class="profile-page" :class="{ 'theme-dark': isDarkTheme }">
     <div class="page-header">
       <div>
-        <p class="brand-kicker">PostSoma Core</p>
-        <h2 class="page-title">{{ $t('profile.title') || 'My Profile' }}</h2>
-        <p class="page-desc">Preference and risk control center for account identity, API access, notifications, and data portability.</p>
+        <p class="brand-kicker">QuantBrew</p>
+        <h2 class="page-title">{{ $t('profile.title') }}</h2>
+        <p class="page-desc">{{ $t('profile.description') }}</p>
       </div>
       <a-button type="primary" class="header-action" @click="activeTab = 'exchange'">
         <a-icon type="key" />
-        Manage API keys
+        {{ $t('profile.manageApiKey') }}
       </a-button>
     </div>
 
@@ -32,17 +32,17 @@
           <div class="profile-info">
             <div class="info-item">
               <a-icon type="user" />
-              <span class="label">{{ $t('profile.username') || 'Username' }}:</span>
+              <span class="label">{{ $t('profile.username') }}:</span>
               <span class="value">{{ profile.username }}</span>
             </div>
             <div class="info-item">
               <a-icon type="mail" />
-              <span class="label">{{ $t('profile.email') || 'Email' }}:</span>
+              <span class="label">{{ $t('profile.email') }}:</span>
               <span class="value">{{ profile.email || '-' }}</span>
             </div>
             <div class="info-item">
               <a-icon type="calendar" />
-              <span class="label">{{ $t('profile.lastLogin') || 'Last Login' }}:</span>
+              <span class="label">{{ $t('profile.lastLogin') }}:</span>
               <span class="value">{{ formatTime(profile.last_login_at) || '-' }}</span>
             </div>
           </div>
@@ -53,49 +53,49 @@
         <div class="control-grid">
           <button type="button" class="control-tile" @click="activeTab = 'exchange'">
             <span class="tile-icon"><a-icon type="api" /></span>
-            <span class="tile-title">API key management</span>
-            <span class="tile-meta">{{ exchangeCredentials.length }} saved connections</span>
+            <span class="tile-title">{{ $t('profile.tile.apiKeyTitle') }}</span>
+            <span class="tile-meta">{{ $t('profile.tile.apiKeyMeta', { count: exchangeCredentials.length }) }}</span>
           </button>
           <button type="button" class="control-tile" @click="activeTab = 'notifications'">
             <span class="tile-icon"><a-icon type="bell" /></span>
-            <span class="tile-title">Notification defaults</span>
-            <span class="tile-meta">{{ notificationSettings.default_channels.length }} active channels</span>
+            <span class="tile-title">{{ $t('profile.tile.notificationTitle') }}</span>
+            <span class="tile-meta">{{ $t('profile.tile.notificationMeta', { count: notificationSettings.default_channels.length }) }}</span>
           </button>
           <button type="button" class="control-tile" @click="activeTab = 'password'">
             <span class="tile-icon"><a-icon type="safety-certificate" /></span>
-            <span class="tile-title">Security review</span>
-            <span class="tile-meta">Email verification required</span>
+            <span class="tile-title">{{ $t('profile.tile.securityTitle') }}</span>
+            <span class="tile-meta">{{ $t('profile.tile.securityMeta') }}</span>
           </button>
           <button type="button" class="control-tile" @click="activeTab = 'credits'">
             <span class="tile-icon"><a-icon type="audit" /></span>
-            <span class="tile-title">Usage & export trail</span>
-            <span class="tile-meta">{{ formatCredits(billing.credits) }} available credits</span>
+            <span class="tile-title">{{ $t('profile.tile.creditsTitle') }}</span>
+            <span class="tile-meta">{{ $t('profile.tile.creditsMeta', { count: formatCredits(billing.credits) }) }}</span>
           </button>
         </div>
 
         <a-card :bordered="false" class="risk-card">
           <div class="risk-card-header">
             <div>
-              <p class="section-kicker">Default risk posture</p>
-              <h3>Plan discipline before execution</h3>
+              <p class="section-kicker">{{ $t('profile.risk.postureTitle') }}</p>
+              <h3>{{ $t('profile.risk.postureSubtitle') }}</h3>
             </div>
-            <a-tag color="green">Review-first</a-tag>
+            <a-tag color="green">{{ $t('profile.risk.postureTag') }}</a-tag>
           </div>
           <div class="risk-grid">
             <div class="risk-item">
-              <span class="risk-label">Position sizing</span>
-              <strong>Defined per plan</strong>
-              <span>Budget and cadence are set in Trade Plan before a plan is archived.</span>
+              <span class="risk-label">{{ $t('profile.risk.positionSizing') }}</span>
+              <strong>{{ $t('profile.risk.positionSizingVal') }}</strong>
+              <span>{{ $t('profile.risk.positionSizingDesc') }}</span>
             </div>
             <div class="risk-item">
-              <span class="risk-label">Alerts</span>
-              <strong>Preference based</strong>
-              <span>Notification defaults apply to watch points and plan review reminders.</span>
+              <span class="risk-label">{{ $t('profile.risk.alerts') }}</span>
+              <strong>{{ $t('profile.risk.alertsVal') }}</strong>
+              <span>{{ $t('profile.risk.alertsDesc') }}</span>
             </div>
             <div class="risk-item">
-              <span class="risk-label">Connected accounts</span>
-              <strong>Credential gated</strong>
-              <span>External API keys stay managed separately from research workflows.</span>
+              <span class="risk-label">{{ $t('profile.risk.connectedAccounts') }}</span>
+              <strong>{{ $t('profile.risk.connectedAccountsVal') }}</strong>
+              <span>{{ $t('profile.risk.connectedAccountsDesc') }}</span>
             </div>
           </div>
         </a-card>
@@ -108,39 +108,39 @@
         <a-card :bordered="false" class="edit-card">
           <a-tabs v-model="activeTab">
             <!-- Basic Info Tab -->
-            <a-tab-pane key="basic" :tab="$t('profile.basicInfo') || 'Basic Info'">
+            <a-tab-pane key="basic" :tab="$t('profile.basicInfo')">
               <a-form :form="profileForm" layout="vertical" class="profile-form">
-                <a-form-item :label="$t('profile.nickname') || 'Nickname'">
+                <a-form-item :label="$t('profile.nickname')">
                   <a-input
                     v-decorator="['nickname', { initialValue: profile.nickname }]"
-                    :placeholder="$t('profile.nicknamePlaceholder') || 'Enter your nickname'"
+                    :placeholder="$t('profile.nicknamePlaceholder')"
                   >
                     <a-icon slot="prefix" type="smile" />
                   </a-input>
                 </a-form-item>
 
-                <a-form-item :label="$t('profile.email') || 'Email'">
+                <a-form-item :label="$t('profile.email')">
                   <a-input
                     :value="profile.email || '-'"
                     disabled
                   >
                     <a-icon slot="prefix" type="mail" />
-                    <a-tooltip slot="suffix" :title="$t('profile.emailCannotChange') || 'Email cannot be changed after registration'">
+                    <a-tooltip slot="suffix" :title="$t('profile.emailCannotChange')">
                       <a-icon type="info-circle" style="color: rgba(0,0,0,.45)" />
                     </a-tooltip>
                   </a-input>
                 </a-form-item>
 
-                <a-form-item :label="$t('profile.timezone') || '时区'">
+                <a-form-item :label="$t('profile.timezone')">
                   <a-select
                     v-decorator="['timezone', { initialValue: profile.timezone || '' }]"
-                    :placeholder="$t('profile.timezonePlaceholder') || '跟随浏览器/系统'"
+                    :placeholder="$t('profile.timezonePlaceholder')"
                     show-search
                     allow-clear
                     option-filter-prop="children"
                   >
                     <a-select-option value="">
-                      {{ $t('profile.timezoneBrowser') || '跟随浏览器' }}
+                      {{ $t('profile.timezoneBrowser') }}
                     </a-select-option>
                     <a-select-option v-for="z in timezoneIanaList" :key="z" :value="z">
                       {{ z }}
@@ -151,31 +151,31 @@
                 <a-form-item>
                   <a-button type="primary" :loading="saving" @click="handleSaveProfile">
                     <a-icon type="save" />
-                    {{ $t('common.save') || 'Save' }}
+                    {{ $t('common.save') }}
                   </a-button>
                 </a-form-item>
               </a-form>
             </a-tab-pane>
 
             <!-- Change Password Tab -->
-            <a-tab-pane key="password" :tab="$t('profile.changePassword') || 'Change Password'">
+            <a-tab-pane key="password" :tab="$t('profile.changePassword')">
               <a-form :form="passwordForm" layout="vertical" class="password-form">
                 <a-alert
-                  :message="$t('profile.passwordHintNew') || 'For security, email verification is required to change password. Password must be at least 8 characters with uppercase, lowercase, and number.'"
+                  :message="$t('profile.passwordHintNew')"
                   type="info"
                   showIcon
                   style="margin-bottom: 24px"
                 />
 
                 <!-- Email Display & Verification Code -->
-                <a-form-item :label="$t('profile.verificationCode') || 'Verification Code'">
+                <a-form-item :label="$t('profile.verificationCode')">
                   <a-row :gutter="12">
                     <a-col :span="16">
                       <a-input
                         v-decorator="['code', {
-                          rules: [{ required: true, message: $t('profile.codeRequired') || 'Please enter verification code' }]
+                          rules: [{ required: true, message: $t('profile.codeRequired') }]
                         }]"
-                        :placeholder="$t('profile.codePlaceholder') || 'Enter verification code'"
+                        :placeholder="$t('profile.codePlaceholder')"
                       >
                         <a-icon slot="prefix" type="safety-certificate" />
                       </a-input>
@@ -187,41 +187,41 @@
                         :disabled="sendingPwdCode || pwdCodeCountdown > 0 || !profile.email"
                         @click="handleSendPwdCode"
                       >
-                        {{ pwdCodeCountdown > 0 ? `${pwdCodeCountdown}s` : ($t('profile.sendCode') || 'Send Code') }}
+                        {{ pwdCodeCountdown > 0 ? `${pwdCodeCountdown}s` : $t('profile.sendCode') }}
                       </a-button>
                     </a-col>
                   </a-row>
                   <div class="email-hint" v-if="profile.email">
-                    {{ $t('profile.codeWillSendTo') || 'Code will be sent to' }}: {{ profile.email }}
+                    {{ $t('profile.codeWillSendTo') }}: {{ profile.email }}
                   </div>
                   <div class="email-hint email-warning" v-else>
-                    {{ $t('profile.noEmailWarning') || 'Please set your email first in Basic Info tab' }}
+                    {{ $t('profile.noEmailWarning') }}
                   </div>
                 </a-form-item>
 
-                <a-form-item :label="$t('profile.newPassword') || 'New Password'">
+                <a-form-item :label="$t('profile.newPassword')">
                   <a-input-password
                     v-decorator="['new_password', {
                       rules: [
-                        { required: true, message: $t('profile.newPasswordRequired') || 'Please enter new password' },
+                        { required: true, message: $t('profile.newPasswordRequired') },
                         { validator: validateNewPassword }
                       ]
                     }]"
-                    :placeholder="$t('profile.newPasswordPlaceholder') || 'Enter new password'"
+                    :placeholder="$t('profile.newPasswordPlaceholder')"
                   >
                     <a-icon slot="prefix" type="lock" />
                   </a-input-password>
                 </a-form-item>
 
-                <a-form-item :label="$t('profile.confirmPassword') || 'Confirm Password'">
+                <a-form-item :label="$t('profile.confirmPassword')">
                   <a-input-password
                     v-decorator="['confirm_password', {
                       rules: [
-                        { required: true, message: $t('profile.confirmPasswordRequired') || 'Please confirm password' },
+                        { required: true, message: $t('profile.confirmPasswordRequired') },
                         { validator: validateConfirmPassword }
                       ]
                     }]"
-                    :placeholder="$t('profile.confirmPasswordPlaceholder') || 'Confirm new password'"
+                    :placeholder="$t('profile.confirmPasswordPlaceholder')"
                   >
                     <a-icon slot="prefix" type="lock" />
                   </a-input-password>
@@ -230,14 +230,14 @@
                 <a-form-item>
                   <a-button type="primary" :loading="changingPassword" @click="handleChangePassword" :disabled="!profile.email">
                     <a-icon type="key" />
-                    {{ $t('profile.changePassword') || 'Change Password' }}
+                    {{ $t('profile.changePassword') }}
                   </a-button>
                 </a-form-item>
               </a-form>
             </a-tab-pane>
 
             <!-- Usage Log Tab -->
-            <a-tab-pane key="credits" tab="Usage & Export">
+            <a-tab-pane key="credits" :tab="$t('profile.tile.creditsTitle')">
               <a-table
                 :columns="creditsLogColumns"
                 :dataSource="creditsLog"
@@ -269,10 +269,10 @@
             </a-tab-pane>
 
             <!-- Notification Settings Tab (通知设置) -->
-            <a-tab-pane key="notifications" :tab="$t('profile.notifications.title') || '通知设置'">
+            <a-tab-pane key="notifications" :tab="$t('profile.notifications.title')">
               <div class="notification-settings-form">
                 <a-alert
-                  :message="$t('profile.notifications.hint') || '配置您的默认通知方式，在创建资产监控和预警时将自动使用这些设置'"
+                  :message="$t('profile.notifications.hint')"
                   type="info"
                   showIcon
                   style="margin-bottom: 24px"
@@ -280,14 +280,14 @@
 
                 <a-form :form="notificationForm" layout="vertical" style="max-width: 600px;">
                   <!-- Default Channels -->
-                  <a-form-item :label="$t('profile.notifications.defaultChannels') || '默认通知渠道'">
+                  <a-form-item :label="$t('profile.notifications.defaultChannels')">
                     <a-checkbox-group
                       v-decorator="['default_channels', { initialValue: notificationSettings.default_channels || ['browser'] }]"
                     >
                       <a-row :gutter="16">
                         <a-col :span="8">
                           <a-checkbox value="browser">
-                            <a-icon type="bell" /> {{ $t('profile.notifications.browser') || '站内通知' }}
+                            <a-icon type="bell" /> {{ $t('profile.notifications.browser') }}
                           </a-checkbox>
                         </a-col>
                         <a-col :span="8">
@@ -297,14 +297,14 @@
                         </a-col>
                         <a-col :span="8">
                           <a-checkbox value="email">
-                            <a-icon type="mail" /> {{ $t('profile.notifications.email') || '邮件' }}
+                            <a-icon type="mail" /> {{ $t('profile.notifications.email') }}
                           </a-checkbox>
                         </a-col>
                       </a-row>
                       <a-row :gutter="16" style="margin-top: 8px">
                         <a-col :span="8">
                           <a-checkbox value="phone">
-                            <a-icon type="phone" /> {{ $t('profile.notifications.phone') || '短信' }}
+                            <a-icon type="phone" /> {{ $t('profile.notifications.phone') }}
                           </a-checkbox>
                         </a-col>
                         <a-col :span="8">
@@ -322,114 +322,114 @@
                   </a-form-item>
 
                   <!-- Telegram Bot Token -->
-                  <a-form-item :label="$t('profile.notifications.telegramBotToken') || 'Telegram Bot Token'">
+                  <a-form-item :label="$t('profile.notifications.telegramBotToken')">
                     <a-input-password
                       v-decorator="['telegram_bot_token', { initialValue: notificationSettings.telegram_bot_token }]"
-                      :placeholder="$t('profile.notifications.telegramBotTokenPlaceholder') || '请输入您的 Telegram Bot Token'"
+                      :placeholder="$t('profile.notifications.telegramBotTokenPlaceholder')"
                     >
                       <a-icon slot="prefix" type="robot" />
                     </a-input-password>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
                       <span>
-                        {{ $t('profile.notifications.telegramBotTokenHint') || '通过 @BotFather 创建机器人获取 Token' }}
+                        {{ $t('profile.notifications.telegramBotTokenHint') }}
                         <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a>
                       </span>
                     </div>
                   </a-form-item>
 
                   <!-- Telegram Chat ID -->
-                  <a-form-item :label="$t('profile.notifications.telegramChatId') || 'Telegram Chat ID'">
+                  <a-form-item :label="$t('profile.notifications.telegramChatId')">
                     <a-input
                       v-decorator="['telegram_chat_id', { initialValue: notificationSettings.telegram_chat_id }]"
-                      :placeholder="$t('profile.notifications.telegramPlaceholder') || '请输入您的 Telegram Chat ID（如 123456789）'"
+                      :placeholder="$t('profile.notifications.telegramPlaceholder')"
                     >
                       <a-icon slot="prefix" type="message" />
                     </a-input>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
-                      <span>{{ $t('profile.notifications.telegramHint') || '发送 /start 给 @userinfobot 可获取您的 Chat ID' }}</span>
+                      <span>{{ $t('profile.notifications.telegramHint') }}</span>
                     </div>
                   </a-form-item>
 
                   <!-- Notification Email -->
-                  <a-form-item :label="$t('profile.notifications.notifyEmail') || '通知邮箱'">
+                  <a-form-item :label="$t('profile.notifications.notifyEmail')">
                     <a-input
                       v-decorator="['email', { initialValue: notificationSettings.email || profile.email }]"
-                      :placeholder="$t('profile.notifications.emailPlaceholder') || '接收通知的邮箱地址'"
+                      :placeholder="$t('profile.notifications.emailPlaceholder')"
                     >
                       <a-icon slot="prefix" type="mail" />
                     </a-input>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
-                      <span>{{ $t('profile.notifications.emailHint') || '默认使用账户邮箱，可设置其他邮箱接收通知' }}</span>
+                      <span>{{ $t('profile.notifications.emailHint') }}</span>
                     </div>
                   </a-form-item>
 
                   <!-- Phone Number (SMS) -->
-                  <a-form-item :label="$t('profile.notifications.phone') || '手机号（短信通知）'">
+                  <a-form-item :label="$t('profile.notifications.phone')">
                     <a-input
                       v-decorator="['phone', { initialValue: notificationSettings.phone }]"
-                      :placeholder="$t('profile.notifications.phonePlaceholder') || '请输入手机号（如 +8613800138000）'"
+                      :placeholder="$t('profile.notifications.phonePlaceholder')"
                     >
                       <a-icon slot="prefix" type="phone" />
                     </a-input>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
-                      <span>{{ $t('profile.notifications.phoneHint') || '需要管理员配置 Twilio 服务后才能使用短信通知' }}</span>
+                      <span>{{ $t('profile.notifications.phoneHint') }}</span>
                     </div>
                   </a-form-item>
 
                   <!-- Discord Webhook -->
-                  <a-form-item :label="$t('profile.notifications.discordWebhook') || 'Discord Webhook'">
+                  <a-form-item :label="$t('profile.notifications.discordWebhook')">
                     <a-input
                       v-decorator="['discord_webhook', { initialValue: notificationSettings.discord_webhook }]"
-                      :placeholder="$t('profile.notifications.discordPlaceholder') || 'https://discord.com/api/webhooks/...'"
+                      :placeholder="$t('profile.notifications.discordPlaceholder')"
                     >
                       <a-icon slot="prefix" type="message" />
                     </a-input>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
-                      <span>{{ $t('profile.notifications.discordHint') || '在 Discord 服务器设置中创建 Webhook' }}</span>
+                      <span>{{ $t('profile.notifications.discordHint') }}</span>
                     </div>
                   </a-form-item>
 
                   <!-- Webhook URL -->
-                  <a-form-item :label="$t('profile.notifications.webhookUrl') || 'Webhook URL'">
+                  <a-form-item :label="$t('profile.notifications.webhookUrl')">
                     <a-input
                       v-decorator="['webhook_url', { initialValue: notificationSettings.webhook_url }]"
-                      :placeholder="$t('profile.notifications.webhookPlaceholder') || 'https://your-server.com/webhook'"
+                      :placeholder="$t('profile.notifications.webhookPlaceholder')"
                     >
                       <a-icon slot="prefix" type="api" />
                     </a-input>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
-                      <span>{{ $t('profile.notifications.webhookHint') || '自定义 Webhook 地址，将以 POST JSON 方式推送通知' }}</span>
+                      <span>{{ $t('profile.notifications.webhookHint') }}</span>
                     </div>
                   </a-form-item>
 
                   <!-- Webhook Token -->
-                  <a-form-item :label="$t('profile.notifications.webhookToken') || 'Webhook Token（可选）'">
+                  <a-form-item :label="$t('profile.notifications.webhookToken')">
                     <a-input-password
                       v-decorator="['webhook_token', { initialValue: notificationSettings.webhook_token }]"
-                      :placeholder="$t('profile.notifications.webhookTokenPlaceholder') || '用于验证请求的 Bearer Token'"
+                      :placeholder="$t('profile.notifications.webhookTokenPlaceholder')"
                     >
                       <a-icon slot="prefix" type="key" />
                     </a-input-password>
                     <div class="field-hint">
                       <a-icon type="info-circle" />
-                      <span>{{ $t('profile.notifications.webhookTokenHint') || '将作为 Authorization: Bearer Token 发送到 Webhook' }}</span>
+                      <span>{{ $t('profile.notifications.webhookTokenHint') }}</span>
                     </div>
                   </a-form-item>
 
                   <a-form-item>
                     <a-button type="primary" :loading="savingNotifications" @click="handleSaveNotifications">
                       <a-icon type="save" />
-                      {{ $t('common.save') || '保存' }}
+                      {{ $t('common.save') }}
                     </a-button>
                     <a-button style="margin-left: 12px" @click="handleTestNotification" :loading="testingNotification">
                       <a-icon type="experiment" />
-                      {{ $t('profile.notifications.testBtn') || '发送测试通知' }}
+                      {{ $t('profile.notifications.testBtn') }}
                     </a-button>
                   </a-form-item>
                 </a-form>
@@ -437,7 +437,7 @@
             </a-tab-pane>
 
             <!-- API Key Management Tab -->
-            <a-tab-pane key="exchange" tab="API Keys">
+            <a-tab-pane key="exchange" :tab="$t('profile.exchange.title')">
               <div class="exchange-config-section">
                 <a-alert
                   :message="$t('profile.exchange.hint')"
@@ -455,7 +455,7 @@
                   :dataSource="exchangeCredentials"
                   :loading="exchangeLoading"
                   :rowKey="record => record.id"
-                  :locale="{ emptyText: $t('profile.exchange.noAccounts') || '暂无交易所账户，请点击上方按钮添加' }"
+                  :locale="{ emptyText: $t('profile.exchange.noAccounts') }"
                   size="small"
                 >
                   <template slot="exchange_id" slot-scope="text, record">
@@ -618,30 +618,30 @@ export default {
     creditsLogColumns () {
       return [
         {
-          title: this.$t('profile.creditsLog.time') || '时间',
+          title: this.$t('profile.creditsLog.time'),
           dataIndex: 'created_at',
           width: 160,
           scopedSlots: { customRender: 'created_at' }
         },
         {
-          title: this.$t('profile.creditsLog.action') || '类型',
+          title: this.$t('profile.creditsLog.action'),
           dataIndex: 'action',
           width: 100,
           scopedSlots: { customRender: 'action' }
         },
         {
-          title: this.$t('profile.creditsLog.amount') || '变动',
+          title: this.$t('profile.creditsLog.amount'),
           dataIndex: 'amount',
           width: 100,
           scopedSlots: { customRender: 'amount' }
         },
         {
-          title: this.$t('profile.creditsLog.balance') || '余额',
+          title: this.$t('profile.creditsLog.balance'),
           dataIndex: 'balance_after',
           width: 100
         },
         {
-          title: this.$t('profile.creditsLog.remark') || '备注',
+          title: this.$t('profile.creditsLog.remark'),
           dataIndex: 'remark',
           ellipsis: true
         }
@@ -650,12 +650,12 @@ export default {
     referralColumns () {
       return [
         {
-          title: this.$t('profile.referral.user') || '用户',
+          title: this.$t('profile.referral.user'),
           dataIndex: 'username',
           scopedSlots: { customRender: 'user' }
         },
         {
-          title: this.$t('profile.referral.registerTime') || '注册时间',
+          title: this.$t('profile.referral.registerTime'),
           dataIndex: 'created_at',
           width: 180,
           scopedSlots: { customRender: 'created_at' }
@@ -670,30 +670,30 @@ export default {
     exchangeColumns () {
       return [
         {
-          title: this.$t('profile.exchange.colExchange') || 'Exchange',
+          title: this.$t('profile.exchange.colExchange'),
           dataIndex: 'exchange_id',
           width: 140,
           scopedSlots: { customRender: 'exchange_id' }
         },
         {
-          title: this.$t('profile.exchange.colName') || 'Name',
+          title: this.$t('profile.exchange.colName'),
           dataIndex: 'name',
           width: 140,
           customRender: (text) => text || '-'
         },
         {
-          title: this.$t('profile.exchange.colHint') || 'Connection Info',
+          title: this.$t('profile.exchange.colHint'),
           dataIndex: 'api_key_hint',
           scopedSlots: { customRender: 'api_key_hint' }
         },
         {
-          title: this.$t('profile.exchange.colCreatedAt') || 'Created At',
+          title: this.$t('profile.exchange.colCreatedAt'),
           dataIndex: 'created_at',
           width: 180,
           scopedSlots: { customRender: 'created_at' }
         },
         {
-          title: this.$t('profile.exchange.colActions') || 'Actions',
+          title: this.$t('profile.exchange.colActions'),
           width: 120,
           scopedSlots: { customRender: 'action' }
         }
@@ -826,7 +826,7 @@ export default {
     validateConfirmPassword (rule, value, callback) {
       const newPassword = this.passwordForm.getFieldValue('new_password')
       if (value && value !== newPassword) {
-        callback(this.$t('profile.passwordMismatch') || 'Passwords do not match')
+        callback(this.$t('profile.passwordMismatch'))
       } else {
         callback()
       }
@@ -834,7 +834,7 @@ export default {
 
     async handleSendPwdCode () {
       if (!this.profile.email) {
-        this.$message.error(this.$t('profile.noEmailWarning') || 'Please set your email first')
+        this.$message.error(this.$t('profile.noEmailWarning'))
         return
       }
 
@@ -846,7 +846,7 @@ export default {
           type: 'change_password'
         })
         if (res.code === 1) {
-          this.$message.success(this.$t('profile.codeSent') || 'Verification code sent')
+          this.$message.success(this.$t('profile.codeSent'))
           this.startPwdCodeCountdown()
         } else {
           this.$message.error(res.msg || 'Failed to send code')
@@ -875,19 +875,19 @@ export default {
         return
       }
       if (value.length < 8) {
-        callback(new Error(this.$t('user.register.pwdMinLength') || 'At least 8 characters'))
+        callback(new Error(this.$t('user.register.pwdMinLength')))
         return
       }
       if (!/[A-Z]/.test(value)) {
-        callback(new Error(this.$t('user.register.pwdUppercase') || 'At least one uppercase letter'))
+        callback(new Error(this.$t('user.register.pwdUppercase')))
         return
       }
       if (!/[a-z]/.test(value)) {
-        callback(new Error(this.$t('user.register.pwdLowercase') || 'At least one lowercase letter'))
+        callback(new Error(this.$t('user.register.pwdLowercase')))
         return
       }
       if (!/[0-9]/.test(value)) {
-        callback(new Error(this.$t('user.register.pwdNumber') || 'At least one number'))
+        callback(new Error(this.$t('user.register.pwdNumber')))
         return
       }
       callback()
@@ -930,10 +930,10 @@ export default {
 
     getRoleLabel (role) {
       const labels = {
-        admin: this.$t('userManage.roleAdmin') || 'Admin',
-        manager: this.$t('userManage.roleManager') || 'Manager',
-        user: this.$t('userManage.roleUser') || 'User',
-        viewer: this.$t('userManage.roleViewer') || 'Viewer'
+        admin: this.$t('userManage.roleAdmin'),
+        manager: this.$t('userManage.roleManager'),
+        user: this.$t('userManage.roleUser'),
+        viewer: this.$t('userManage.roleViewer')
       }
       return labels[role] || role
     },
@@ -1156,16 +1156,13 @@ export default {
       const e = (err || '').trim()
       if (channel === 'email') {
         if (e === 'missing_SMTP_HOST') {
-          return this.$t('profile.notifications.errSmtpHost') ||
-            'email：服务器未配置发信 SMTP（管理员在「系统设置 → 邮件」或环境变量 SMTP_HOST/SMTP_USER 等）'
+          return this.$t('profile.notifications.errSmtpHost')
         }
         if (e === 'missing_SMTP_FROM') {
-          return this.$t('profile.notifications.errSmtpFrom') ||
-            'email：未配置发件人 SMTP_FROM（或 SMTP_USER）'
+          return this.$t('profile.notifications.errSmtpFrom')
         }
         if (e === 'missing_email_target') {
-          return this.$t('profile.notifications.errEmailTarget') ||
-            'email：未填写通知邮箱且账号无邮箱'
+          return this.$t('profile.notifications.errEmailTarget')
         }
       }
       return e ? `${channel}: ${e}` : ''
@@ -1188,7 +1185,7 @@ export default {
             webhook_token: values.webhook_token || ''
           })
           if (res.code === 1) {
-            this.$message.success(this.$t('profile.notifications.saveSuccess') || '通知设置保存成功')
+            this.$message.success(this.$t('profile.notifications.saveSuccess'))
             this.notificationSettings = res.data || this.notificationSettings
           } else {
             this.$message.error(res.msg || '保存失败')
@@ -1206,35 +1203,35 @@ export default {
       const channels = values.default_channels || []
 
       if (channels.length === 0) {
-        this.$message.warning(this.$t('profile.notifications.selectChannel') || '请至少选择一个通知渠道')
+        this.$message.warning(this.$t('profile.notifications.selectChannel'))
         return
       }
 
       // Check if required fields are filled
       if (channels.includes('telegram')) {
         if (!values.telegram_bot_token) {
-          this.$message.warning(this.$t('profile.notifications.fillTelegramToken') || '请填写 Telegram Bot Token')
+          this.$message.warning(this.$t('profile.notifications.fillTelegramToken'))
           return
         }
         if (!values.telegram_chat_id) {
-          this.$message.warning(this.$t('profile.notifications.fillTelegram') || '请填写 Telegram Chat ID')
+          this.$message.warning(this.$t('profile.notifications.fillTelegram'))
           return
         }
       }
       if (channels.includes('email') && !values.email) {
-        this.$message.warning(this.$t('profile.notifications.fillEmail') || '请填写通知邮箱')
+        this.$message.warning(this.$t('profile.notifications.fillEmail'))
         return
       }
       if (channels.includes('phone') && !values.phone) {
-        this.$message.warning(this.$t('profile.notifications.fillPhone') || '请填写手机号')
+        this.$message.warning(this.$t('profile.notifications.fillPhone'))
         return
       }
       if (channels.includes('discord') && !values.discord_webhook) {
-        this.$message.warning(this.$t('profile.notifications.fillDiscord') || '请填写 Discord Webhook URL')
+        this.$message.warning(this.$t('profile.notifications.fillDiscord'))
         return
       }
       if (channels.includes('webhook') && !values.webhook_url) {
-        this.$message.warning(this.$t('profile.notifications.fillWebhook') || '请填写 Webhook URL')
+        this.$message.warning(this.$t('profile.notifications.fillWebhook'))
         return
       }
 
@@ -1258,14 +1255,14 @@ export default {
 
         const testRes = await testNotificationSettings()
         if (testRes.code !== 1) {
-          this.$message.error(testRes.msg || (this.$t('profile.notifications.testFailed') || '测试通知发送失败'))
+          this.$message.error(testRes.msg || this.$t('profile.notifications.testFailed'))
           return
         }
 
         const results = (testRes.data && testRes.data.results) || {}
         const failed = Object.keys(results).filter((k) => !results[k].ok)
         if (failed.length === 0) {
-          this.$message.success(this.$t('profile.notifications.testSent') || '测试通知已发送，请检查各渠道')
+          this.$message.success(this.$t('profile.notifications.testSent'))
         } else {
           const detail = failed.map((k) => {
             const err = (results[k] && results[k].error) || ''
@@ -1273,12 +1270,12 @@ export default {
             return hint || (err ? `${k}: ${err}` : k)
           }).join('；')
           this.$message.warning(
-            (this.$t('profile.notifications.testPartial') || '部分渠道发送失败') + ` — ${detail}`,
+            this.$t('profile.notifications.testPartial') + ` — ${detail}`,
             8
           )
         }
       } catch (e) {
-        this.$message.error(this.$t('profile.notifications.testFailed') || '发送测试通知失败')
+        this.$message.error(this.$t('profile.notifications.testFailed'))
       } finally {
         this.testingNotification = false
       }

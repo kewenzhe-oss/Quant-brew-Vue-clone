@@ -7,6 +7,7 @@ const METRIC_REGISTRY = {
   us_net_liquidity: {
     name: 'US Net Liquidity',
     chartId: 'liq_net_us',
+    chartIds: ['liq_net_us', 'liq_walcl', 'liq_tga', 'liq_rrp', 'liq_reserves'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -21,6 +22,7 @@ const METRIC_REGISTRY = {
   fed_balance_sheet: {
     name: 'Fed Balance Sheet',
     chartId: 'liq_walcl',
+    chartIds: ['liq_walcl', 'liq_reserves'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -73,6 +75,7 @@ const METRIC_REGISTRY = {
   financial_conditions_index: {
     name: 'NFCI',
     chartId: 'liq_nfci',
+    chartIds: ['liq_nfci', 'adv_sofr', 'adv_fed_rate'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -111,6 +114,7 @@ const METRIC_REGISTRY = {
     name: 'DXY (美元指数)',
     sourceKey: 'dxy',
     chartId: 'inf_dxy',
+    chartIds: ['inf_dxy', 'adv_usd_jpy', 'adv_eur_usd'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -187,6 +191,7 @@ const METRIC_REGISTRY = {
   cpi_yoy: {
     name: 'CPI YoY',
     chartId: 'inf_cpi_yoy',
+    chartIds: ['inf_cpi_yoy', 'inf_core_cpi_yoy', 'adv_ppi_yoy', 'adv_shelter'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -198,6 +203,7 @@ const METRIC_REGISTRY = {
   core_cpi_yoy: {
     name: 'Core CPI YoY',
     chartId: 'inf_core_cpi_yoy',
+    chartIds: ['inf_core_cpi_yoy', 'inf_cpi_yoy', 'adv_shelter'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -221,6 +227,7 @@ const METRIC_REGISTRY = {
   core_pce_yoy: {
     name: 'Core PCE YoY',
     chartId: 'inf_core_pce_yoy',
+    chartIds: ['inf_core_pce_yoy', 'adv_pce_yoy'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -270,6 +277,7 @@ const METRIC_REGISTRY = {
   us10y_yield: {
     name: 'US 10Y Yield',
     chartId: 'inf_us10y',
+    chartIds: ['inf_us10y', 'inf_us2y', 'adv_us30y', 'inf_term_spread', 'adv_real_yield'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -283,6 +291,7 @@ const METRIC_REGISTRY = {
   us2y_yield: {
     name: 'US 2Y Yield',
     chartId: 'inf_us2y',
+    chartIds: ['inf_us2y', 'inf_us10y', 'inf_term_spread'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -307,6 +316,7 @@ const METRIC_REGISTRY = {
     sourceKey: 'yield_curve',
     name: '10Y-2Y Spread',
     chartId: 'inf_term_spread',
+    chartIds: ['inf_term_spread', 'inf_us10y', 'inf_us2y'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -479,6 +489,7 @@ const METRIC_REGISTRY = {
   unemployment_rate: {
     name: 'Unemployment Rate',
     chartId: 'eco_unrate',
+    chartIds: ['eco_unrate', 'eco_jobless', 'adv_cont_claims'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -490,6 +501,7 @@ const METRIC_REGISTRY = {
   nonfarm_payrolls: {
     name: 'Nonfarm Payrolls',
     chartId: 'eco_nfp',
+    chartIds: ['eco_nfp', 'adv_jolts', 'adv_wages'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -501,6 +513,7 @@ const METRIC_REGISTRY = {
   initial_jobless_claims: {
     name: 'Initial Jobless Claims',
     chartId: 'eco_jobless',
+    chartIds: ['eco_jobless', 'adv_cont_claims', 'eco_unrate'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -562,6 +575,7 @@ const METRIC_REGISTRY = {
   hy_spread: {
     name: 'High Yield Spread',
     chartId: 'eco_hy_spread',
+    chartIds: ['eco_hy_spread', 'eco_ig_spread'],
     visibility: 'detail_core',
     priority: 'P0',
     chart_policy: 'required',
@@ -621,7 +635,7 @@ const METRIC_REGISTRY = {
 
   // Sentiment
   fear_greed: {
-    name: 'Fear & Greed',
+    name: 'Fear & Greed Index',
     chartId: 'sen_fgi',
     visibility: 'detail_core',
     priority: 'P0',
@@ -864,10 +878,10 @@ export async function getDomainViewModel (domain) {
             const candidates = [rawValue.value, rawValue.price, rawValue.spread, rawValue.rate]
             const found = candidates.find(c => c !== undefined && c !== null && !Number.isNaN(Number(c)))
             if (found !== undefined) {
-              validValue = typeof found === 'number' ? Number(found).toFixed(2) : String(found)
+              validValue = Number(found)
             }
           } else if (rawValue !== null) {
-            validValue = typeof rawValue === 'number' ? Number(rawValue).toFixed(2) : String(rawValue)
+            validValue = Number(rawValue)
           }
         }
         // Null guard: if value resolved to the string 'null' or 'None', treat as unavailable
@@ -888,13 +902,14 @@ export async function getDomainViewModel (domain) {
 
         const fetchedDate = rawValue && typeof rawValue === 'object' ? rawValue.date : null
         const formattedMetric = formatMacroValue(metricId, validValue, fetchedDate)
-        
+
         return {
           id: metricId,
           name: meta.name,
           value: formattedMetric.value,
           formattedValue: formattedMetric.formattedValue,
           primary: formattedMetric.primary,
+          displayValue: formattedMetric.displayValue,
           unit: formattedMetric.unit,
           displayUnit: formattedMetric.displayUnit,
           meta: formattedMetric.meta,
@@ -909,23 +924,31 @@ export async function getDomainViewModel (domain) {
         }
       })
 
+      const activeMetrics = parsedMetrics.filter(m => m.visibility !== 'deprecated' && m.visibility !== 'hidden')
+      const coreMetrics = activeMetrics.slice(0, 3)
+      const advancedMetrics = activeMetrics.slice(3)
+
       return {
         id: cat.id,
         name: cat.name,
-        metrics: parsedMetrics
+        metrics: activeMetrics,
+        coreMetrics,
+        advancedMetrics
       }
     })
 
     // Timestamp Resolving
     const currentTime = new Date()
     const timeStr = `${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}`
-    
+
     let dataAsOfStr = ''
     if (combinedData.timestamp) {
       const tsDate = new Date(combinedData.timestamp * 1000)
       dataAsOfStr = `${tsDate.getFullYear()}-${String(tsDate.getMonth() + 1).padStart(2, '0')}-${String(tsDate.getDate()).padStart(2, '0')}`
     }
-    
+
+    model.updateTime = timeStr
+    model.dataTime = dataAsOfStr
     model.lastUpdated = dataAsOfStr ? `规则更新时间: ${timeStr} · 数据截至: ${dataAsOfStr}` : `规则更新时间: ${timeStr}`
 
     // Thesis Generation Rule
@@ -938,11 +961,11 @@ export async function getDomainViewModel (domain) {
         }
 
         if (dxyVal !== null) {
-           if (dxyVal > 105) return { verdict: '美元流动性中性偏紧', thesis: '強势美元环境下，全球信用成本上升，離岸美元流动性收紧，各类风险资产面臨估值压力。', tag: 'warning' }
-           if (dxyVal < 100) return { verdict: '流动性边际偏宽松', thesis: '弱美元环境降低全球融资成本，有利于流动性擴张；维持计划既定敞口具备宏观支撐。', tag: 'success' }
-           return { verdict: '体系流动性维持均衡', thesis: '流动性环境處于均衡震盪階段，不宜因短期噪音频繁调整计划，保持观察。', tag: 'neutral' }
+           if (dxyVal > 105) return { verdict: '美元流动性中性偏紧', thesis: '強势美元环境下，全球信用成本上升，離岸美元流动性收紧，各类风险资产面臨估值压力。', tag: 'warning', verdictKey: 'macro.detail.liquidity.verdict.warning', thesisKey: 'macro.detail.liquidity.thesis.warning' }
+           if (dxyVal < 100) return { verdict: '流动性边际偏宽松', thesis: '弱美元环境降低全球融资成本，有利于流动性擴张；维持计划既定敞口具备宏观支支撑。', tag: 'success', verdictKey: 'macro.detail.liquidity.verdict.success', thesisKey: 'macro.detail.liquidity.thesis.success' }
+           return { verdict: '体系流动性维持均衡', thesis: '流动性环境處于均衡震盪階段，不宜因短期噪音频繁调整计划，保持观察。', tag: 'neutral', verdictKey: 'macro.detail.liquidity.verdict.neutral', thesisKey: 'macro.detail.liquidity.thesis.neutral' }
         }
-        return { verdict: '底层流动性跟踪', thesis: '核心流动性指标暫不可用，当前判断降級，不宜在数据盲区擴大风险敞口。', tag: 'processing' }
+        return { verdict: '底层流动性跟踪', thesis: '核心流动性指标暫不可用，当前判断降級，不宜在数据盲区擴大风险敞口。', tag: 'processing', verdictKey: 'macro.detail.liquidity.verdict.processing', thesisKey: 'macro.detail.liquidity.thesis.processing' }
       }
       if (domain === 'inflationRates') {
         const spreadRaw = combinedData['yield_curve']
@@ -951,11 +974,11 @@ export async function getDomainViewModel (domain) {
            spreadVal = typeof spreadRaw === 'object' ? parseFloat(spreadRaw.value || spreadRaw.spread) : parseFloat(spreadRaw)
         }
         if (spreadVal !== null) {
-           if (spreadVal < 0) return { verdict: '收益率曲线倒挂', thesis: '收益率曲线倒挂持續，歷史上此讯号常先行于衰退；长期资金应确认计划对下行情景的容忍度。', tag: 'warning' }
-           if (spreadVal > 0.5) return { verdict: '曲线健康陡峭化', thesis: '曲线健康陡峭化，通胀与成长並存，宏观环境对週期性资产具备基本面支撐。', tag: 'success' }
-           return { verdict: '利率曲线趋平', thesis: '曲线趋平，成长动能面臨方向确认压力；不宜在此階段追高长久期资产。', tag: 'neutral' }
+           if (spreadVal < 0) return { verdict: '收益率曲线倒挂', thesis: '收益率曲线倒挂持續，歷史上此讯号常先行于衰退；长期资金应确认计划对下行情景的容忍度。', tag: 'warning', verdictKey: 'macro.detail.inflationRates.verdict.warning', thesisKey: 'macro.detail.inflationRates.thesis.warning' }
+           if (spreadVal > 0.5) return { verdict: '曲线健康陡峭化', thesis: '曲线健康陡峭化，通胀与成长並存，宏观环境对週期性资产具备基本面支撐。', tag: 'success', verdictKey: 'macro.detail.inflationRates.verdict.success', thesisKey: 'macro.detail.inflationRates.thesis.success' }
+           return { verdict: '利率曲线趋平', thesis: '曲线趋平，成长动能面臨方向确认压力；不宜在此階段追高长久期资产。', tag: 'neutral', verdictKey: 'macro.detail.inflationRates.verdict.neutral', thesisKey: 'macro.detail.inflationRates.thesis.neutral' }
         }
-        return { verdict: '无风险利率定价', thesis: '利率关键指标暫不可用，利率环境判断降級，应審慎评估长久期资产的配置節奏。', tag: 'processing' }
+        return { verdict: '无风险利率定价', thesis: '利率关键指标暫不可用，利率环境判断降級，应審慎评估长久期资产的配置節奏。', tag: 'processing', verdictKey: 'macro.detail.inflationRates.verdict.processing', thesisKey: 'macro.detail.inflationRates.thesis.processing' }
       }
       if (domain === 'economy') {
         const unrateRaw = combinedData['unemployment_rate']
@@ -964,11 +987,11 @@ export async function getDomainViewModel (domain) {
            unrateVal = typeof unrateRaw === 'object' ? parseFloat(unrateRaw.value) : parseFloat(unrateRaw)
         }
         if (unrateVal !== null) {
-           if (unrateVal > 4.5) return { verdict: '劳动力市场趋冷', thesis: '失业率上行觸及薩姆規则阈值附近，经济衰退信号增強，应确认计划对防禦情景的应对预案。', tag: 'danger' }
-           if (unrateVal < 4.0) return { verdict: '经济动能强劲', thesis: '勞动力市场強勁，消費基本面有支撐；但需留意通胀黏性对美联储政策路徑的潛在影响。', tag: 'success' }
-           return { verdict: '经济软着陆路径', thesis: '就业市场再平衡，增速放缓未失速，軟着陸路徑仍有支撐；维持计划執行節奏为宜。', tag: 'neutral' }
+           if (unrateVal > 4.5) return { verdict: '劳动力市场趋冷', thesis: '失业率上行觸及萨姆规则阈值附近，经济衰退信号增强，应确认计划对防御情景的应对预案。', tag: 'danger', verdictKey: 'macro.detail.economy.verdict.danger', thesisKey: 'macro.detail.economy.thesis.danger' }
+           if (unrateVal < 4.0) return { verdict: '经济动能强劲', thesis: '劳动力市场强劲，消费基本面有支撑；但需留意通胀黏性对美联储政策路径的潜在影响。', tag: 'success', verdictKey: 'macro.detail.economy.verdict.success', thesisKey: 'macro.detail.economy.thesis.success' }
+           return { verdict: '经济软着陆路径', thesis: '就业市场再平衡，增速放缓未失速，软着陆路径仍有支撑；维持计划执行节奏为宜。', tag: 'neutral', verdictKey: 'macro.detail.economy.verdict.neutral', thesisKey: 'macro.detail.economy.thesis.neutral' }
         }
-        return { verdict: '实体经济追踪', thesis: '核心经济指标暫不可用，判断降級；不宜在数据盲区改变既定计划配置比例。', tag: 'processing' }
+        return { verdict: '实体经济追踪', thesis: '核心经济指标暂不可用，判断降级；不宜在数据盲区改变既定计划配置比例。', tag: 'processing', verdictKey: 'macro.detail.economy.verdict.processing', thesisKey: 'macro.detail.economy.thesis.processing' }
       }
       if (domain === 'sentiment') {
         const fgRaw = combinedData['fear_greed']
@@ -977,20 +1000,22 @@ export async function getDomainViewModel (domain) {
            fgVal = typeof fgRaw === 'object' ? parseFloat(fgRaw.value) : parseFloat(fgRaw)
         }
         if (fgVal !== null) {
-           if (fgVal < 25) return { verdict: '极度恐慌 (买点显现)', thesis: '市场情绪接近冰点，从紀律性視角看，此环境下依计划執行往往优于仓皇撤退。', tag: 'success' }
-           if (fgVal > 75) return { verdict: '极度贪婪 (风险积聚)', thesis: '情绪极度亢奮，市场容错率低；不宜追高建立新仓位，应确认既有计划的持有理由是否仍然成立。', tag: 'warning' }
-           return { verdict: '情绪区间震荡', thesis: '情绪中性震盪，缺乏明确方向指引；维持计划既定節奏，多看少动，減少无主线的仓位调整。', tag: 'neutral' }
+           if (fgVal < 25) return { verdict: '极度恐慌 (买点显现)', thesis: '市场情绪接近冰点，从紀律性視角看，此环境下依计划執行往往优于仓皇撤退。', tag: 'success', verdictKey: 'macro.detail.sentiment.verdict.success', thesisKey: 'macro.detail.sentiment.thesis.success' }
+           if (fgVal > 75) return { verdict: '极度贪婪 (风险积聚)', thesis: '情绪极度亢奮，市场容错率低；不宜追高建立新仓位，应确认既有计划的持有理由是否仍然成立。', tag: 'warning', verdictKey: 'macro.detail.sentiment.verdict.warning', thesisKey: 'macro.detail.sentiment.thesis.warning' }
+           return { verdict: '情绪区间震荡', thesis: '情绪中性震盪，缺乏明确方向指引；维持计划既定節奏，多看少动，減少无主线的仓位调整。', tag: 'neutral', verdictKey: 'macro.detail.sentiment.verdict.neutral', thesisKey: 'macro.detail.sentiment.thesis.neutral' }
         }
-        return { verdict: '市场情绪感知', thesis: '情绪量化指标暫不可用，判断降級；在信号缺失期间，不宜依賴情绪判断擴大或縮減敞口。', tag: 'processing' }
+        return { verdict: '市场情绪感知', thesis: '情绪量化指标暫不可用，判断降級；在信号缺失期间，不宜依慢情绪判断擴大或縮減敞口。', tag: 'processing', verdictKey: 'macro.detail.sentiment.verdict.processing', thesisKey: 'macro.detail.sentiment.thesis.processing' }
       }
 
-      return { verdict: '动能观测中', thesis: '数据载入中，請稍候。', tag: 'default' }
+      return { verdict: '动能观测中', thesis: '数据载入中，請稍候。', tag: 'default', verdictKey: 'macro.detail.default.verdict', thesisKey: 'macro.detail.default.thesis' }
     }
 
     const stance = getStanceBlock()
     model.summaryVerdict = stance.verdict
     model.summaryThesis = stance.thesis
     model.summaryStatus = stance.tag
+    model.verdictKey = stance.verdictKey
+    model.thesisKey = stance.thesisKey
 
     // Domain Knowledge Layer
     if (domain === 'liquidity') {
@@ -1000,9 +1025,13 @@ export async function getDomainViewModel (domain) {
          dxyVal = typeof dxyRaw === 'object' ? parseFloat(dxyRaw.value || dxyRaw.price) : parseFloat(dxyRaw)
       }
 
-      model.riskAssetImplication = (dxyVal !== null && dxyVal < 100)
+      const isSuccess = (dxyVal !== null && dxyVal < 100)
+      model.riskAssetImplication = isSuccess
         ? '弱美元环境降低融资成本，離岸流动性宽松；当前宏观條件支持维持风险敞口。'
         : '強势美元或流动性收紧時，信用成本上升，压制高Beta资产容错率，新增投入应審慎。'
+      model.riskAssetImplicationKey = isSuccess
+        ? 'macro.detail.liquidity.implication.success'
+        : 'macro.detail.liquidity.implication.default'
 
       model.tailwinds = [
         'RRP 余额釋放，歷史沉澱资金正向市场提供流动性支撐',
@@ -1012,7 +1041,7 @@ export async function getDomainViewModel (domain) {
       ]
 
       model.headwinds = [
-        'QT 持續運行，联储资产负债表被动收縮，系統淨流动性面臨长期下行趋势',
+        'QT 持續運行，联储资产负债表被动收縮，系統淨流动性面临长期下行趋势',
         '财政部大規模发债補充 TGA，将階段性从市场抽走现金',
         'RRP 余额若耗盡，未来流动性紧縮将缺乏直接的缓冲墊',
         '美元走強推升離岸流动性成本，压制全球风险偏好'
@@ -1026,6 +1055,7 @@ export async function getDomainViewModel (domain) {
       ]
     } else if (domain === 'inflationRates') {
       model.riskAssetImplication = '利率水位与通胀黏性决定了估值擴张的邊界；若长端利率回落，成长资产的容错率将邊际改善。'
+      model.riskAssetImplicationKey = 'macro.detail.inflationRates.implication'
       model.tailwinds = [
         '核心通胀持續回落，为美联储貨币政策正常化提供空间',
         '长端无风险利率（US10Y）回落，減輕长久期资产估值压力',
@@ -1042,6 +1072,7 @@ export async function getDomainViewModel (domain) {
       ]
     } else if (domain === 'economy') {
       model.riskAssetImplication = '实體经济韧性为企业盈利提供底层支撐；但在紧縮週期中，过熱数据可能引发政策预期波动，需留意其对流动性的间接压制。'
+      model.riskAssetImplicationKey = 'macro.detail.economy.implication'
       model.tailwinds = [
         '零售銷售保持韧性，終端消費需求稳定',
         '初請失业金人數维持低位，勞动力市场提供軟着陸支撐',
@@ -1058,6 +1089,7 @@ export async function getDomainViewModel (domain) {
       ]
     } else if (domain === 'sentiment') {
       model.riskAssetImplication = '情绪极值常引发短期超调；在系統性风险可控前提下，恐慌区往往具备较佳的长期紀律性投入條件。'
+      model.riskAssetImplicationKey = 'macro.detail.sentiment.implication'
       model.tailwinds = [
         '市场若處于极度恐慌，空頭力量釋放后通常具备中期支撐',
         'VIX 飆升后回落，波动率收斂有利于系統性资金重新配置',

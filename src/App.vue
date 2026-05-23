@@ -21,7 +21,13 @@ export default {
       const { title } = this.$route.meta
       title && (setDocumentTitle(`${i18nRender(title)} - ${domTitle}`))
 
-      return this.$i18n.getLocaleMessage(this.$store.getters.lang).antLocale
+      const lang = this.$store.getters.lang
+      const messages = this.$i18n.getLocaleMessage(lang)
+      if (messages && messages.antLocale) {
+        return messages.antLocale
+      }
+      const fallback = this.$i18n.getLocaleMessage('en-US')
+      return fallback ? fallback.antLocale : null
     },
     direction () {
       const lang = this.$store.getters.lang

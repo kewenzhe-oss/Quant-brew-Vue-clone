@@ -1,26 +1,37 @@
 <template>
   <div class="financials-tab">
-    <a-spin :spinning="isLoading" tip="Loading Financial Statements...">
+    <a-spin :spinning="isLoading" :tip="$t('stockResearch.financials.loading')">
       <div v-if="hasData" class="financials-container">
 
         <div class="financials-header">
           <a-radio-group v-model="activeView" button-style="solid">
-            <a-radio-button value="income">INCOME STATEMENT</a-radio-button>
-            <a-radio-button value="balance">BALANCE SHEET</a-radio-button>
-            <a-radio-button value="cash">CASH FLOW</a-radio-button>
+            <a-radio-button value="income">{{ $t('stockResearch.financials.incomeStatement') }}</a-radio-button>
+            <a-radio-button value="balance">{{ $t('stockResearch.financials.balanceSheet') }}</a-radio-button>
+            <a-radio-button value="cash">{{ $t('stockResearch.financials.cashFlow') }}</a-radio-button>
           </a-radio-group>
+          <div v-if="currentSymbol" class="external-link-container">
+            <a
+              :href="roicUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="external-roic-link"
+              id="roic-external-research-link"
+            >
+              {{ $t('stockResearch.financials.externalAnalysisPrompt') }}
+            </a>
+          </div>
         </div>
 
         <!-- Statement helper copy -->
         <div class="statement-helper">
           <span v-if="activeView === 'income'">
-            利润表帮助你判断公司是否在增长收入，并能否把收入转化为利润。
+            {{ $t('stockResearch.financials.incomeHelper') }}
           </span>
           <span v-else-if="activeView === 'balance'">
-            资产负债表帮助你判断公司的财务稳健性、债务压力和流动性。
+            {{ $t('stockResearch.financials.balanceHelper') }}
           </span>
           <span v-else-if="activeView === 'cash'">
-            现金流量表帮助你判断公司是否真的产生现金，而不只是账面盈利。
+            {{ $t('stockResearch.financials.cashHelper') }}
           </span>
         </div>
 
@@ -48,7 +59,7 @@
 
       </div>
       <div v-else-if="!isLoading" class="empty-state">
-        <a-empty description="No financial data available" />
+        <a-empty :description="$t('stockResearch.financials.noData')" />
       </div>
     </a-spin>
   </div>
@@ -140,7 +151,11 @@ export default {
     }
   },
   computed: {
-    ...mapState('equity', ['financials', 'financialsLoading']),
+    ...mapState('equity', ['financials', 'financialsLoading', 'currentSymbol']),
+    roicUrl () {
+      if (!this.currentSymbol) return ''
+      return `https://www.roic.ai/quote/${encodeURIComponent(this.currentSymbol.trim().toUpperCase())}`
+    },
     isLoading () {
       return this.financialsLoading
     },
@@ -170,7 +185,7 @@ export default {
     tableColumns () {
       return [
         {
-          title: 'METRIC',
+          title: this.$t('stockResearch.financials.metricColumn'),
           dataIndex: 'metric',
           fixed: 'left',
           width: 220,
@@ -186,9 +201,10 @@ export default {
       const metrics = Object.keys(firstRow).filter(k => k !== 'date')
 
       return metrics.map(metric => {
+        const transKey = 'stockResearch.metrics.' + metric
         const row = {
           metricKey: metric,
-          metric: LABEL_MAP[metric] || this.toTitleCase(metric)
+          metric: this.$te(transKey) ? this.$t(transKey) : (LABEL_MAP[metric] || this.toTitleCase(metric))
         }
         this.activeStatement.forEach(dateData => {
           row[dateData.date] = dateData[metric]
@@ -273,7 +289,10 @@ export default {
 
 .financials-header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 
   :deep(.ant-radio-button-wrapper) {
     font-weight: 600;
@@ -285,6 +304,36 @@ export default {
     background: #faad14;
     border-color: #faad14;
     color: #ffffff;
+  }
+}
+
+.external-link-container {
+  display: flex;
+  align-items: center;
+}
+
+.external-roic-link {
+  font-size: 12px;
+  color: #8c8c8c;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover {
+    color: #faad14;
+    background: #fffbe6;
+    border-color: #ffe58f;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 

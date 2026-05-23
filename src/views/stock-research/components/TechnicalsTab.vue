@@ -1,12 +1,12 @@
 <template>
   <div class="technicals-tab">
-    <a-spin :spinning="isLoading" tip="Calculating Indicators...">
+    <a-spin :spinning="isLoading" :tip="$t('stockResearch.technicals.calculating')">
 
       <!-- Disclaimer banner -->
       <div class="tech-disclaimer">
-        <span class="disclaimer-title">Technical Reference / 技术面参考</span>
+        <span class="disclaimer-title">{{ $t('stockResearch.technicals.disclaimerTitle') }}</span>
         <span class="disclaimer-body">
-          这些指标用于描述趋势、动量、波动率与成交量状态，仅供研究参考，不构成买入或卖出建议，也不预测价格走势。
+          {{ $t('stockResearch.technicals.disclaimerBody') }}
         </span>
       </div>
 
@@ -14,7 +14,7 @@
         <div class="indicator-sections">
           <!-- Trend Indicators -->
           <div class="section-card">
-            <h3 class="section-title cyan-text">TREND REFERENCE</h3>
+            <h3 class="section-title cyan-text">{{ $t('stockResearch.technicals.trendRef') }}</h3>
             <a-table
               :columns="columns"
               :data-source="technicals.trend"
@@ -35,7 +35,7 @@
 
           <!-- Momentum Indicators -->
           <div class="section-card">
-            <h3 class="section-title amber-text">MOMENTUM REFERENCE</h3>
+            <h3 class="section-title amber-text">{{ $t('stockResearch.technicals.momentumRef') }}</h3>
             <a-table
               :columns="columns"
               :data-source="technicals.momentum"
@@ -56,7 +56,7 @@
 
           <!-- Volatility Indicators -->
           <div class="section-card">
-            <h3 class="section-title purple-text">VOLATILITY REFERENCE</h3>
+            <h3 class="section-title purple-text">{{ $t('stockResearch.technicals.volatilityRef') }}</h3>
             <a-table
               :columns="columns"
               :data-source="technicals.volatility"
@@ -77,7 +77,7 @@
 
           <!-- Volume Indicators -->
           <div class="section-card">
-            <h3 class="section-title green-text">VOLUME REFERENCE</h3>
+            <h3 class="section-title green-text">{{ $t('stockResearch.technicals.volumeRef') }}</h3>
             <a-table
               :columns="columns"
               :data-source="technicals.volume"
@@ -99,7 +99,7 @@
       </div>
 
       <div v-else-if="!isLoading" class="empty-state">
-        <a-empty description="No technical data available" />
+        <a-empty :description="$t('stockResearch.technicals.noData')" />
       </div>
     </a-spin>
   </div>
@@ -111,13 +111,7 @@ import { mapState } from 'vuex'
 export default {
   name: 'TechnicalsTab',
   data () {
-    return {
-      columns: [
-        { title: 'INDICATOR', dataIndex: 'name', width: '25%' },
-        { title: 'VALUE', dataIndex: 'value', scopedSlots: { customRender: 'value' }, width: '20%' },
-        { title: 'MARKET STATE', key: 'interpretation', scopedSlots: { customRender: 'interpretation' } }
-      ]
-    }
+    return {}
   },
   computed: {
     ...mapState('equity', ['technicals', 'technicalsLoading']),
@@ -126,114 +120,118 @@ export default {
     },
     hasData () {
       return this.technicals && Object.keys(this.technicals).length > 0 && !this.technicals.error
+    },
+    columns () {
+      return [
+        { title: this.$t('stockResearch.technicals.indicatorColumn'), dataIndex: 'name', width: '25%' },
+        { title: this.$t('stockResearch.technicals.valueColumn'), dataIndex: 'value', scopedSlots: { customRender: 'value' }, width: '20%' },
+        { title: this.$t('stockResearch.technicals.stateColumn'), key: 'interpretation', scopedSlots: { customRender: 'interpretation' } }
+      ]
     }
   },
   methods: {
     formatNumber (val) {
-      // null / undefined / NaN from backend (missing column or NaN) → dash
       if (val === null || val === undefined || isNaN(val)) return '—'
       return parseFloat(val).toFixed(4)
     },
 
-    getInterpretation (name, value) {
-      // Missing or non-numeric → no interpretation
-      if (value === null || value === undefined || isNaN(value)) return '—'
-
+    getInterpretationKey (name, value) {
       switch (name) {
         // ── Trend ──────────────────────────────────────────────────────────
         case 'MACD':
-          if (value > 0) return 'Positive momentum (above signal line)'
-          if (value < 0) return 'Negative momentum (below signal line)'
-          return 'Neutral'
+          if (value > 0) return 'macd.positive'
+          if (value < 0) return 'macd.negative'
+          return 'neutral'
 
         case 'ADX':
-          if (value > 25) return 'Strong trend'
-          if (value < 20) return 'Weak or no trend'
-          return 'Developing trend'
+          if (value > 25) return 'adx.strong'
+          if (value < 20) return 'adx.weak'
+          return 'adx.developing'
 
         // ── Momentum ───────────────────────────────────────────────────────
         case 'RSI':
-          if (value > 70) return 'Overbought range (RSI > 70) — historically elevated'
-          if (value < 30) return 'Oversold range (RSI < 30) — historically depressed'
-          return 'Neutral momentum'
+          if (value > 70) return 'rsi.overbought'
+          if (value < 30) return 'rsi.oversold'
+          return 'rsi.neutral'
 
         case 'CCI':
-          if (value > 100) return 'CCI in upper extreme (> 100)'
-          if (value < -100) return 'CCI in lower extreme (< -100)'
-          return 'Ranging'
+          if (value > 100) return 'cci.upper'
+          if (value < -100) return 'cci.lower'
+          return 'cci.ranging'
 
         case 'Stoch %K':
         case 'Stoch %D':
-          if (value > 80) return 'Momentum in overbought range'
-          if (value < 20) return 'Momentum in oversold range'
-          return 'Neutral'
+          if (value > 80) return 'momentum.overbought'
+          if (value < 20) return 'momentum.oversold'
+          return 'neutral'
 
         case 'Williams %R':
-          if (value > -20) return 'Momentum in overbought range'
-          if (value < -80) return 'Momentum in oversold range'
-          return 'Neutral'
+          if (value > -20) return 'momentum.overbought'
+          if (value < -80) return 'momentum.oversold'
+          return 'neutral'
 
         case 'MFI':
-          if (value > 80) return 'Momentum in overbought range'
-          if (value < 20) return 'Momentum in oversold range'
-          return 'Neutral'
+          if (value > 80) return 'momentum.overbought'
+          if (value < 20) return 'momentum.oversold'
+          return 'neutral'
 
         // ── Volatility ─────────────────────────────────────────────────────
         case 'ATR':
-          return 'Reference value'
+          return 'reference'
 
         case 'BB %B':
-          if (value > 1) return 'Price trading above upper band'
-          if (value < 0) return 'Price trading below lower band'
-          return 'Trading within bands'
+          if (value > 1) return 'bb.above'
+          if (value < 0) return 'bb.below'
+          return 'bb.within'
 
         case 'BB Upper':
         case 'BB Mid':
         case 'BB Lower':
         case 'BB Width':
-          return 'Reference value'
+          return 'reference'
 
         // ── Volume ─────────────────────────────────────────────────────────
         case 'CMF':
-          if (value > 0.1) return 'Positive money flow (CMF > 0.1)'
-          if (value < -0.1) return 'Negative money flow (CMF < -0.1)'
-          return 'Neutral money flow'
+          if (value > 0.1) return 'cmf.positive'
+          if (value < -0.1) return 'cmf.negative'
+          return 'cmf.neutral'
 
         default:
-          return 'Reference value'
+          return 'reference'
       }
     },
 
-    getInterpretationClass (name, value) {
-      const interp = this.getInterpretation(name, value)
-      if (interp === '—') return 'text-neutral'
+    getInterpretation (name, value) {
+      if (value === null || value === undefined || isNaN(value)) return '—'
+      const key = this.getInterpretationKey(name, value)
+      return this.$t('stockResearch.technicals.states.' + key)
+    },
 
-      // Negative-state: elevated risk / negative momentum / negative flow
+    getInterpretationClass (name, value) {
+      if (value === null || value === undefined || isNaN(value)) return 'text-neutral'
+      const key = this.getInterpretationKey(name, value)
+
       if (
-        interp.includes('overbought') ||
-        interp.includes('Overbought') ||
-        interp.includes('Negative momentum') ||
-        interp.includes('Negative money flow') ||
-        interp.includes('above upper band') ||
-        interp.includes('upper extreme')
+        key.includes('overbought') ||
+        key === 'macd.negative' ||
+        key === 'cmf.negative' ||
+        key === 'bb.above' ||
+        key === 'cci.upper'
       ) {
         return 'text-negative-state'
       }
 
-      // Positive-state: oversold (potential floor) / positive momentum / positive flow
       if (
-        interp.includes('oversold') ||
-        interp.includes('Oversold') ||
-        interp.includes('Positive momentum') ||
-        interp.includes('Positive money flow') ||
-        interp.includes('below lower band') ||
-        interp.includes('lower extreme')
+        key.includes('oversold') ||
+        key === 'macd.positive' ||
+        key === 'cmf.positive' ||
+        key === 'bb.below' ||
+        key === 'cci.lower'
       ) {
         return 'text-positive-state'
       }
 
-      // Strong trend (neutral-positive, purple)
-      if (interp.includes('Strong trend')) {
+      if (key === 'adx.strong') {
         return 'text-strong'
       }
 

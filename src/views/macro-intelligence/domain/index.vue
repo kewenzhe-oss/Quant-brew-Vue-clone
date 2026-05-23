@@ -1,13 +1,13 @@
 <template>
   <div class="macro-domain-page">
     <div class="nav-header">
-      <router-link to="/macro" class="back-link">← 回到宏观全景</router-link>
+      <router-link to="/macro" class="back-link">{{ $t('macro.detail.back') }}</router-link>
     </div>
 
     <!-- Page Title -->
     <div class="page-title-block">
-      <h1 class="dimension-title">{{ domainConfig.label }}</h1>
-      <p class="core-question">{{ domainConfig.subtitle }}</p>
+      <h1 class="dimension-title">{{ domainTitle }}</h1>
+      <p class="core-question">{{ domainSubtitle }}</p>
     </div>
 
     <div v-if="loading" style="padding: 80px; text-align: center;">
@@ -18,7 +18,7 @@
 
       <!-- Provenance Legend -->
       <div class="provenance-legend">
-        说明：本页包含三类内容：规则判断基于宏观指标自动计算；固定说明用于解释指标含义；AI 简报仅在真实模型生成且通过校验时显示。
+        {{ $t('macro.detail.legendDisclaimer') }}
       </div>
 
       <!-- ═══════════════════════════════════════════
@@ -27,23 +27,23 @@
       <a-card :bordered="false" class="status-card">
         <div class="status-header">
           <div class="status-left">
-            <span class="status-eyebrow">当前定调</span>
-            <span class="inline-provenance">规则判断 · 基于 {{ model.posture && model.posture.basedOnMetricIds ? model.posture.basedOnMetricIds.join(', ').toUpperCase() : '数据' }}</span>
-            <span class="verdict-badge" :class="model.summaryStatus">{{ model.summaryVerdict }}</span>
+            <span class="status-eyebrow">{{ $t('macro.detail.currentStance') }}</span>
+            <span class="inline-provenance">{{ $t('macro.detail.ruleBasedProvenance', { metrics: model.posture && model.posture.basedOnMetricIds ? model.posture.basedOnMetricIds.join(', ').toUpperCase() : $t('macro.detail.provenanceFallback') }) }}</span>
+            <span class="verdict-badge" :class="model.summaryStatus">{{ translateVerdict(model.summaryVerdict, model.verdictKey) }}</span>
           </div>
           <div class="status-meta">
-            <span v-if="model.lastUpdated" class="neutral-timestamp-badge">
-              {{ model.lastUpdated }}
+            <span v-if="getFormattedTimestamp()" class="neutral-timestamp-badge">
+              {{ getFormattedTimestamp() }}
             </span>
           </div>
         </div>
-        <p class="status-thesis">{{ model.summaryThesis }}</p>
+        <p class="status-thesis">{{ translateVerdict(model.summaryThesis, model.thesisKey) }}</p>
         <div v-if="model.riskAssetImplication" class="implication-box">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span class="implication-label">对风险资产的含义</span>
-            <span class="inline-provenance">规则判断 · 基于 {{ model.posture && model.posture.basedOnMetricIds ? model.posture.basedOnMetricIds.join(', ').toUpperCase() : '数据' }}</span>
+            <span class="implication-label">{{ $t('macro.detail.implicationHeader') }}</span>
+            <span class="inline-provenance">{{ $t('macro.detail.ruleBasedProvenance', { metrics: model.posture && model.posture.basedOnMetricIds ? model.posture.basedOnMetricIds.join(', ').toUpperCase() : $t('macro.detail.provenanceFallback') }) }}</span>
           </div>
-          <p class="implication-text">{{ model.riskAssetImplication }}</p>
+          <p class="implication-text">{{ getImplicationText(model.riskAssetImplication, model.riskAssetImplicationKey) }}</p>
         </div>
       </a-card>
 
@@ -51,22 +51,22 @@
            BLOCK 2: TAILWINDS / HEADWINDS
            ═══════════════════════════════════════════ -->
       <div v-if="(model.tailwinds && model.tailwinds.length) || (model.headwinds && model.headwinds.length)" class="section-block">
-        <h2 class="section-heading">驱动力分析</h2>
+        <h2 class="section-heading">{{ $t('macro.detail.drivingForceAnalysis') }}</h2>
         <div class="tw-hw-grid">
           <div class="tw-box" v-if="model.tailwinds && model.tailwinds.length">
             <div class="tw-hw-header tailwinds-header">
-              <span>✅ 支持风险资产因素</span>
+              <span>{{ $t('macro.detail.supportingFactors') }}</span>
             </div>
             <ul class="tw-hw-list">
-              <li v-for="(item, i) in model.tailwinds" :key="i">{{ item }}</li>
+              <li v-for="(item, i) in model.tailwinds" :key="i">{{ getTailwindText(item, i) }}</li>
             </ul>
           </div>
           <div class="hw-box" v-if="model.headwinds && model.headwinds.length">
             <div class="tw-hw-header headwinds-header">
-              <span>⚠️ 压制风险资产因素</span>
+              <span>{{ $t('macro.detail.pressuringFactors') }}</span>
             </div>
             <ul class="tw-hw-list">
-              <li v-for="(item, i) in model.headwinds" :key="i">{{ item }}</li>
+              <li v-for="(item, i) in model.headwinds" :key="i">{{ getHeadwindText(item, i) }}</li>
             </ul>
           </div>
         </div>
@@ -76,13 +76,13 @@
            BLOCK 3: WHAT TO WATCH (关键催化剂)
            ═══════════════════════════════════════════ -->
       <div v-if="model.whatToWatch && model.whatToWatch.length > 0" class="section-block">
-        <h2 class="section-heading">Key Catalyst / 重点观察</h2>
+        <h2 class="section-heading">{{ $t('macro.detail.keyCatalysts') }}</h2>
         <div class="watch-list">
           <div v-for="(item, i) in model.whatToWatch" :key="i" class="watch-item">
             <span class="watch-index">{{ String(i + 1).padStart(2, '0') }}</span>
             <div class="watch-content">
-              <span class="watch-label">{{ item.label }}</span>
-              <span class="watch-desc">{{ item.desc }}</span>
+              <span class="watch-label">{{ getWatchLabel(item, i) }}</span>
+              <span class="watch-desc">{{ getWatchDesc(item, i) }}</span>
             </div>
           </div>
         </div>
@@ -118,6 +118,7 @@ const DOMAIN_MAP = {
   liquidity: { label: '流动性', subtitle: '央行资产负债表与系统资金充裕度' },
   economy: { label: '经济', subtitle: '增长势头与就业市场健康状况' },
   inflationRates: { label: '通胀与利率', subtitle: '价格压力与曲线倒挂' },
+  inflation: { label: '通胀与利率', subtitle: '价格压力与市场对长期通胀的集体预期' },
   sentiment: { label: '市场情绪', subtitle: '风险偏好区间' }
 }
 
@@ -147,13 +148,25 @@ export default {
   },
   computed: {
     domainKey () {
-      return this.$route.params.domain
+      const raw = this.$route.params.domain
+      // 'inflation' is used by the index.vue branch map; normalize to the canonical key
+      return raw === 'inflation' ? 'inflationRates' : raw
     },
     domainConfig () {
       return DOMAIN_MAP[this.domainKey] || FALLBACK
     },
+    domainTitle () {
+      const key = `macro.detail.domains.${this.domainKey}.title`
+      return this.$te(key) ? this.$t(key) : this.domainConfig.label
+    },
+    domainSubtitle () {
+      const key = `macro.detail.domains.${this.domainKey}.subtitle`
+      return this.$te(key) ? this.$t(key) : this.domainConfig.subtitle
+    },
     educationConfig () {
-      return MACRO_EDUCATION_CONFIG[this.domainKey] || null
+      const locale = this.$i18n.locale || 'zh-CN'
+      const configGroup = MACRO_EDUCATION_CONFIG[locale] || MACRO_EDUCATION_CONFIG['zh-CN']
+      return configGroup[this.domainKey] || null
     }
   },
   watch: {
@@ -168,7 +181,53 @@ export default {
     async fetchDomainData () {
       this.loading = true
       this.model = await getDomainViewModel(this.domainKey)
+      // Dynamically inject posture.basedOnMetricIds if not populated by API
+      if (!this.model.posture) {
+        const fallbackMetrics = {
+          liquidity: ['dxy'],
+          economy: ['unemployment_rate'],
+          inflationRates: ['yield_curve'],
+          sentiment: ['fear_greed']
+        }
+        this.model.posture = {
+          basedOnMetricIds: fallbackMetrics[this.domainKey] || []
+        }
+      }
       this.loading = false
+    },
+    translateVerdict (verdict, verdictKey) {
+      return this.$te(verdictKey) ? this.$t(verdictKey) : verdict
+    },
+    getImplicationText (implication, implicationKey) {
+      return this.$te(implicationKey) ? this.$t(implicationKey) : implication
+    },
+    getTailwindText (item, index) {
+      const key = `macro.detail.${this.domainKey}.tailwinds.${index}`
+      return this.$te(key) ? this.$t(key) : item
+    },
+    getHeadwindText (item, index) {
+      const key = `macro.detail.${this.domainKey}.headwinds.${index}`
+      return this.$te(key) ? this.$t(key) : item
+    },
+    getWatchLabel (item, index) {
+      const key = `macro.detail.${this.domainKey}.whatToWatch.${index}.label`
+      return this.$te(key) ? this.$t(key) : item.label
+    },
+    getWatchDesc (item, index) {
+      const key = `macro.detail.${this.domainKey}.whatToWatch.${index}.desc`
+      return this.$te(key) ? this.$t(key) : item.desc
+    },
+    getFormattedTimestamp () {
+      if (!this.model.updateTime) return ''
+      if (this.model.dataTime) {
+        return this.$t('macro.detail.lastUpdatedWithData', {
+          updateTime: this.model.updateTime,
+          dataTime: this.model.dataTime
+        })
+      }
+      return this.$t('macro.detail.lastUpdatedTime', {
+        updateTime: this.model.updateTime
+      })
     }
   }
 }

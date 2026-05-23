@@ -3,12 +3,12 @@ import axios from 'axios'
 import storage from 'store'
 import notification from 'ant-design-vue/es/notification'
 import { VueAxios } from './axios'
-import { ACCESS_TOKEN, USER_INFO, USER_ROLES } from '@/store/mutation-types'
+import { ACCESS_TOKEN, USER_INFO, USER_ROLES, APP_LANGUAGE } from '@/store/mutation-types'
 
 // PHPSESSID 存储键名
 const PHPSESSID_KEY = 'PHPSESSID'
 // Locale storage key used by vue-i18n (see src/locales/index.js)
-const LOCALE_KEY = 'lang'
+const LOCALE_KEY = APP_LANGUAGE
 
 // Prevent multiple concurrent 401 redirects
 let isRedirectingToLogin = false

@@ -758,7 +758,7 @@ class="analyze-button">
 
 <script>
 import { mapGetters, mapState } from 'vuex'
-import { getUserInfo } from '@/api/login'
+import { getUserInfo } from '@/api/auth'
 import { getWatchlist, addWatchlist, removeWatchlist, getWatchlistPrices, getMarketTypes, searchSymbols, getHotSymbols } from '@/api/market'
 import { getPositions, addPosition, getMonitors, addMonitor, updateMonitor, deleteMonitor } from '@/api/portfolio'
 import { fastAnalyze, getAllAnalysisHistory, deleteAnalysisHistory } from '@/api/fast-analysis'
