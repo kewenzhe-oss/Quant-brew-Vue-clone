@@ -2333,8 +2333,10 @@ const locale = {
 'invite.task.discord.title': '加入 Discord 服務器',
 'invite.task.discord.desc': '加入我們的 Discord 社區服務器',
 'message': '-',
-'layouts.usermenu.dialog.title': '信息',
-'layouts.usermenu.dialog.content': '您確定要注銷嗎？',
+'layouts.usermenu.dialog.title': '退出登錄',
+'layouts.usermenu.dialog.content': '您確定要退出當前賬號嗎？',
+'layouts.usermenu.dialog.confirm': '退出',
+'layouts.usermenu.dialog.cancel': '取消',
 'layouts.userLayout.title': '於不確定中，尋見真理',
 
 // Settings

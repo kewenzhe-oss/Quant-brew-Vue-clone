@@ -2546,8 +2546,10 @@ const locale = {
   'invite.task.discord.title': 'Join Discord Server',
   'invite.task.discord.desc': 'Join our Discord community server',
   'message': '-',
-  'layouts.usermenu.dialog.title': 'Message',
-  'layouts.usermenu.dialog.content': 'Are you sure you would like to logout?',
+  'layouts.usermenu.dialog.title': 'Sign Out',
+  'layouts.usermenu.dialog.content': 'Are you sure you want to sign out of the current session?',
+  'layouts.usermenu.dialog.confirm': 'Sign Out',
+  'layouts.usermenu.dialog.cancel': 'Cancel',
   'layouts.userLayout.title': 'Clarity from Uncertainty',
   // Signal Robot
   'signal-robot.title': 'Signal Robot Console',
