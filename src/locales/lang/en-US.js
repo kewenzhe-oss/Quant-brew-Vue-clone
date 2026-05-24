@@ -5021,6 +5021,8 @@ const locale = {
   'learning.platforms.readselah.subtitle': 'A quiet workspace for serious Bible study.',
   'learning.platforms.books.subtitle': 'Private reference library for books, notes, and long-form research.',
   'learning.platforms.books.note': 'Access Code: 3yyD9R4tUa8y',
+  'learning.platforms.books.copySuccess': 'Access Code copied! Opening library...',
+  'learning.platforms.books.copyFailed': 'Auto-copy restricted. Opening library, please enter code manually.',
 
   // Settings page additions
   'settings.subtitle': 'Manage appearance, security, providers, and operational preferences for your workspace.',

@@ -4791,6 +4791,8 @@ const locale = {
   'learning.platforms.readselah.subtitle': '安静的圣经研读工作空间。',
   'learning.platforms.books.subtitle': '书籍、笔记与长文研究的私人参考库。',
   'learning.platforms.books.note': '访问密码: 3yyD9R4tUa8y',
+  'learning.platforms.books.copySuccess': '访问密码已复制，正在前往图书馆...',
+  'learning.platforms.books.copyFailed': '自动复制受限，已开始安全打开，请手动输入访问密码。',
 
   // Settings page additions
   'settings.subtitle': '管理纪律化研究工作区的外观、安全、服务商和运行首选项。',

@@ -73,6 +73,7 @@
         :href="item.url"
         target="_blank"
         rel="noopener noreferrer"
+        @click="handleLibraryClick($event, item)"
       >
         <div class="card-top">
           <div class="platform-icon platform-icon--library">
@@ -136,9 +137,62 @@ export default {
           subtitle: this.$t('learning.platforms.books.subtitle'),
           note: this.$t('learning.platforms.books.note'),
           badge: this.$t('learning.referenceBadge'),
-          url: 'https://quantbrewbooks.qzz.io/'
+          url: 'https://postsomabooks.qzz.io/'
         }
       ]
+    }
+  },
+  methods: {
+    async handleLibraryClick (event, item) {
+      if (item.title === 'postsoma-2050 library') {
+        event.preventDefault()
+        const accessCode = '3yyD9R4tUa8y'
+        let copied = false
+
+        // 1. Try Navigator Clipboard API
+        try {
+          if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(accessCode)
+            copied = true
+          }
+        } catch (err) {
+          console.warn('Navigator clipboard API failed, trying fallback:', err)
+        }
+
+        // 2. Fallback Selection & Copy Method
+        if (!copied) {
+          try {
+            const textArea = document.createElement('textarea')
+            textArea.value = accessCode
+            textArea.style.position = 'fixed'
+            textArea.style.top = '-9999px'
+            textArea.style.left = '-9999px'
+            textArea.style.opacity = '0'
+            document.body.appendChild(textArea)
+            textArea.focus()
+            textArea.select()
+            copied = document.execCommand('copy')
+            document.body.removeChild(textArea)
+          } catch (fallbackErr) {
+            console.error('Fallback clipboard copy failed:', fallbackErr)
+          }
+        }
+
+        // 3. User Feedback & Redirect
+        if (copied) {
+          const successMsg = this.$t('learning.platforms.books.copySuccess') || '访问密码已复制，正在前往图书馆...'
+          this.$message.success(successMsg)
+          setTimeout(() => {
+            window.open(item.url, '_blank', 'noopener,noreferrer')
+          }, 800)
+        } else {
+          const failedMsg = this.$t('learning.platforms.books.copyFailed') || '自动复制受限，即将打开图书馆，请手动输入访问码。'
+          this.$message.warning(failedMsg)
+          setTimeout(() => {
+            window.open(item.url, '_blank', 'noopener,noreferrer')
+          }, 1200)
+        }
+      }
     }
   }
 }
