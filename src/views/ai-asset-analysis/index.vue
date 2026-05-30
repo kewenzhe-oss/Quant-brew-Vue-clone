@@ -89,56 +89,24 @@
       </div>
     </div>
 
-    <!-- ======== Main Workspace Card with Tabs ======== -->
+    <!-- ======== Main Workspace Card ======== -->
     <a-card :bordered="false" class="workspace-card">
-      <a-tabs v-model="activeTab" class="workspace-tabs" size="large">
-        <a-tab-pane key="quick">
-          <span slot="tab">
-            <a-icon type="thunderbolt" />
-            {{ $t('aiAssetAnalysis.tabs.quick') }}
-          </span>
-          <div class="tab-body">
-            <AnalysisView
-              v-if="activeTab === 'quick'"
-              :embedded="true"
-              :preset-symbol="presetSymbol"
-              :auto-analyze-signal="autoAnalyzeSignal"
-              @symbol-change="onAnalysisSymbolChange"
-            />
-          </div>
-        </a-tab-pane>
-        <a-tab-pane key="polymarket">
-          <span slot="tab">
-            <a-icon type="radar-chart" />
-            {{ $t('aiAssetAnalysis.tabs.polymarket') }}
-          </span>
-          <div class="tab-body">
-            <div class="polymarket-tab-content">
-              <div class="polymarket-placeholder">
-                <div class="placeholder-icon"><a-icon type="radar-chart" /></div>
-                <h3>{{ $t('polymarket.analysis.title') }}</h3>
-                <p>{{ $t('polymarket.analysis.description') }}</p>
-                <a-button
-                  type="primary"
-                  size="large"
-                  icon="thunderbolt"
-                  @click="showPolymarketModal = true"
-                  style="margin-top: 16px;"
-                >
-                  {{ $t('polymarket.analysis.startAnalysis') }}
-                </a-button>
-              </div>
-            </div>
-          </div>
-        </a-tab-pane>
-      </a-tabs>
+      <div class="workspace-header-bar">
+        <h3 class="workspace-title">
+          <a-icon type="dashboard" class="workspace-icon" />
+          {{ $t('aiAssetAnalysis.observation.title') }}
+        </h3>
+        <p class="workspace-subtitle">{{ $t('aiAssetAnalysis.observation.subtitle') }}</p>
+      </div>
+      <div class="analysis-wrapper">
+        <AnalysisView
+          :embedded="true"
+          :preset-symbol="presetSymbol"
+          :auto-analyze-signal="autoAnalyzeSignal"
+          @symbol-change="onAnalysisSymbolChange"
+        />
+      </div>
     </a-card>
-
-    <!-- Polymarket分析对话框 -->
-    <PolymarketAnalysisModal
-      :visible="showPolymarketModal"
-      @close="showPolymarketModal = false"
-    />
 
   </div>
 </template>
@@ -147,17 +115,14 @@
 import { mapState } from 'vuex'
 import AnalysisView from '@/views/ai-analysis'
 import { getTradingOpportunities } from '@/api/global-market'
-import PolymarketAnalysisModal from '@/components/PolymarketAnalysisModal'
 
 export default {
   name: 'AIAssetAnalysis',
   components: {
-    AnalysisView,
-    PolymarketAnalysisModal
+    AnalysisView
   },
   data () {
     return {
-      activeTab: 'quick',
       // Opportunities (Carousel)
       opportunities: [],
       provenanceMeta: null,
@@ -168,9 +133,7 @@ export default {
       autoAnalyzeSignal: 0,
       // Current analysis symbol (from AnalysisView)
       currentAnalysisSymbol: '',
-      currentAnalysisMarket: '',
-      // Polymarket Analysis Modal
-      showPolymarketModal: false
+      currentAnalysisMarket: ''
     }
   },
   computed: {
@@ -206,7 +169,8 @@ export default {
         const res = await getTradingOpportunities(params)
         const payload = res && res.data
         const list = Array.isArray(payload) ? payload : (payload && (payload.items || payload.opportunities)) || []
-        this.opportunities = list.slice(0, 20)
+        // Keep only non-PredictionMarket items
+        this.opportunities = list.filter(opp => opp.market !== 'PredictionMarket').slice(0, 20)
         this.provenanceMeta = (!Array.isArray(payload) && payload && payload.meta) || null
       } catch (e) {
         console.warn('Load opportunities failed:', e)
@@ -275,33 +239,12 @@ export default {
       }
     },
     analyzeOpportunity (opp) {
-      // 如果是预测市场，打开分析对话框
-      if (opp.market === 'PredictionMarket') {
-        // 切换到polymarket标签页并打开分析对话框
-        this.activeTab = 'polymarket'
-        this.showPolymarketModal = true
-        // 如果有market_id，可以预填充到输入框（需要修改对话框组件支持）
-        // 暂时先打开对话框，让用户输入
-        return
-      }
       // 其他市场，在AI分析中打开
-      this.activeTab = 'quick'
       const market = opp.market || 'Crypto'
       this.presetSymbol = `${market}:${opp.symbol}`
       this.$nextTick(() => {
         this.autoAnalyzeSignal++
       })
-    },
-    getRecommendationColor (rec) {
-      const colors = {
-        YES: 'green',
-        NO: 'red',
-        HOLD: 'default'
-      }
-      return colors[rec] || 'default'
-    },
-    getRecommendationLabel (rec) {
-      return this.$t(`polymarket.recommendation.${rec}`) || rec
     },
     // ==================== Quick Trade ====================
     onAnalysisSymbolChange (value) {
@@ -616,35 +559,41 @@ export default {
 
     ::v-deep .ant-card-body { padding: 0; }
 
-    .workspace-tabs {
-      ::v-deep .ant-tabs-bar {
-        margin-bottom: 0;
-        padding: 0 20px;
-        border-bottom: 1px solid #f0f0f0;
-      }
-      ::v-deep .ant-tabs-tab {
+    .workspace-header-bar {
+      padding: 16px 24px;
+      border-bottom: 1.5px solid #f0f0f0;
+      background: #fafafa;
+      text-align: left;
+      
+      .workspace-title {
         font-size: 15px;
-        font-weight: 600;
-        padding: 14px 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        .workspace-icon {
+          color: #6366f1;
+          font-size: 16px;
+        }
+      }
+      
+      .workspace-subtitle {
+        margin: 4px 0 0 0;
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 400;
+        line-height: 1.4;
       }
     }
 
-    .tab-body {
+    .analysis-wrapper {
       ::v-deep .ai-analysis-container.embedded,
       ::v-deep .portfolio-container.embedded {
         border-radius: 0;
         overflow: hidden;
-      }
-
-      .polymarket-tab-content {
-        padding: 40px 20px;
-        text-align: center;
-
-        .polymarket-placeholder {
-          .placeholder-icon { font-size: 64px; color: #6366f1; margin-bottom: 24px; }
-          h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: rgba(0, 0, 0, 0.85); }
-          p  { font-size: 14px; color: rgba(0, 0, 0, 0.55); margin-bottom: 24px; }
-        }
       }
     }
   }
@@ -722,16 +671,20 @@ export default {
       background: #1c1c1c;
       border-color: #2a2a2a;
 
-      .workspace-tabs {
-        ::v-deep .ant-tabs-bar { border-bottom-color: #2a2a2a; }
-        ::v-deep .ant-tabs-tab { color: #8b949e; &:hover { color: #c9d1d9; } }
-        ::v-deep .ant-tabs-tab-active { color: #a78bfa; }
-        ::v-deep .ant-tabs-ink-bar { background-color: #a78bfa; }
-      }
-
-      .polymarket-tab-content .polymarket-placeholder {
-        h3 { color: #d4d4d4; }
-        p  { color: #a3a3a3; }
+      .workspace-header-bar {
+        border-bottom-color: #2a2a2a;
+        background: #181818;
+        
+        .workspace-title {
+          color: rgba(255, 255, 255, 0.85);
+          .workspace-icon {
+            color: #a78bfa;
+          }
+        }
+        
+        .workspace-subtitle {
+          color: rgba(255, 255, 255, 0.45);
+        }
       }
     }
   }
@@ -791,36 +744,8 @@ export default {
 
     .workspace-card {
       border-radius: 10px;
-
-      .workspace-tabs {
-        ::v-deep .ant-tabs-bar {
-          padding: 0 6px !important;
-        }
-
-        ::v-deep .ant-tabs-nav-scroll {
-          overflow-x: auto !important;
-          padding: 0 4px !important;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        ::v-deep .ant-tabs-tab {
-          font-size: 13px !important;
-          padding: 8px 10px !important;
-          margin-right: 2px !important;
-          white-space: nowrap !important;
-        }
-      }
-
-      .tab-body {
-        .polymarket-tab-content {
-          padding: 16px 8px;
-
-          .polymarket-placeholder {
-            .placeholder-icon { font-size: 48px; margin-bottom: 12px; }
-            h3 { font-size: 17px; }
-            p { font-size: 13px; }
-          }
-        }
+      .workspace-header-bar {
+        padding: 12px 16px;
       }
     }
   }
@@ -843,17 +768,8 @@ export default {
     }
 
     .workspace-card {
-      .workspace-tabs {
-        ::v-deep .ant-tabs-bar {
-          padding: 0 4px;
-        }
-        ::v-deep .ant-tabs-tab {
-          font-size: 13px;
-          padding: 8px 6px;
-        }
-      }
-      .tab-body .polymarket-tab-content {
-        padding: 12px 6px;
+      .workspace-header-bar {
+        padding: 10px 12px;
       }
     }
   }

@@ -1,15 +1,38 @@
 <template>
   <div class="education-section" v-if="config">
-    <a-collapse :bordered="false" class="education-collapse">
+    <a-collapse v-model="activeKeys" :bordered="false" class="education-collapse">
+      <template #expandIcon>
+        <div style="display: none;"></div>
+      </template>
       <a-collapse-panel key="1" class="education-panel">
         <template #header>
-          <div class="education-header">
-            <span class="education-title"><a-icon type="book" /> {{ $t('macro.education.howToRead') }}</span>
-            <span class="education-badge">{{ $t('macro.education.legendBadge') }}</span>
+          <div class="education-header-wrapper">
+            <!-- Zone 1: Left Chevron Circle -->
+            <div class="edu-chevron-circle" :class="{ 'active': activeKeys.includes('1') }">
+              <a-icon type="right" class="edu-chevron-icon" />
+            </div>
+            
+            <!-- Zone 2: Center (Book Icon, Title, Subtitle) -->
+            <div class="edu-header-center">
+              <span class="education-title">
+                <a-icon type="book" class="education-book-icon" />
+                {{ $t('macro.education.howToRead') }}
+              </span>
+              <span class="education-subtitle">{{ $t('macro.education.guideSubTitle') }}</span>
+            </div>
+            
+            <!-- Zone 3: Right (Compact Badge) -->
+            <span class="education-badge" :class="{ 'active': activeKeys.includes('1') }">
+              {{ activeKeys.includes('1') ? $t('macro.education.guideCollapse') : $t('macro.education.guideExpand') }}
+            </span>
           </div>
         </template>
 
         <div class="education-content">
+          <div class="education-legend-notice">
+            <a-icon type="info-circle" class="legend-notice-icon" />
+            <span>{{ $t('macro.education.legendBadge') }}</span>
+          </div>
           <p class="section-desc">{{ config.sectionDescription }}</p>
 
           <div class="education-groups">
@@ -84,6 +107,11 @@ export default {
       default: () => null
     }
   },
+  data () {
+    return {
+      activeKeys: []
+    }
+  },
   methods: {
     isMetricAvailable (id) {
       return !!RELATED_METRIC_ROUTES[id]
@@ -151,10 +179,17 @@ export default {
 }
 
 .education-collapse {
-  background: #fafafa;
-  border-radius: 8px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
   overflow: hidden;
-  border: 1px solid #f0f0f0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
 }
 
 :deep(.ant-collapse-item) {
@@ -162,39 +197,256 @@ export default {
 }
 
 :deep(.ant-collapse-header) {
-  padding: 16px 24px !important;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 20px !important;
+  background: #ffffff;
+  border-bottom: 1.5px solid #cbd5e1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: #f8fafc;
+  }
+  
+  .ant-collapse-arrow {
+    display: none !important;
+  }
 }
 
-.education-header {
+.education-header-wrapper {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  width: 100%;
+  text-align: left;
+}
+
+.edu-chevron-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: #e2e8f0;
+  }
+  
+  &.active {
+    background: #e6f7ff;
+    .edu-chevron-icon {
+      transform: rotate(90deg);
+      color: #1890ff;
+    }
+  }
+}
+
+.edu-chevron-icon {
+  font-size: 10px;
+  color: #64748b;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s;
+}
+
+.edu-header-center {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
 }
 
 .education-title {
-  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
+  margin: 0;
+}
+
+.education-book-icon {
+  color: #1890ff;
+  font-size: 15px;
+}
+
+.education-subtitle {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 1.4;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .education-badge {
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 16px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &.active {
+    color: #1890ff;
+    background: #e6f7ff;
+    border-color: #91d5ff;
+  }
+}
+
+.education-legend-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
   color: #8c8c8c;
   background: #f5f5f5;
-  padding: 2px 10px;
-  border-radius: 12px;
   border: 1px solid #e8e8e8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.legend-notice-icon {
+  color: #1890ff;
+  font-size: 12px;
 }
 
 .education-content {
-  padding: 16px 8px;
+  padding: 16px 20px;
   background: #fafafa;
+}
+
+/* Dark theme compatibility */
+:global(.theme-dark) {
+  .education-collapse {
+    background: #1f1f1f;
+    border-color: #303030;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    
+    &:hover {
+      border-color: #434343;
+    }
+  }
+  
+  :deep(.ant-collapse-header) {
+    background: #1f1f1f !important;
+    border-bottom-color: #303030 !important;
+    &:hover {
+      background: #252526 !important;
+    }
+  }
+  
+  .edu-chevron-circle {
+    background: #2d2d2d;
+    &.active {
+      background: rgba(24, 144, 255, 0.15);
+      .edu-chevron-icon {
+        color: #177ddc;
+      }
+    }
+  }
+  
+  .edu-chevron-icon {
+    color: rgba(255, 255, 255, 0.45);
+  }
+  
+  .education-title {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .education-book-icon {
+    color: #177ddc;
+  }
+  
+  .education-subtitle {
+    color: rgba(255, 255, 255, 0.45);
+  }
+  
+  .education-badge {
+    color: rgba(255, 255, 255, 0.65);
+    background: #2d2d2d;
+    border-color: #434343;
+    
+    &.active {
+      color: #177ddc;
+      background: rgba(24, 144, 255, 0.15);
+      border-color: rgba(24, 144, 255, 0.3);
+    }
+  }
+  
+  .education-legend-notice {
+    background: #141414;
+    border-color: #303030;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  
+  .education-content {
+    background: #141414;
+  }
+  
+  .section-desc {
+    background: #1f1f1f;
+    color: rgba(255, 255, 255, 0.65);
+    border-left-color: #177ddc;
+  }
+  
+  .edu-group .group-title {
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom-color: #303030;
+  }
+  
+  .edu-group .group-desc {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  
+  .indicator-card {
+    background: #1f1f1f;
+    border-color: #303030;
+    &:hover {
+      border-color: #434343;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  .ind-header .ind-name {
+    color: rgba(255, 255, 255, 0.88);
+  }
+  
+  .ind-desc {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  
+  .ind-why {
+    background: rgba(24, 144, 255, 0.1);
+    color: rgba(255, 255, 255, 0.75);
+    .why-label {
+      color: #177ddc;
+    }
+  }
+  
+  .ind-thresholds {
+    .threshold-label {
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .threshold-list li {
+      border-bottom-color: #303030;
+    }
+    .th-range {
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .th-meaning {
+      color: rgba(255, 255, 255, 0.65);
+    }
+  }
 }
 
 .section-desc {

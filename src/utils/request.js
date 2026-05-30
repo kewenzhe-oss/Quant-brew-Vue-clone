@@ -56,10 +56,34 @@ const errorHandler = (error) => {
   if (error.response) {
     const data = error.response.data
     if (error.response.status === 403) {
-      notification.error({
-        message: '(Demo Mode)',
-        description: data.msg || data.message || 'Read-only in demo mode'
-      })
+      const isTradingPath = error.config && error.config.url && (
+        error.config.url.includes('/quick-trade/') ||
+        error.config.url.includes('/ibkr/') ||
+        error.config.url.includes('/mt5/')
+      )
+      if (isTradingPath) {
+        const isExecutionEndpoint = (
+          error.config.url.includes('place-order') ||
+          error.config.url.includes('close-position') ||
+          error.config.url.includes('connect') ||
+          error.config.url.includes('disconnect') ||
+          error.config.url.includes('modify-order') ||
+          error.config.url.includes('cancel-order')
+        )
+        if (isExecutionEndpoint) {
+          notification.error({
+            message: '(Demo Mode)',
+            description: data.msg || data.message || 'Read-only in demo mode'
+          })
+        } else {
+          console.warn('Silent 403 for non-execution trading endpoint:', error.config.url)
+        }
+      } else {
+        notification.error({
+          message: '(Demo Mode)',
+          description: data.msg || data.message || 'Read-only in demo mode'
+        })
+      }
     }
     if (error.response.status === 401 && !(data.result && data.result.isLogin)) {
       // Token invalid/expired: MUST clear local auth state, otherwise route guard will

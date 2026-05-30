@@ -106,10 +106,16 @@
             </div>
           </div>
 
-          <!-- 财经日历 - 独立加载 -->
+          <!-- 财经日历 - 独立加载 (Refactored to MacroEventGateway) -->
           <div class="calendar-box">
             <div class="box-header">
-              <span class="box-title"><a-icon type="calendar" /> {{ $t('globalMarket.calendar') }}</span>
+              <div class="header-main-title">
+                <span class="box-title"><a-icon type="calendar" /> {{ $t('globalMarket.calendar') }}</span>
+                <span class="box-subtitle-gateway">{{ $t('globalMarket.gatewaySubtitle') }}</span>
+              </div>
+              <a :href="macroMicroUrl" target="_blank" rel="noopener noreferrer" class="box-action-link-gateway" @click.stop.prevent="handleGatewayClick">
+                {{ $t('globalMarket.gatewayAction') }} <a-icon type="export" />
+              </a>
             </div>
             <div class="calendar-list">
               <template v-if="loadingCalendar">
@@ -120,7 +126,13 @@
                 </div>
               </template>
               <template v-else-if="marketData.calendar.length > 0">
-                <div v-for="evt in marketData.calendar.slice(0, 10)" :key="evt.id" class="cal-item" :class="evt.importance">
+                <div 
+                  v-for="evt in marketData.calendar.slice(0, 10)" 
+                  :key="evt.id" 
+                  class="cal-item interactive-gateway-row" 
+                  :class="evt.importance"
+                  @click="handleGatewayClick"
+                >
                   <span class="cal-date">{{ formatCalendarDate(evt.date) }}</span>
                   <span class="cal-time">{{ evt.time || '--:--' }}</span>
                   <span class="cal-flag">{{ getCountryFlag(evt.country) }}</span>
@@ -136,6 +148,12 @@
               <template v-else>
                 <div class="cal-empty">{{ $t('globalMarket.noEvents') }}</div>
               </template>
+            </div>
+
+            <!-- Subtle card footer gateway link -->
+            <div class="calendar-footer-gateway" @click="handleGatewayClick">
+              <span>{{ $t('globalMarket.gatewaySubtitle') }}</span>
+              <a-icon type="right" class="footer-arrow-icon" />
             </div>
           </div>
         </div>
@@ -904,6 +922,13 @@ export default {
     },
     batchIndeterminate () {
       return this.batchSelectedKeys.length > 0 && this.batchSelectedKeys.length < (this.watchlist || []).length
+    },
+    macroMicroUrl () {
+      const lang = (this.$i18n.locale || 'en-US').toLowerCase()
+      if (lang.startsWith('zh') || lang.includes('hans') || lang.includes('hant') || lang.includes('tw') || lang.includes('cn')) {
+        return 'https://sc.macromicro.me/calendar#macro'
+      }
+      return 'https://en.macromicro.me/calendar#macro'
     }
   },
   created () {
@@ -926,6 +951,9 @@ export default {
     }
   },
   methods: {
+    handleGatewayClick () {
+      window.open(this.macroMicroUrl, '_blank', 'noopener,noreferrer')
+    },
     stopTaskPolling () {
       if (this.taskPollingTimer) {
         clearInterval(this.taskPollingTimer)
@@ -2445,12 +2473,39 @@ export default {
 
     .box-header {
       margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      .header-main-title {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
       .box-title {
         font-size: 12px;
         color: #555;
         font-weight: 700;
         letter-spacing: -0.1px;
         .anticon { margin-right: 6px; color: var(--primary-color, #1890ff); }
+      }
+
+      .box-subtitle-gateway {
+        font-size: 9px;
+        color: #94a3b8;
+        font-weight: 400;
+      }
+
+      .box-action-link-gateway {
+        font-size: 10px;
+        color: var(--primary-color, #1890ff);
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: opacity 0.2s;
+        &:hover { opacity: 0.8; }
       }
     }
 
@@ -2473,6 +2528,19 @@ export default {
         &.medium { border-left: 3px solid #ca8a04; padding-left: 8px; margin-left: -4px; }
         &.low { border-left: 3px solid #16a34a; padding-left: 8px; margin-left: -4px; }
 
+        &.interactive-gateway-row {
+          cursor: pointer;
+          transition: background 0.2s, transform 0.2s;
+          border-radius: 4px;
+          padding-left: 4px;
+          padding-right: 4px;
+          margin-left: -4px;
+          margin-right: -4px;
+          &:hover {
+            background: #f8fafc;
+          }
+        }
+
         .cal-date {
           font-size: 9px;
           color: #94a3b8;
@@ -2494,6 +2562,29 @@ export default {
         }
       }
       .cal-empty { text-align: center; color: #94a3b8; padding: 20px 0; font-size: 12px; }
+    }
+
+    .calendar-footer-gateway {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      color: #64748b;
+      font-size: 9px;
+      transition: color 0.2s, border-color 0.2s;
+      &:hover {
+        color: var(--primary-color, #1890ff);
+      }
+      .footer-arrow-icon {
+        font-size: 8px;
+        transition: transform 0.2s;
+      }
+      &:hover .footer-arrow-icon {
+        transform: translateX(2px);
+      }
     }
   }
 }
@@ -3017,16 +3108,31 @@ export default {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 
       .box-title { color: #888; }
+      .box-subtitle-gateway { color: #555; }
+      .box-action-link-gateway { color: var(--primary-color, #1890ff); }
+
       .cal-item {
         border-bottom-color: rgba(255, 255, 255, 0.05);
         .cal-date { color: #555; }
         .cal-time { color: #777; }
         .cal-name { color: #ccc; }
+
+        &.interactive-gateway-row:hover {
+          background: rgba(255, 255, 255, 0.03) !important;
+        }
       }
       .cal-empty { color: #555; }
 
       .calendar-list {
         &::-webkit-scrollbar-thumb { background: #333; }
+      }
+
+      .calendar-footer-gateway {
+        border-top-color: rgba(255, 255, 255, 0.05);
+        color: #666;
+        &:hover {
+          color: var(--primary-color, #1890ff);
+        }
       }
     }
   }

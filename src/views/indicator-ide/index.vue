@@ -104,22 +104,7 @@
 
       </div>
 
-      <div class="toolbar-right">
-        <a-tooltip placement="bottomLeft">
-          <template slot="title">
-            {{ quickTradeDrawerVisible ? $t('indicatorIde.hideQuickTrade') : $t('indicatorIde.showQuickTrade') }}
-          </template>
-          <a-button
-            class="ide-toolbar-qt-btn"
-            size="small"
-            :type="quickTradeDrawerVisible ? 'primary' : 'default'"
-            @click="toggleQuickTradeDrawer"
-          >
-            <a-icon type="thunderbolt" theme="filled" />
-            <span class="ide-toolbar-qt-label">{{ $t('quickTrade.title') }}</span>
-          </a-button>
-        </a-tooltip>
-      </div>
+      <!-- Removed Quick Trade button from main toolbar to de-noise and prioritize research -->
     </div>
 
     <!-- Main split panels -->
@@ -250,48 +235,119 @@
             <a-tag v-if="codeDirty && !selectedIndicatorIsPurchased" color="orange" size="small" style="margin-left: 8px;">{{ $t('indicatorIde.modified') }}</a-tag>
             <a-tag v-if="selectedIndicatorIsPurchased" color="purple" size="small" style="margin-left: 8px;">{{ $t('indicatorIde.purchasedReadOnlyTag') }}</a-tag>
             <div class="panel-title-actions" @click.stop>
-              <a-tooltip :title="$t('dashboard.indicator.create')">
-                <a-button size="small" :loading="creatingIndicator" @click="handleCreateIndicator"><a-icon type="plus" /></a-button>
-              </a-tooltip>
-              <a-tooltip :title="selectedIndicatorIsPurchased ? $t('indicatorIde.saveBlockedPurchased') : $t('indicatorIde.save')">
-                <a-button size="small" :disabled="!selectedIndicatorId || !codeDirty || selectedIndicatorIsPurchased" @click="saveIndicator"><a-icon type="save" /></a-button>
-              </a-tooltip>
-              <a-tooltip :title="selectedIndicatorIsPurchased ? $t('indicatorIde.deleteBlockedPurchased') : $t('dashboard.indicator.action.delete')">
-                <a-button
-                  size="small"
-                  :disabled="!selectedIndicatorId || selectedIndicatorIsPurchased"
-                  :loading="deletingIndicator"
-                  @click="handleDeleteIndicator"
-                ><a-icon type="delete" /></a-button>
-              </a-tooltip>
-              <a-tooltip :title="selectedIndicatorIsPurchased ? $t('indicatorIde.publishBlockedPurchased') : $t('dashboard.indicator.action.publish')">
-                <a-button size="small" :disabled="!selectedIndicatorId || selectedIndicatorIsPurchased" @click="handlePublishIndicator"><a-icon type="cloud-upload" /></a-button>
-              </a-tooltip>
-              <a-tooltip :title="$t('dashboard.indicator.action.createStrategy')">
-                <a-button size="small" :disabled="!selectedIndicatorId" @click="handleCreateStrategyFromIndicator"><a-icon type="deployment-unit" /></a-button>
-              </a-tooltip>
-              <a-tooltip :title="$t('indicatorIde.saveAsNew')">
-                <a-button size="small" :disabled="!userId || !currentCode" @click="openSaveAsIndicatorModal"><a-icon type="copy" /></a-button>
-              </a-tooltip>
-              <a-tooltip :title="chartIndicatorRunning ? $t('indicatorIde.stopIndicatorOnChart') : $t('indicatorIde.runIndicatorOnChart')">
-                <a-button
-                  size="small"
-                  :disabled="chartIndicatorToggleDisabled"
-                  @click="toggleChartIndicatorRun"
-                >
-                  <a-icon :type="chartIndicatorRunning ? 'pause-circle' : 'play-circle'" />
+              <!-- Primary Action: Save -->
+              <a-button
+                class="ide-primary-action-btn"
+                size="small"
+                icon="save"
+                :disabled="!selectedIndicatorId || !codeDirty || selectedIndicatorIsPurchased"
+                @click="saveIndicator"
+              >
+                {{ $t('indicatorIde.save') }}
+              </a-button>
+
+              <!-- Primary Action: Run / Stop on Chart -->
+              <a-button
+                class="ide-primary-action-btn"
+                size="small"
+                :icon="chartIndicatorRunning ? 'pause-circle' : 'play-circle'"
+                :disabled="chartIndicatorToggleDisabled"
+                @click="toggleChartIndicatorRun"
+              >
+                {{ chartIndicatorRunning ? $t('indicatorIde.stopIndicatorOnChartShort') : $t('indicatorIde.runIndicatorOnChartShort') }}
+              </a-button>
+
+              <!-- Secondary Actions Dropdown -->
+              <a-dropdown :trigger="['click']" placement="bottomRight">
+                <a-button size="small" class="ide-editor-more-btn">
+                  <a-icon type="more" />
                 </a-button>
-              </a-tooltip>
+                <a-menu slot="overlay">
+                  <a-menu-item key="create" :disabled="creatingIndicator" @click="handleCreateIndicator">
+                    <a-icon type="plus" /> {{ $t('dashboard.indicator.create') }}
+                  </a-menu-item>
+                  <a-menu-item key="saveAs" :disabled="!userId || !currentCode" @click="openSaveAsIndicatorModal">
+                    <a-icon type="copy" /> {{ $t('indicatorIde.saveAsNew') }}
+                  </a-menu-item>
+                  <a-menu-item key="createStrategy" :disabled="!selectedIndicatorId" @click="handleCreateStrategyFromIndicator">
+                    <a-icon type="deployment-unit" /> {{ $t('dashboard.indicator.action.createStrategy') }}
+                  </a-menu-item>
+                  <a-menu-item key="publish" :disabled="!selectedIndicatorId || selectedIndicatorIsPurchased" @click="handlePublishIndicator">
+                    <a-icon type="cloud-upload" /> {{ $t('dashboard.indicator.action.publish') }}
+                  </a-menu-item>
+                  <a-menu-divider />
+                  <a-menu-item key="quickTrade" @click="toggleQuickTradeDrawer">
+                    <a-icon type="thunderbolt" /> {{ quickTradeDrawerVisible ? $t('indicatorIde.hideQuickTrade') : $t('indicatorIde.showQuickTrade') }}
+                  </a-menu-item>
+                  <a-menu-divider />
+                  <a-menu-item key="delete" :disabled="!selectedIndicatorId || selectedIndicatorIsPurchased" class="menu-item-danger" @click="handleDeleteIndicator">
+                    <a-icon type="delete" style="color: #ff4d4f;" /> <span style="color: #ff4d4f;">{{ $t('dashboard.indicator.action.delete') }}</span>
+                  </a-menu-item>
+                </a-menu>
+              </a-dropdown>
             </div>
             <a-icon :type="codePanelExpanded ? 'up' : 'down'" style="margin-left: auto;" />
           </div>
           <div v-show="codePanelExpanded" class="code-panel-body">
-            <div class="ide-guide-bar">
-              <a-icon type="book" />
-              <span>{{ $t('indicatorIde.devGuideTooltip') }}</span>
-              <a href="https://github.com/brokermr810/QuantDinger/blob/main/docs/STRATEGY_DEV_GUIDE.md" target="_blank" rel="noopener noreferrer" class="ide-guide-link" @click.stop>
-                {{ $t('indicatorIde.devGuide') }} <a-icon type="arrow-right" />
-              </a>
+            <!-- Instructional Accordion Teaching Card -->
+            <div class="ide-guide-card" :class="{ 'ide-guide-card--expanded': guideExpanded }">
+              <button
+                class="ide-guide-card-header"
+                @click="guideExpanded = !guideExpanded"
+                :aria-expanded="guideExpanded"
+                aria-controls="ide-guide-content"
+                type="button"
+              >
+                <!-- Rounded Chevron Circle Button Container -->
+                <div class="ide-guide-chevron-circle">
+                  <a-icon type="right" class="ide-guide-chevron" />
+                </div>
+                <div class="ide-guide-header-text">
+                  <span class="ide-guide-title">
+                    <a-icon type="book" class="ide-guide-book-icon" />
+                    {{ $t('indicatorIde.devGuide') }}
+                  </span>
+                  <span class="ide-guide-subtitle">{{ $t('indicatorIde.guideSubTitle') }}</span>
+                </div>
+                <span class="ide-guide-badge">
+                  {{ guideExpanded ? $t('indicatorIde.guideCollapse') : $t('indicatorIde.guideExpand') }}
+                </span>
+              </button>
+              <transition name="collapse-fade">
+                <div v-show="guideExpanded" id="ide-guide-content" class="ide-guide-card-content">
+                  <p class="ide-guide-summary">{{ $t('indicatorIde.devGuideTooltip') }}</p>
+                  
+                  <div class="ide-guide-quick-tips">
+                    <div class="quick-tip-item">
+                      <div class="tip-header">
+                        <span class="tip-tag param-tag"># @param</span>
+                        <strong class="tip-title">{{ $t('indicatorIde.tipParamTitle') }}</strong>
+                      </div>
+                      <div class="tip-desc">{{ $t('indicatorIde.tipParamDesc') }}</div>
+                    </div>
+                    
+                    <div class="quick-tip-item">
+                      <div class="tip-header">
+                        <span class="tip-tag strategy-tag"># @strategy</span>
+                        <strong class="tip-title">{{ $t('indicatorIde.tipStrategyTitle') }}</strong>
+                      </div>
+                      <div class="tip-desc">{{ $t('indicatorIde.tipStrategyDesc') }}</div>
+                    </div>
+                  </div>
+
+                  <div class="ide-guide-footer">
+                    <a
+                      href="https://github.com/brokermr810/QuantDinger/blob/main/docs/STRATEGY_DEV_GUIDE.md"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="ide-guide-external-btn"
+                    >
+                      {{ $t('indicatorIde.readFullGuide') }}
+                      <a-icon type="export" style="margin-left: 4px;" />
+                    </a>
+                  </div>
+                </div>
+              </transition>
             </div>
             <a-alert
               v-if="showPurchasedMarketHint"
@@ -415,9 +471,7 @@
                   <a-icon v-if="!aiGenerating" type="robot" />
                   {{ aiGenerating ? $t('indicatorIde.generating') : $t('indicatorIde.generateCode') }}
                 </a-button>
-                <div class="ai-helper-links">
-                  <a @click.prevent="goToIndicatorMarket">{{ $t('indicatorIde.goIndicatorMarket') }}</a>
-                </div>
+
               </div>
             </div>
           </div>
@@ -470,8 +524,8 @@
                   :disabled="!canRunBacktest"
                   @click="runBacktest"
                 >
-                  <a-icon v-if="!running" type="thunderbolt" />
-                  运行历史回测
+                  <a-icon v-if="!running" type="play-circle" />
+                  {{ $t('indicatorIde.runHistoricalBacktest') }}
                 </a-button>
                 <a-icon :type="paramsPanelExpanded ? 'up' : 'down'" @click="paramsPanelExpanded = !paramsPanelExpanded" />
               </div>
@@ -606,8 +660,8 @@
                   </div>
                 </div>
 
-                <!-- Equity curve -->
-                <div class="eq-section">
+                <!-- Equity curve (only when trades > 0) -->
+                <div v-show="result && result.totalTrades > 0" class="eq-section">
                   <div class="eq-title">
                     <a-icon type="area-chart" style="margin-right: 6px;" />
                     {{ $t('indicatorIde.equityCurve') }}
@@ -615,8 +669,8 @@
                   <div ref="eqChart" class="equity-chart"></div>
                 </div>
 
-                <!-- Trade table -->
-                <div class="trades-section">
+                <!-- Trade table (only when trades > 0) -->
+                <div v-show="result && result.totalTrades > 0" class="trades-section">
                   <div class="trades-title">
                     <a-icon type="swap" style="margin-right: 6px;" />
                     {{ $t('indicatorIde.trades') }}
@@ -652,8 +706,82 @@
                   </a-table>
                 </div>
 
-                <!-- AI Optimize CTA -->
-                <div v-if="hasResult && !running" class="ai-optimize-card">
+                <!-- Diagnostics Card (when trades === 0) -->
+                <div v-if="result && (result.totalTrades === 0 || result.totalTrades == null)" class="backtest-diagnostics-section">
+                  <a-card class="diagnostics-card" :bordered="false">
+                    <div class="diagnostics-header">
+                      <a-icon type="info-circle" theme="filled" class="diagnostics-icon" />
+                      <span class="diagnostics-title">{{ $t('indicatorIde.diagTitle') }}</span>
+                    </div>
+
+                    <!-- Mismatch Warning Box (only when local signals exist but trades is 0) -->
+                    <div v-if="localSignalsCount > 0" class="mismatch-warning-box">
+                      <div class="mismatch-warning-header">
+                        <a-icon type="warning" theme="filled" class="mismatch-warning-icon" />
+                        <span class="mismatch-warning-title">{{ $t('indicatorIde.diagMismatchTitle') }}</span>
+                      </div>
+                      <div class="mismatch-warning-body">
+                        <p>{{ $t('indicatorIde.diagMismatchCount', { count: localSignalsCount }) }}</p>
+                        <p class="mismatch-warning-desc">{{ $t('indicatorIde.diagMismatchDesc') }}</p>
+                        <ul class="mismatch-reasons-list">
+                          <li>{{ $t('indicatorIde.diagMismatchReasonA') }}</li>
+                          <li>{{ $t('indicatorIde.diagMismatchReasonB') }}</li>
+                          <li>{{ $t('indicatorIde.diagMismatchReasonC') }}</li>
+                          <li>{{ $t('indicatorIde.diagMismatchReasonD') }}</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div v-else>
+                      <div class="diagnostics-desc">
+                        {{ $t('indicatorIde.diagDesc') }}
+                      </div>
+
+                      <div class="diagnostics-list">
+                        <div class="diagnostics-item">
+                          <div class="item-title">1. {{ $t('indicatorIde.diagReason1Title') }}</div>
+                          <div class="item-body">
+                            {{ $t('indicatorIde.diagReason1Body') }}
+                            <pre class="diag-code">df['buy'] = (df['ma5'] > df['ma20']).astype(bool)</pre>
+                          </div>
+                        </div>
+
+                        <div class="diagnostics-item">
+                          <div class="item-title">2. {{ $t('indicatorIde.diagReason2Title') }}</div>
+                          <div class="item-body">
+                            {{ $t('indicatorIde.diagReason2Body') }}
+                          </div>
+                        </div>
+
+                        <div class="diagnostics-item">
+                          <div class="item-title">3. {{ $t('indicatorIde.diagReason3Title') }}</div>
+                          <div class="item-body">
+                            {{ $t('indicatorIde.diagReason3Body') }}
+                          </div>
+                        </div>
+
+                        <div class="diagnostics-item">
+                          <div class="item-title">4. {{ $t('indicatorIde.diagReason4Title') }}</div>
+                          <div class="item-body">
+                            {{ $t('indicatorIde.diagReason4Body') }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="diagnostics-action">
+                      <div class="action-title">{{ $t('indicatorIde.diagActionTitle') }}</div>
+                      <ul class="action-list">
+                        <li>{{ $t('indicatorIde.diagAction1') }}</li>
+                        <li>{{ $t('indicatorIde.diagAction2') }}</li>
+                        <li>{{ $t('indicatorIde.diagAction3') }}</li>
+                      </ul>
+                    </div>
+                  </a-card>
+                </div>
+
+                <!-- AI Optimize CTA (only when trades > 0) -->
+                <div v-if="hasResult && !running && result && result.totalTrades > 0" class="ai-optimize-card">
                   <div class="ai-optimize-card-inner">
                     <div class="ai-optimize-card-icon">
                       <a-icon type="experiment" />
@@ -780,6 +908,21 @@
 
               <!-- Results -->
               <div v-else class="experiment-panel">
+                <!-- Warnings & Notices -->
+                <div v-if="experimentRunKind === 'llm'" class="experiment-alerts" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+                  <a-alert
+                    v-if="!experimentHasIndicatorParams"
+                    type="warning"
+                    show-icon
+                    :message="$t('indicatorIde.noParamsWarning')"
+                  />
+                  <a-alert
+                    v-if="experimentFallbackApplied"
+                    type="info"
+                    show-icon
+                    :message="$t('indicatorIde.fallbackAppliedInfo')"
+                  />
+                </div>
                 <!-- Round progress indicators -->
                 <div class="experiment-round-row">
                   <div v-for="(rd, idx) in experimentRoundsInfo" :key="idx" class="experiment-round-card" :class="{ best: rd.globalBestScore === rd.bestScore && rd.bestScore > 0 }">
@@ -1262,6 +1405,7 @@ export default {
       hasResult: false,
       result: {},
       backtestRunId: null,
+      localSignalsCount: 0,
 
       activeIndicators: [],
       /** 是否在 K 线图上运行当前指标（关闭后仅保留 K 线，不计算/绘制指标） */
@@ -1270,7 +1414,7 @@ export default {
       quickTradeDrawerVisible: false,
 
       // AI generation
-      aiPanelExpanded: true,
+      aiPanelExpanded: false,
       aiPrompt: '',
       aiGenerating: false,
       aiDebugSummary: null,
@@ -1287,8 +1431,11 @@ export default {
       codeQualityHints: [],
       codeQualityLoading: false,
 
+      guideExpanded: false,
       aiOptimizing: false,
       experimentRunning: false,
+      experimentHasIndicatorParams: true,
+      experimentFallbackApplied: false,
       /** 'llm' | 'structured' — which run is in progress / last explicit choice for UX */
       experimentRunKind: 'llm',
       structuredTuneMethod: 'grid',
@@ -2370,6 +2517,9 @@ export default {
         const mx = Number(p.maxRounds) || this.experimentMaxRounds
         this.experimentCurrentRound = r
         if (mx) this.experimentMaxRounds = mx
+        if (p.hasIndicatorParams !== undefined) {
+          this.experimentHasIndicatorParams = p.hasIndicatorParams !== false
+        }
         this.experimentLiveHint = this.$t('indicatorIde.experimentHintRound', { n: r, max: this.experimentMaxRounds })
       } else if (kind === 'candidate_backtest') {
         const r = Number(p.round) || this.experimentCurrentRound || 1
@@ -2383,6 +2533,9 @@ export default {
         }
         if (p.globalBestScore != null && !isNaN(Number(p.globalBestScore))) {
           this.experimentGlobalBestScoreLive = Number(p.globalBestScore)
+        }
+        if (p.fallbackApplied) {
+          this.experimentFallbackApplied = true
         }
         this.experimentLiveHint = this.$t('indicatorIde.experimentHintRoundDone', {
           n: p.round || this.experimentCurrentRound,
@@ -2477,6 +2630,8 @@ export default {
       this.experimentMaxRounds = payload.maxRounds || 3
       this.experimentRoundScores = []
       this.experimentGlobalBestScoreLive = 0
+      this.experimentHasIndicatorParams = true
+      this.experimentFallbackApplied = false
       this.experimentLiveHint = this.$t('indicatorIde.experimentHintStarting')
       this.resultTab = 'aisystem'
       this.elapsedSec = 0
@@ -2487,6 +2642,8 @@ export default {
         const data = await this.streamAiOptimizeWithSse(payload, signal)
         if (data && typeof data === 'object') {
           this.experimentResult = data
+          this.experimentHasIndicatorParams = data.hasIndicatorParams !== false
+          this.experimentFallbackApplied = !!data.fallbackApplied
           this.experimentSelectedCandidateName = (((data || {}).bestStrategyOutput || {}).name) || ((((data || {}).rankedStrategies) || [])[0] || {}).name || ''
           this.resultTab = 'aisystem'
           this.$message.success(this.$t('indicatorIde.aiExperimentDone'))
@@ -3037,6 +3194,7 @@ export default {
     // ===== Backtest =====
     async runBacktest () {
       if (!this.canRunBacktest) return
+      this.localSignalsCount = 0
 
       // 1. Sanitize numeric inputs
       const safeCapital = Number(this.initialCapital)
@@ -3077,6 +3235,53 @@ export default {
       if (daysDiff > maxDays) {
         this.$message.warning(`当前 timeframe=${this.timeframe} 最多支持约 ${maxDays} 天的回测，请缩短日期范围。`)
         return
+      }
+
+      // 3.5. Signals pre-check (local execution via Pyodide)
+      const chart = this.$refs.klineChart
+      if (chart && typeof chart.executePythonStrategy === 'function') {
+        if (!chart.pythonReady) {
+          this.$message.warning(this.$t('indicatorIde.pythonNotReady') || 'Python 引擎未就绪，请等待加载完成后再运行回测')
+          return
+        }
+
+        const klineData = (typeof chart.chartRef?.getDataList === 'function')
+          ? chart.chartRef.getDataList()
+          : (chart.klineData || [])
+
+        if (klineData && klineData.length > 0) {
+          try {
+            const res = await chart.executePythonStrategy(this.currentCode, klineData, {}, {
+              id: this.selectedIndicatorId,
+              userId: this.userId
+            })
+
+            let signalCount = 0
+            if (res && res.signals && Array.isArray(res.signals)) {
+              res.signals.forEach(sig => {
+                if (['buy', 'sell', 'open_long', 'close_long', 'open_short', 'close_short'].includes(sig.type)) {
+                  if (Array.isArray(sig.data)) {
+                    sig.data.forEach(val => {
+                      if (val !== null && val !== undefined && val !== false && val !== 0) {
+                        signalCount++
+                      }
+                    })
+                  }
+                }
+              })
+            }
+
+            this.localSignalsCount = signalCount
+            if (signalCount === 0) {
+              this.$message.warning(this.$t('indicatorIde.noSignalsWarning') || '当前策略未生成任何可执行信号，因此不会产生交易记录或资金曲线变化。')
+              return
+            }
+          } catch (e) {
+            console.error('Local signal pre-check failed:', e)
+            this.$message.error(`${this.$t('indicatorIde.localCheckFailed') || '本地代码执行检查失败'}: ${e.message || e}`)
+            return
+          }
+        }
       }
 
       this.running = true
@@ -3515,9 +3720,7 @@ export default {
         this.qtSymbol = newSymbol
       }
     },
-    goToIndicatorMarket () {
-      this.$router.push('/indicator-community')
-    },
+
     startResizePanel (e) {
       e.preventDefault()
       this.resizeDragStartY = e.clientY
@@ -3541,15 +3744,30 @@ export default {
     buildNewIndicatorStarterCode () {
       const label = moment().format('YYYY-MM-DD HH:mm')
       return (
-        `my_indicator_name = "New Indicator ${label}"\n` +
-        'my_indicator_description = "可选：用 # @strategy 配置风控与仓位；杠杆在回测面板设置。为 df 设置 buy/sell 布尔列并定义 output。"\n\n' +
-        'df = df.copy()\n' +
-        "df['buy'] = False\n" +
-        "df['sell'] = False\n\n" +
+        `my_indicator_name = "Dual MA Crossover ${label}"\n` +
+        'my_indicator_description = "双均线交叉策略示例：MA5与MA20交叉产生买卖信号，适用于主流交易对与常见周期。"\n\n' +
+        'df = df.copy()\n\n' +
+        '# 计算均线\n' +
+        "df['ma5'] = df['close'].rolling(5).mean().fillna(df['close'])\n" +
+        "df['ma20'] = df['close'].rolling(20).mean().fillna(df['close'])\n\n" +
+        '# 黄金交叉 / 死亡交叉信号（边沿触发）\n' +
+        "raw_buy = (df['ma5'] > df['ma20']) & (df['ma5'].shift(1) <= df['ma20'].shift(1))\n" +
+        "raw_sell = (df['ma5'] < df['ma20']) & (df['ma5'].shift(1) >= df['ma20'].shift(1))\n\n" +
+        "df['buy'] = raw_buy.fillna(False).astype(bool)\n" +
+        "df['sell'] = raw_sell.fillna(False).astype(bool)\n\n" +
+        '# 在图表上绘制买卖标记点\n' +
+        "buy_marks = [df['low'].iloc[i] * 0.99 if df['buy'].iloc[i] else None for i in range(len(df))]\n" +
+        "sell_marks = [df['high'].iloc[i] * 1.01 if df['sell'].iloc[i] else None for i in range(len(df))]\n\n" +
         'output = {\n' +
         "  'name': my_indicator_name,\n" +
-        "  'plots': [],\n" +
-        "  'signals': []\n" +
+        "  'plots': [\n" +
+        "    {'name': 'MA5', 'data': df['ma5'].tolist(), 'color': '#1890ff', 'overlay': True},\n" +
+        "    {'name': 'MA20', 'data': df['ma20'].tolist(), 'color': '#52c41a', 'overlay': True}\n" +
+        '  ],\n' +
+        "  'signals': [\n" +
+        "    {'type': 'buy', 'text': 'B', 'data': buy_marks, 'color': '#00E676'},\n" +
+        "    {'type': 'sell', 'text': 'S', 'data': sell_marks, 'color': '#FF5252'}\n" +
+        '  ]\n' +
         '}\n'
       )
     },
@@ -4326,40 +4544,249 @@ export default {
     border-color: #e0e0e0;
     &:hover { border-color: @primary-color; color: @primary-color; }
     &[disabled] { opacity: 0.35; }
+
+    &.ide-primary-action-btn {
+      width: auto !important;
+      padding: 0 8px !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      gap: 3px !important;
+      color: @primary-color;
+      background: transparent;
+      border: 1px solid transparent;
+      &:hover:not([disabled]) {
+        border-color: @primary-color;
+        background: fade(@primary-color, 8%);
+      }
+    }
+    &.ide-editor-more-btn {
+      color: #8c8c8c;
+      border-color: #e0e0e0;
+      &:hover:not([disabled]) {
+        border-color: @primary-color;
+        color: @primary-color;
+      }
+    }
   }
 }
-.ide-guide-bar {
+.ide-guide-card {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  margin: 14px 12px;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  &.ide-guide-card--expanded {
+    background: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.08), 0 4px 6px -2px rgba(59, 130, 246, 0.04);
+    
+    .ide-guide-chevron {
+      transform: rotate(90deg);
+      color: #2563eb;
+    }
+    .ide-guide-chevron-circle {
+      background: #eff6ff;
+    }
+  }
+}
+
+.ide-guide-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 14px 18px;
+  cursor: pointer;
+  outline: none;
+  text-align: left;
+  transition: background-color 0.2s;
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px #3b82f6;
+  }
+}
+
+.ide-guide-chevron-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  .ide-guide-card-header:hover & {
+    background: #e2e8f0;
+  }
+}
+
+.ide-guide-chevron {
+  font-size: 10px;
+  color: #64748b;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s;
+}
+
+.ide-guide-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  text-align: left;
+}
+
+.ide-guide-title {
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  color: #0f172a;
+}
+
+.ide-guide-subtitle {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.ide-guide-book-icon {
+  margin-right: 6px;
+  color: #3b82f6;
+  font-size: 14px;
+}
+
+.ide-guide-badge {
+  margin-left: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  .ide-guide-card-header:hover & {
+    color: #2563eb;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+  }
+}
+
+.ide-guide-card-content {
+  padding: 0 18px 18px 18px;
+  border-top: 1px dashed #e2e8f0;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.ide-guide-summary {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 14px 0 12px;
+}
+
+.ide-guide-quick-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.quick-tip-item {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.tip-header {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
-  font-size: 11px;
-  color: #8c8c8c;
-  background: #f8f9fb;
-  border-bottom: 1px solid #f0f0f0;
-  flex-shrink: 0;
-  > .anticon { color: #bfbfbf; font-size: 12px; }
+  margin-bottom: 6px;
 }
-.ide-guide-link {
+
+.tip-tag {
+  font-size: 9px;
+  font-family: monospace;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  
+  &.param-tag {
+    color: #2563eb;
+    background: #eff6ff;
+  }
+  &.strategy-tag {
+    color: #7c3aed;
+    background: #f5f3ff;
+  }
+}
+
+.tip-title {
+  font-size: 11px;
+  color: #1e293b;
+}
+
+.tip-desc {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.ide-guide-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.ide-guide-external-btn {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  margin-left: auto;
-  padding: 1px 8px;
   font-size: 11px;
   font-weight: 500;
-  color: #1890ff;
-  background: rgba(24, 144, 255, 0.06);
-  border: 1px solid rgba(24, 144, 255, 0.2);
-  border-radius: 10px;
+  color: #3b82f6;
   text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.15);
   transition: all 0.2s;
-  white-space: nowrap;
+
   &:hover {
-    color: #fff;
-    background: #1890ff;
-    border-color: #1890ff;
+    color: #ffffff;
+    background: #3b82f6;
+    border-color: #3b82f6;
   }
+}
+
+/* Accordion animations */
+.collapse-fade-enter-active, .collapse-fade-leave-active {
+  transition: all 0.2s ease-in-out;
+  max-height: 500px;
+  opacity: 1;
+}
+.collapse-fade-enter, .collapse-fade-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
 }
 
 // ===== Code Editor Scrollbar =====
@@ -4408,10 +4835,6 @@ export default {
   font-size: 11px;
   color: #8c8c8c;
   line-height: 1.5;
-}
-.ai-helper-links {
-  margin-top: 6px;
-  font-size: 11px;
 }
 
 .code-quality-panel {
@@ -5724,18 +6147,110 @@ export default {
       border-color: #555 !important;
     }
   }
-  .ide-guide-bar {
-    background: #1a1a1a;
-    border-bottom-color: #303030;
-    color: rgba(255, 255, 255, 0.45);
-    > .anticon { color: rgba(255, 255, 255, 0.3); }
-  }
-  .ide-guide-link {
-    color: #58a6ff;
-    background: rgba(88, 166, 255, 0.1);
-    border-color: rgba(88, 166, 255, 0.25);
+  .ide-guide-card {
+    background: #1e1e1e;
+    border-color: #434343;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+
     &:hover {
-      color: #fff;
+      background: #252526;
+      border-color: #555555;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    &.ide-guide-card--expanded {
+      background: #181818;
+      border-color: #177ddc;
+      box-shadow: 0 10px 15px -3px rgba(23, 125, 220, 0.15);
+      
+      .ide-guide-chevron {
+        color: #58a6ff;
+      }
+      .ide-guide-chevron-circle {
+        background: rgba(88, 166, 255, 0.15);
+      }
+    }
+  }
+
+  .ide-guide-card-header {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .ide-guide-chevron-circle {
+    background: #2d2d2d;
+    
+    .ide-guide-card-header:hover & {
+      background: #3d3d3d;
+    }
+  }
+
+  .ide-guide-chevron {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .ide-guide-title {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .ide-guide-subtitle {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .ide-guide-book-icon {
+    color: #58a6ff;
+  }
+
+  .ide-guide-badge {
+    color: rgba(255, 255, 255, 0.65);
+    background: #2d2d2d;
+    border-color: #434343;
+
+    .ide-guide-card-header:hover & {
+      color: #58a6ff;
+      background: rgba(88, 166, 255, 0.15);
+      border-color: rgba(88, 166, 255, 0.3);
+    }
+  }
+
+  .ide-guide-card-content {
+    border-top-color: #303030;
+  }
+
+  .ide-guide-summary {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .quick-tip-item {
+    background: #222222;
+    border-color: #2c2c2c;
+  }
+
+  .tip-tag {
+    &.param-tag {
+      color: #58a6ff;
+      background: rgba(88, 166, 255, 0.1);
+    }
+    &.strategy-tag {
+      color: #bc8cff;
+      background: rgba(188, 140, 255, 0.1);
+    }
+  }
+
+  .tip-title {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .tip-desc {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .ide-guide-external-btn {
+    color: #58a6ff;
+    background: rgba(88, 166, 255, 0.15);
+    border-color: rgba(88, 166, 255, 0.25);
+
+    &:hover {
+      color: #ffffff;
       background: #177ddc;
       border-color: #177ddc;
     }
@@ -5879,6 +6394,15 @@ export default {
     &:hover:not([disabled]) {
       border-color: #177ddc;
       color: #177ddc;
+    }
+    &.ide-primary-action-btn {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: #177ddc !important;
+      &:hover:not([disabled]) {
+        background: rgba(23, 125, 220, 0.15) !important;
+        border-color: #177ddc !important;
+      }
     }
   }
   .code-editor-area {
@@ -6149,6 +6673,146 @@ export default {
   margin-right: 4px;
 }
 
+.backtest-diagnostics-section {
+  margin-top: 12px;
+  margin-bottom: 16px;
+  .diagnostics-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    /deep/ .ant-card-body {
+      padding: 0;
+    }
+  }
+  .diagnostics-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .diagnostics-icon {
+    font-size: 18px;
+    color: #ef4444;
+  }
+  .diagnostics-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .diagnostics-desc {
+    font-size: 12px;
+    color: #475569;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .mismatch-warning-box {
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: left;
+    .mismatch-warning-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .mismatch-warning-icon {
+      font-size: 16px;
+      color: #fa8c16;
+    }
+    .mismatch-warning-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ad6800;
+    }
+    .mismatch-warning-body {
+      font-size: 12px;
+      color: #595959;
+      line-height: 1.6;
+      p {
+        margin-bottom: 8px;
+      }
+    }
+    .mismatch-warning-desc {
+      font-weight: 600;
+      color: #262626;
+      margin-top: 12px;
+    }
+    .mismatch-reasons-list {
+      padding-left: 20px;
+      margin-top: 8px;
+      margin-bottom: 0;
+      li {
+        margin-bottom: 12px;
+        color: #595959;
+        line-height: 1.5;
+        list-style-type: disc;
+        strong {
+          color: #262626;
+        }
+      }
+    }
+  }
+  .diagnostics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .diagnostics-item {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    padding: 12px;
+    .item-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 4px;
+    }
+    .item-body {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+    .diag-code {
+      display: block;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 6px 10px;
+      border-radius: 4px;
+      margin-top: 6px;
+      font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 10px;
+      overflow-x: auto;
+    }
+  }
+  .diagnostics-action {
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 16px;
+    .action-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+    .action-list {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 11px;
+      color: #475569;
+      line-height: 1.6;
+      li {
+        margin-bottom: 4px;
+      }
+    }
+  }
+}
+
 // ===== Dark theme overrides for Library panel =====
 .theme-dark {
   .indicator-library-panel {
@@ -6188,6 +6852,67 @@ export default {
     &::placeholder { color: rgba(255,255,255,0.25); }
   }
   .lib-search /deep/ .ant-input-prefix { color: rgba(255,255,255,0.38); }
+
+  .backtest-diagnostics-section {
+    .diagnostics-card {
+      background: #1c1c1e;
+      border-color: #2c2c2e;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    .diagnostics-title {
+      color: #f2f2f7;
+    }
+    .diagnostics-desc {
+      color: #aeaeb2;
+    }
+    .mismatch-warning-box {
+      background: rgba(250, 140, 22, 0.1);
+      border-color: rgba(250, 140, 22, 0.3);
+      .mismatch-warning-title {
+        color: #ffa940;
+      }
+      .mismatch-warning-body {
+        color: #d9d9d9;
+        p {
+          color: #d9d9d9;
+        }
+      }
+      .mismatch-warning-desc {
+        color: #f0f0f0;
+      }
+      .mismatch-reasons-list {
+        li {
+          color: #d9d9d9;
+          strong {
+            color: #ffa940;
+          }
+        }
+      }
+    }
+    .diagnostics-item {
+      background: #2c2c2e;
+      border-color: #3a3a3c;
+      .item-title {
+        color: #f2f2f7;
+      }
+      .item-body {
+        color: #aeaeb2;
+      }
+      .diag-code {
+        background: #1c1c1e;
+        color: #e5e5ea;
+      }
+    }
+    .diagnostics-action {
+      border-top-color: #2c2c2e;
+      .action-title {
+        color: #f2f2f7;
+      }
+      .action-list {
+        color: #aeaeb2;
+      }
+    }
+  }
 }
 </style>
 

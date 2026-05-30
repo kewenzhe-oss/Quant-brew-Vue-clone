@@ -4,6 +4,35 @@
  * 不依赖 body.dark，避免不同步时顶栏、侧栏底部 footer 仍是浅灰/深蓝。
  */
 
+:root {
+  --color-bg: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-surface-2: #fafaf9;
+  --color-surface-offset: #f0f0ee;
+  --color-border: #e6e2dc;
+  --color-divider: #ece9e4;
+  --color-text: #1f2933;
+  --color-text-muted: #6b7280;
+  --color-text-faint: #9ca3af;
+  --color-primary: #1d6f4f;
+}
+
+.basic-layout-wrapper.dark,
+.basic-layout-wrapper.realdark,
+body.dark,
+body.realdark {
+  --color-bg: #141414;
+  --color-surface: #1c1c1c;
+  --color-surface-2: #252525;
+  --color-surface-offset: #333333;
+  --color-border: #303030;
+  --color-divider: #3a3a3a;
+  --color-text: rgba(255, 255, 255, 0.85);
+  --color-text-muted: rgba(255, 255, 255, 0.55);
+  --color-text-faint: rgba(255, 255, 255, 0.35);
+  --color-primary: #7bc59a;
+}
+
 /* ========== 顶栏：亮黑 #111 + 顶缘高光 ========== */
 .basic-layout-wrapper.dark .ant-layout-header,
 .basic-layout-wrapper.realdark .ant-layout-header,
@@ -237,8 +266,8 @@ body.realdark .ant-modal-wrap [class*='payment'] .ant-descriptions-item-content 
   .popular-card,
   .plan-card,
   .info-card {
-    background: #1c1c1c !important;
-    border-color: #303030 !important;
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2) !important;
     
     .section-title,
@@ -246,14 +275,14 @@ body.realdark .ant-modal-wrap [class*='payment'] .ant-descriptions-item-content 
     .card-title,
     .info-title,
     .empty-title {
-      color: rgba(255, 255, 255, 0.85) !important;
+      color: var(--color-text) !important;
     }
     .section-badge,
     .card-subtitle,
     .card-note,
     .page-desc,
     .empty-body {
-      color: rgba(255, 255, 255, 0.45) !important;
+      color: var(--color-text-muted) !important;
     }
   }
 
@@ -453,4 +482,842 @@ body.realdark .ant-modal-wrap [class*='payment'] .ant-descriptions-item-content 
   .page-sub {
     color: rgba(255, 255, 255, 0.45) !important;
   }
+
+  /* ========== 9. Theory Library Page Specific Dark Overrides ========== */
+  .library-card {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    
+    &:hover {
+      background: var(--color-surface-2) !important;
+      border-color: #3e3e3e !important;
+    }
+  }
+
+  .platform-icon--library {
+    background: #2a2a2a !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    border-color: var(--color-border) !important;
+  }
+
+  .card-meta--library {
+    border-top-color: var(--color-divider) !important;
+    color: var(--color-text-faint) !important;
+  }
+
+  /* ========== 10. Drawer / Settings Drawer Specific Dark Overrides ========== */
+  .ant-drawer-content {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+  }
+  .ant-drawer-header {
+    background-color: var(--color-surface) !important;
+    border-bottom: 1px solid var(--color-divider) !important;
+    color: var(--color-text) !important;
+  }
+  .ant-drawer-title {
+    color: var(--color-text) !important;
+  }
+  .ant-drawer-close {
+    color: var(--color-text-faint) !important;
+    &:hover {
+      color: var(--color-text) !important;
+    }
+  }
+
+  /* Setting Drawer Items */
+  .setting-drawer-index-title {
+    color: var(--color-text) !important;
+  }
+  .ant-divider {
+    background-color: var(--color-divider) !important;
+  }
+  .ant-list-item-meta {
+    color: var(--color-text) !important;
+    
+    div {
+      color: var(--color-text) !important;
+    }
+  }
+  .ant-list-item {
+    color: var(--color-text) !important;
+    border-bottom-color: var(--color-divider) !important;
+  }
+
+  /* ========== 11. Global Tab Legibility Overrides ========== */
+  .ant-tabs-nav .ant-tabs-tab {
+    color: var(--color-text-muted) !important;
+    
+    &:hover {
+      color: var(--color-primary) !important;
+    }
+  }
+  .ant-tabs-nav .ant-tabs-tab-active {
+    color: var(--color-primary) !important;
+    font-weight: 650 !important;
+  }
+
+  /* ========== 12. Global Button Dark Mode Overrides ========== */
+  .ant-btn,
+  .ant-btn-dashed,
+  .ant-btn-ghost,
+  .ant-btn-default {
+    background: #2a2a2a !important;
+    border-color: #303030 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    
+    &:hover, &:focus {
+      background: #333333 !important;
+      border-color: var(--color-primary) !important;
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+  }
+
+  .ant-btn-primary {
+    background: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: #ffffff !important;
+    
+    &:hover, &:focus {
+      background: var(--color-primary) !important;
+      opacity: 0.9 !important;
+    }
+  }
+
+  .ant-btn[disabled],
+  .ant-btn[disabled]:hover,
+  .ant-btn[disabled]:focus,
+  .ant-btn[disabled]:active {
+    background: #222222 !important;
+    border-color: #303030 !important;
+    color: rgba(255, 255, 255, 0.25) !important;
+  }
+
+  /* ========== 13. Global Form Element Dark Mode Overrides ========== */
+  .ant-form-item-label label {
+    color: var(--color-text-muted) !important;
+  }
+
+  .ant-input,
+  .ant-input-number,
+  .ant-textarea,
+  .ant-select-selection {
+    background-color: var(--color-surface-2) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text) !important;
+    
+    &:hover, &:focus {
+      border-color: var(--color-primary) !important;
+    }
+  }
+  
+  .ant-select-arrow {
+    color: var(--color-text-faint) !important;
+  }
+
+  /* ========== 14. My Plan Page Specific Overrides ========== */
+  .empty-section {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: none !important;
+    
+    .empty-title {
+      color: var(--color-text) !important;
+    }
+    .empty-body {
+      color: var(--color-text-muted) !important;
+    }
+    .empty-icon-wrap {
+      background: var(--color-surface-offset) !important;
+      color: var(--color-primary) !important;
+    }
+  }
+
+  /* ========== 15. Plan Drafter Specific Overrides ========== */
+  .tp-disclaimer {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-left-color: #f59e0b !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    
+    i {
+      color: #f59e0b !important;
+    }
+  }
+
+  /* ========== 16. Macro Intelligence Page Specific Dark Overrides ========== */
+  .visual-branch-map {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: none !important;
+  }
+  
+  .map-branch-box {
+    background: var(--color-surface-2) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: none !important;
+    
+    &:hover {
+      border-color: var(--color-primary) !important;
+    }
+    
+    .branch-node {
+      .branch-node-title {
+        color: var(--color-text) !important;
+      }
+      .branch-node-summary {
+        background: var(--color-surface-offset) !important;
+        color: var(--color-text-muted) !important;
+      }
+    }
+  }
+  
+  .indicator-pills .pill-item {
+    background: var(--color-surface-offset) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text-muted) !important;
+    
+    &:hover {
+      background: var(--color-primary) !important;
+      color: #ffffff !important;
+      border-color: var(--color-primary) !important;
+    }
+  }
+  
+  .branch-section-block {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    box-shadow: none !important;
+    
+    .section-block-header {
+      .header-left h2 {
+        color: var(--color-text) !important;
+      }
+    }
+    
+    .section-block-desc {
+      color: var(--color-text-muted) !important;
+    }
+  }
+  
+  .indicator-card {
+    background: var(--color-surface-2) !important;
+    border-color: var(--color-border) !important;
+    
+    &:hover {
+      background: var(--color-surface-offset) !important;
+    }
+    
+    &.expanded {
+      background: var(--color-surface) !important;
+      border-color: var(--color-border) !important;
+    }
+    
+    .card-header-bar {
+      .header-left {
+        .indicator-name {
+          color: var(--color-text) !important;
+        }
+        .indicator-label {
+          color: var(--color-text-muted) !important;
+        }
+      }
+      .header-right {
+        .indicator-value {
+          color: var(--color-text) !important;
+          
+          &.unavailable {
+            color: var(--color-text-faint) !important;
+          }
+        }
+      }
+    }
+    
+    .card-expanded-content {
+      background: var(--color-surface) !important;
+      border-top-color: var(--color-divider) !important;
+      
+      .education-block, .rule-block, .relationship-block {
+        .block-title {
+          color: var(--color-text-faint) !important;
+        }
+        .block-text {
+          color: var(--color-text-muted) !important;
+          
+          &.meaning-text {
+            color: var(--color-text) !important;
+          }
+        }
+      }
+      
+      .relationship-item {
+        color: var(--color-text-muted) !important;
+        .rel-target {
+          color: var(--color-text) !important;
+        }
+      }
+      
+      .provenance-block {
+        border-top-color: var(--color-divider) !important;
+        
+        .prov-meta-line {
+          color: var(--color-text-faint) !important;
+        }
+        
+        .rule-badge-container .rule-badge {
+          background: var(--color-surface-offset) !important;
+          color: var(--color-text-muted) !important;
+        }
+      }
+    }
+  }
+
+  /* ==========================================================================
+     GlobalQuoteBar (Top persistent bar in Stock Research)
+     ========================================================================== */
+  .global-quote-bar {
+    background: var(--color-surface) !important;
+    border-bottom-color: var(--color-border) !important;
+    box-shadow: none !important;
+    
+    .current-price {
+      color: var(--color-text) !important;
+    }
+    
+    .stats-row .stat-item {
+      .label {
+        color: var(--color-text-muted) !important;
+      }
+      .value {
+        color: var(--color-text) !important;
+      }
+    }
+  }
+
+  /* ==========================================================================
+     Stock Research Detail Pages (Overview, Financials, Technicals)
+     ========================================================================== */
+  .stock-research-workspace {
+    background-color: transparent !important;
+    
+    /* 1. Global Tab Headers */
+    .ant-tabs-nav .ant-tabs-tab {
+      color: var(--color-text-muted) !important;
+      &:hover { color: var(--color-primary) !important; }
+    }
+    .ant-tabs-nav .ant-tabs-tab-active {
+      color: var(--color-primary) !important;
+      font-weight: 650 !important;
+    }
+    
+    /* 2. Overview Tab */
+    .overview-tab {
+      .fin-card {
+        background: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        
+        .ant-card-head {
+          border-bottom-color: var(--color-border) !important;
+        }
+        
+        .data-row {
+          span {
+            color: var(--color-text-muted) !important;
+          }
+          
+          strong {
+            &.cyan { color: #13c2c2 !important; }
+            &.positive { color: #52c41a !important; }
+            &.negative { color: #f5222d !important; }
+            &.text-primary { color: var(--color-text) !important; }
+            &.yellow { color: #fadb14 !important; }
+          }
+        }
+      }
+      
+      .chart-panel {
+        background: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        
+        .chart-header .period-label {
+          color: var(--color-text-muted) !important;
+        }
+        
+        .period-btn {
+          border-color: var(--color-border) !important;
+          color: var(--color-text-muted) !important;
+          background: transparent !important;
+          
+          &:hover {
+            color: var(--color-primary) !important;
+            border-color: var(--color-primary) !important;
+          }
+          
+          &.active {
+            background: var(--color-primary) !important;
+            border-color: var(--color-primary) !important;
+            color: #141414 !important;
+          }
+        }
+      }
+      
+      .company-desc-panel {
+        background: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        
+        .panel-title {
+          color: #13c2c2 !important;
+        }
+        
+        .desc-text {
+          color: var(--color-text-muted) !important;
+        }
+      }
+      
+      .rec-badge {
+        background: var(--color-surface-offset) !important;
+        color: var(--color-text) !important;
+      }
+    }
+    
+    /* 3. Financials Tab */
+    .financials-tab {
+      .financials-container {
+        background: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+      }
+      
+      .statement-helper {
+        background: rgba(250, 173, 20, 0.1) !important;
+        border-left-color: #faad14 !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+      }
+      
+      .external-roic-link {
+        background: var(--color-surface-offset) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text-muted) !important;
+        
+        &:hover {
+          color: var(--color-primary) !important;
+          background: rgba(123, 197, 154, 0.15) !important;
+          border-color: var(--color-primary) !important;
+        }
+      }
+      
+      .financials-table {
+        background: transparent !important;
+        
+        .ant-table-thead > tr > th {
+          background: var(--color-surface-2) !important;
+          color: var(--color-text) !important;
+          border-bottom-color: var(--color-border) !important;
+        }
+        
+        .ant-table-tbody > tr > td {
+          border-bottom-color: var(--color-divider) !important;
+        }
+        
+        .metric-name {
+          color: var(--color-text) !important;
+        }
+        
+        .value-default {
+          color: var(--color-text) !important;
+        }
+      }
+    }
+    
+    /* 4. Technicals Tab */
+    .technicals-tab {
+      .tech-disclaimer {
+        background: rgba(250, 173, 20, 0.1) !important;
+        border-color: rgba(250, 173, 20, 0.3) !important;
+        border-left-color: #faad14 !important;
+        
+        .disclaimer-title {
+          color: #faad14 !important;
+        }
+        
+        .disclaimer-body {
+          color: rgba(255, 255, 255, 0.8) !important;
+        }
+      }
+      
+      .section-card {
+        background: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        
+        .section-title {
+          border-bottom-color: var(--color-border) !important;
+        }
+        
+        .ant-table-thead > tr > th {
+          background: var(--color-surface-2) !important;
+          color: var(--color-text) !important;
+          border-bottom-color: var(--color-border) !important;
+        }
+        
+        .ant-table-tbody > tr > td {
+          border-bottom-color: var(--color-divider) !important;
+          color: var(--color-text) !important;
+        }
+        
+        .ind-value {
+          color: var(--color-text) !important;
+        }
+      }
+    }
+  }
+
+  /* ==========================================================================
+     Macro Domain Sub-Page & Deep-Dive Overrides
+     ========================================================================== */
+  .macro-domain-page {
+    .back-link {
+      color: var(--color-text-muted) !important;
+      &:hover { color: var(--color-primary) !important; }
+    }
+    
+    .dimension-title {
+      color: var(--color-text) !important;
+    }
+    
+    .core-question {
+      color: var(--color-text-muted) !important;
+    }
+    
+    .provenance-legend {
+      background: var(--color-surface-2) !important;
+      border-color: var(--color-border) !important;
+      color: var(--color-text-muted) !important;
+    }
+    
+    .status-card {
+      background: var(--color-surface) !important;
+      border: 1px solid var(--color-border) !important;
+      
+      .status-eyebrow {
+        color: var(--color-text-muted) !important;
+      }
+      
+      .status-thesis {
+        color: var(--color-text) !important;
+      }
+      
+      .implication-box {
+        background: rgba(24, 144, 255, 0.08) !important;
+        border-left-color: var(--color-primary) !important;
+        
+        .implication-label {
+          color: var(--color-primary) !important;
+        }
+        
+        .implication-text {
+          color: var(--color-text-muted) !important;
+        }
+      }
+    }
+    
+    .section-heading {
+      color: var(--color-text) !important;
+      border-bottom-color: var(--color-border) !important;
+    }
+    
+    .tw-box, .hw-box {
+      border-color: var(--color-border) !important;
+      
+      .tw-hw-list {
+        background: var(--color-surface-2) !important;
+        
+        li {
+          color: var(--color-text) !important;
+          border-bottom-color: var(--color-divider) !important;
+          
+          &::before {
+            color: var(--color-text-faint) !important;
+          }
+        }
+      }
+    }
+    
+    .watch-item {
+      background: var(--color-surface-2) !important;
+      border-color: var(--color-border) !important;
+      
+      .watch-index {
+        color: var(--color-surface-offset) !important;
+      }
+      
+      .watch-label {
+        color: var(--color-text) !important;
+      }
+      
+      .watch-desc {
+        color: var(--color-text-muted) !important;
+      }
+    }
+    
+    /* 1. Global collapse and static cards in Macro Detail */
+    .education-collapse {
+      background: var(--color-surface) !important;
+      border-color: var(--color-border) !important;
+      
+      &:hover {
+        border-color: var(--color-text-faint) !important;
+      }
+      
+      .ant-collapse-header {
+        background: var(--color-surface) !important;
+        border-bottom-color: var(--color-border) !important;
+        
+        &:hover {
+          background: var(--color-surface-2) !important;
+        }
+      }
+      
+      .edu-chevron-circle {
+        background: var(--color-surface-offset) !important;
+        
+        &.active {
+          background: rgba(24, 144, 255, 0.15) !important;
+          .edu-chevron-icon {
+            color: var(--color-primary) !important;
+          }
+        }
+      }
+      
+      .edu-chevron-icon {
+        color: var(--color-text-muted) !important;
+      }
+      
+      .education-title {
+        color: var(--color-text) !important;
+        
+        .education-book-icon {
+          color: var(--color-primary) !important;
+        }
+      }
+      
+      .education-subtitle {
+        color: var(--color-text-muted) !important;
+      }
+      
+      .education-badge {
+        color: var(--color-text-muted) !important;
+        background: var(--color-surface-offset) !important;
+        border-color: var(--color-border) !important;
+        
+        &.active {
+          color: var(--color-primary) !important;
+          background: rgba(24, 144, 255, 0.15) !important;
+          border-color: rgba(24, 144, 255, 0.3) !important;
+        }
+      }
+      
+      .education-legend-notice {
+        background: var(--color-surface-offset) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text-muted) !important;
+      }
+      
+      .education-content {
+        background: var(--color-surface-2) !important;
+      }
+      
+      .section-desc {
+        background: var(--color-surface) !important;
+        color: var(--color-text-muted) !important;
+        border-left-color: var(--color-primary) !important;
+      }
+      
+      .edu-group {
+        .group-title {
+          color: var(--color-text) !important;
+          border-bottom-color: var(--color-border) !important;
+        }
+        .group-desc {
+          color: var(--color-text-muted) !important;
+        }
+      }
+      
+      .indicator-card {
+        background: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        
+        &:hover {
+          border-color: var(--color-text-faint) !important;
+        }
+        
+        .ind-header .ind-name {
+          color: var(--color-text) !important;
+        }
+        
+        .ind-desc {
+          color: var(--color-text-muted) !important;
+        }
+        
+        .ind-why {
+          background: rgba(24, 144, 255, 0.08) !important;
+          color: var(--color-text-muted) !important;
+          
+          .why-label {
+            color: var(--color-primary) !important;
+          }
+        }
+        
+        .ind-thresholds {
+          .threshold-label {
+            color: var(--color-text) !important;
+          }
+          
+          .threshold-list li {
+            border-bottom-color: var(--color-divider) !important;
+          }
+          
+          .th-range {
+            color: var(--color-text) !important;
+          }
+          
+          .th-meaning {
+            color: var(--color-text-muted) !important;
+          }
+        }
+      }
+    }
+  }
+
+  /* ==========================================================================
+     Metric Category & Insight Cards (Macro Intelligence Detail list)
+     ========================================================================== */
+  .metric-category-section {
+    .category-title {
+      color: var(--color-text) !important;
+      border-bottom-color: var(--color-border) !important;
+      
+      &::after {
+        background: var(--color-primary) !important;
+      }
+    }
+    
+    .advanced-section {
+      background: var(--color-surface-2) !important;
+      border-color: var(--color-border) !important;
+      
+      .advanced-toggle {
+        color: var(--color-text-muted) !important;
+        
+        &:hover {
+          color: var(--color-text) !important;
+        }
+      }
+    }
+  }
+  
+  .metric-insight-card {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    
+    &:hover {
+      border-color: var(--color-text-faint) !important;
+      box-shadow: none !important;
+    }
+    
+    .card-header {
+      background: var(--color-surface-2) !important;
+      border-bottom-color: var(--color-border) !important;
+      
+      .metric-title {
+        color: var(--color-text) !important;
+      }
+    }
+    
+    .insight-label {
+      color: var(--color-text-muted) !important;
+      
+      &.highlight {
+        color: var(--color-primary) !important;
+      }
+    }
+    
+    .insight-text {
+      color: var(--color-text) !important;
+    }
+    
+    .direction-grid {
+      background: var(--color-surface-2) !important;
+    }
+    
+    .card-footer-charts {
+      background: var(--color-surface-2) !important;
+      border-top-color: var(--color-border) !important;
+    }
+    
+    .chart-wrapper {
+      background: var(--color-surface) !important;
+      border-color: var(--color-border) !important;
+      
+      &:hover {
+        border-color: var(--color-text-faint) !important;
+      }
+    }
+    
+    .macro-metric-chart-container {
+      background: transparent !important;
+      border-color: transparent !important;
+      
+      .chart-header {
+        .chart-title {
+          color: var(--color-text) !important;
+        }
+        .chart-unit {
+          color: var(--color-text-muted) !important;
+        }
+      }
+    }
+  }
+
+  .macro-metric-chart-container {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    
+    .chart-header {
+      .chart-title {
+        color: var(--color-text) !important;
+      }
+      .chart-unit {
+        color: var(--color-text-muted) !important;
+      }
+    }
+  }
+
+  /* ==========================================================================
+     Sidebar Logo & Brand Name Dark Mode Visibility
+     ========================================================================== */
+  .sidebar-text-logo img {
+    filter: brightness(0) invert(0.95) !important;
+  }
+  
+  .sidebar-logo-wrapper--collapsed .sidebar-text-logo {
+    border-color: var(--color-border) !important;
+  }
+
+  /* ==========================================================================
+     Ant Design Table Fixed Columns dark mode backgrounds
+     ========================================================================== */
+  .ant-table-tbody > tr > td.ant-table-fixed-columns-in-left,
+  .ant-table-tbody > tr > td.ant-table-fixed-columns-in-right,
+  .ant-table-fixed-left .ant-table-tbody > tr > td,
+  .ant-table-fixed-right .ant-table-tbody > tr > td {
+    background-color: var(--color-surface) !important;
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+  }
+  
+  .ant-table-fixed-left .ant-table-thead > tr > th,
+  .ant-table-fixed-right .ant-table-thead > tr > th {
+    background-color: var(--color-surface-2) !important;
+    background: var(--color-surface-2) !important;
+    color: var(--color-text) !important;
+  }
 }
+

@@ -224,14 +224,15 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--color-surface-2);
+  color: var(--color-text);
   font-size: 20px;
+  border: 1px solid var(--color-border);
 }
 
 .page-title {
   margin: 0;
-  color: #1f2933;
+  color: var(--color-text);
   font-size: 26px;
   font-weight: 650;
   letter-spacing: 0;
@@ -239,7 +240,7 @@ export default {
 
 .page-sub {
   margin: 3px 0 0;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -247,7 +248,7 @@ export default {
 /* ── Section Labels ──────────────────────────── */
 .section-label {
   margin: 0 0 10px;
-  color: #1d6f4f;
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -259,7 +260,7 @@ export default {
 
   h2 {
     margin: 0;
-    color: #1f2933;
+    color: var(--color-text);
     font-size: 15px;
     font-weight: 650;
     letter-spacing: 0;
@@ -267,7 +268,7 @@ export default {
 
   p {
     margin: 3px 0 0;
-    color: #6b7280;
+    color: var(--color-text-muted);
     font-size: 12px;
     line-height: 1.5;
   }
@@ -284,21 +285,21 @@ export default {
   gap: 20px;
   margin-bottom: 4px;
   padding: 24px 26px;
-  border: 1px solid #e6e2dc;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-surface);
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
 
   &:hover {
-    border-color: #c8d5ce;
-    background: #fbfaf8;
+    border-color: var(--color-primary);
+    background: var(--color-surface-2);
     color: inherit;
     text-decoration: none;
 
     .core-external {
-      color: #111827;
+      color: var(--color-text);
       transform: translate(2px, -2px);
     }
   }
@@ -312,8 +313,8 @@ export default {
   justify-content: center;
   flex-shrink: 0;
   border-radius: 8px;
-  background: #111827;
-  color: #ffffff;
+  background: var(--color-text);
+  color: var(--color-surface);
 }
 
 .core-icon {
@@ -327,7 +328,7 @@ export default {
 
 .core-title {
   margin: 0 0 6px;
-  color: #1f2933;
+  color: var(--color-text);
   font-size: 22px;
   font-weight: 650;
   line-height: 1.25;
@@ -336,14 +337,14 @@ export default {
 
 .core-subtitle {
   margin: 0;
-  color: #374151;
+  color: var(--color-text-muted);
   font-size: 14px;
   line-height: 1.6;
 }
 
 .core-external {
   align-self: flex-start;
-  color: #9ca3af;
+  color: var(--color-text-faint);
   font-size: 15px;
   transition: color 0.18s ease, transform 0.18s ease;
 }
@@ -368,33 +369,33 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 20px;
-  border: 1px solid #e6e2dc;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-surface);
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
 
   &:hover {
-    border-color: #c8d5ce;
-    background: #fbfaf8;
+    border-color: var(--color-primary);
+    background: var(--color-surface-2);
     color: inherit;
     text-decoration: none;
 
     .external-icon {
-      color: #374151;
+      color: var(--color-text-muted);
       transform: translate(2px, -2px);
     }
   }
 }
 
 .library-card {
-  border-color: #ece9e4;
-  background: #fafaf9;
+  border-color: var(--color-border);
+  background: var(--color-surface-2);
 
   &:hover {
-    border-color: #c8d5ce;
-    background: #f5f4f0;
+    border-color: var(--color-primary);
+    background: var(--color-surface-offset);
   }
 }
 
@@ -413,21 +414,21 @@ export default {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #eef7f1;
-  color: #1d6f4f;
-  border: 1px solid #dbeadf;
+  background: rgba(29, 111, 79, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(29, 111, 79, 0.15);
   font-size: 18px;
   line-height: 1;
 }
 
 .platform-icon--library {
-  background: #f3f4f6;
-  color: #374151;
-  border-color: #e5e7eb;
+  background: var(--color-surface-offset);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
 }
 
 .external-icon {
-  color: #9ca3af;
+  color: var(--color-text-faint);
   font-size: 14px;
   transition: color 0.18s ease, transform 0.18s ease;
 }
@@ -439,7 +440,7 @@ export default {
 
 .card-title {
   margin: 0 0 6px;
-  color: #1f2933;
+  color: var(--color-text);
   font-size: 16px;
   font-weight: 650;
   line-height: 1.3;
@@ -448,7 +449,7 @@ export default {
 
 .card-subtitle {
   margin: 0;
-  color: #4b5563;
+  color: var(--color-text-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -458,8 +459,8 @@ export default {
   margin: 12px 0 0;
   padding: 4px 8px;
   border-radius: 5px;
-  background: #f0f0ee;
-  color: #374151;
+  background: var(--color-surface-offset);
+  color: var(--color-text-muted);
   font-size: 11.5px;
   font-weight: 600;
   font-family: 'SF Mono', 'Fira Mono', monospace;
@@ -470,8 +471,8 @@ export default {
 .card-meta {
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid #f0eeeb;
-  color: #9ca3af;
+  border-top: 1px solid var(--color-divider);
+  color: var(--color-text-faint);
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -479,8 +480,8 @@ export default {
 }
 
 .card-meta--library {
-  border-top-color: #ece9e4;
-  color: #a0aec0;
+  border-top-color: var(--color-divider);
+  color: var(--color-text-faint);
 }
 
 /* ── Responsive ──────────────────────────────── */

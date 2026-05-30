@@ -48,6 +48,23 @@ export default {
       metricUnit: ''
     }
   },
+  computed: {
+    theme () {
+      return this.$store.getters.theme
+    },
+    isDark () {
+      return this.theme === 'dark' || this.theme === 'realdark'
+    }
+  },
+  watch: {
+    isDark () {
+      this.$nextTick(() => {
+        if (this.chartInstance) {
+          this.initChart()
+        }
+      })
+    }
+  },
   mounted () {
     this.fetchData()
     window.addEventListener('resize', this.handleResize)
@@ -166,6 +183,7 @@ export default {
       }
 
       const option = {
+        backgroundColor: 'transparent',
         tooltip: {
           trigger: 'axis',
           axisPointer: {
@@ -173,7 +191,10 @@ export default {
             label: {
               backgroundColor: '#6a7985'
             }
-          }
+          },
+          backgroundColor: this.isDark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.9)',
+          borderColor: this.isDark ? '#3a3a3a' : '#e8e8e8',
+          textStyle: { color: this.isDark ? 'rgba(255, 255, 255, 0.85)' : '#262626' }
         },
         grid: {
           left: '3%',
@@ -189,11 +210,11 @@ export default {
             data: dates,
             axisLine: {
               lineStyle: {
-                color: '#d9d9d9'
+                color: this.isDark ? '#3a3a3a' : '#d9d9d9'
               }
             },
             axisLabel: {
-              color: '#8c8c8c'
+              color: this.isDark ? 'rgba(255, 255, 255, 0.45)' : '#8c8c8c'
             }
           }
         ],
@@ -205,11 +226,11 @@ export default {
             splitLine: {
               lineStyle: {
                 type: 'dashed',
-                color: '#f0f0f0'
+                color: this.isDark ? '#303030' : '#f0f0f0'
               }
             },
             axisLabel: {
-              color: '#8c8c8c'
+              color: this.isDark ? 'rgba(255, 255, 255, 0.45)' : '#8c8c8c'
             }
           }
         ],

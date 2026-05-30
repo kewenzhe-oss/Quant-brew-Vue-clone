@@ -23,7 +23,20 @@ export default {
       chartInstance: null
     }
   },
+  computed: {
+    theme () {
+      return this.$store.getters.theme
+    },
+    isDark () {
+      return this.theme === 'dark' || this.theme === 'realdark'
+    }
+  },
   watch: {
+    isDark () {
+      this.$nextTick(() => {
+        this.renderChart()
+      })
+    },
     history: {
       deep: true,
       handler () {
@@ -67,13 +80,13 @@ export default {
       ])
 
       const option = {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
         tooltip: {
           trigger: 'axis',
           axisPointer: { type: 'cross' },
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderColor: '#e8e8e8',
-          textStyle: { color: '#262626' }
+          backgroundColor: this.isDark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.9)',
+          borderColor: this.isDark ? '#3a3a3a' : '#e8e8e8',
+          textStyle: { color: this.isDark ? 'rgba(255, 255, 255, 0.85)' : '#262626' }
         },
         grid: {
           left: '2%',
@@ -87,16 +100,16 @@ export default {
           data: timestamps,
           scale: true,
           boundaryGap: false,
-          axisLine: { lineStyle: { color: '#d9d9d9' } },
-          axisLabel: { color: '#8c8c8c' },
+          axisLine: { lineStyle: { color: this.isDark ? '#3a3a3a' : '#d9d9d9' } },
+          axisLabel: { color: this.isDark ? 'rgba(255, 255, 255, 0.45)' : '#8c8c8c' },
           splitLine: { show: false }
         },
         yAxis: {
           scale: true,
           axisLine: { show: false },
           axisTick: { show: false },
-          axisLabel: { color: '#8c8c8c' },
-          splitLine: { lineStyle: { color: '#f0f0f0', type: 'dashed' } }
+          axisLabel: { color: this.isDark ? 'rgba(255, 255, 255, 0.45)' : '#8c8c8c' },
+          splitLine: { lineStyle: { color: this.isDark ? '#303030' : '#f0f0f0', type: 'dashed' } }
         },
         dataZoom: [
           { type: 'inside', start: 0, end: 100 }

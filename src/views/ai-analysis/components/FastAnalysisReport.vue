@@ -1714,6 +1714,32 @@ export default {
       }
     }
 
+    .crypto-factor-summary {
+      background: linear-gradient(135deg, rgba(24, 144, 255, 0.08), rgba(52, 211, 153, 0.05)) !important;
+      border-color: @dk-border !important;
+      .crypto-factor-score {
+        color: @dk-text !important;
+        &.bullish { color: #34d399 !important; }
+        &.bearish { color: #f87171 !important; }
+        &.neutral { color: #fbbf24 !important; }
+        strong { color: inherit !important; }
+        &__num { background: rgba(255, 255, 255, 0.08) !important; color: @dk-text !important; }
+      }
+      .crypto-factor-summary__text { color: @dk-text2 !important; }
+    }
+    
+    .crypto-factor-item {
+      background: @dk-surface2 !important;
+      border-color: @dk-border !important;
+      .crypto-factor-item__label { color: @dk-text2 !important; }
+      .crypto-factor-item__value {
+        color: @dk-text !important;
+        &.bullish { color: #34d399 !important; }
+        &.bearish { color: #f87171 !important; }
+      }
+      .crypto-factor-item__hint { color: @dk-text3 !important; }
+    }
+
     .feedback-section {
       background: @dk-surface;
       .feedback-question { color: @dk-text3; }
