@@ -877,7 +877,7 @@ export default {
         const preferCdnEnv = (process.env.VUE_APP_PYODIDE_PREFER_CDN || '').toString().toLowerCase()
         const preferCdn = preferCdnEnv
           ? (preferCdnEnv === 'true' || preferCdnEnv === '1' || preferCdnEnv === 'yes')
-          : (process.env.NODE_ENV === 'production')
+          : false // Default to local-first to avoid jsDelivr/CDN blockages in production
 
         const loadScript = (src) => new Promise((resolve, reject) => {
           // If script already inserted, reuse it
