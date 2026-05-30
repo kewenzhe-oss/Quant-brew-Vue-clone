@@ -556,4 +556,148 @@ export default {
     font-size: 13px !important;
   }
 }
+
+/* ========== Dark Theme Overrides to Prevent White Flash (Pass 6) ========== */
+body.dark &, body.realdark & {
+  &.my-plan-page {
+    background: transparent !important;
+  }
+
+  .state-box {
+    background: #1c1c1c !important;
+    border-color: #2a2a2a !important;
+    box-shadow: none !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .plan-card {
+    background: #1c1c1c !important;
+    border-color: #2a2a2a !important;
+    box-shadow: none !important;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+    }
+  }
+
+  .plan-symbol {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .plan-badge {
+    background: #2a2a2a !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .plan-type-badge {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #3b82f6 !important;
+  }
+
+  .plan-card-header {
+    border-bottom-color: #2a2a2a !important;
+  }
+
+  .plan-summary {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  .budget-preview {
+    background: #141414 !important;
+    border-color: #2a2a2a !important;
+  }
+
+  .bp-label {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .bp-amount {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .bp-divider {
+    background: #2a2a2a !important;
+  }
+
+  .plan-card-footer {
+    border-top-color: #2a2a2a !important;
+  }
+
+  .plan-attrs {
+    color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  .plan-dates {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  .empty-section {
+    background: #1c1c1c !important;
+    border-color: #2a2a2a !important;
+    box-shadow: none !important;
+  }
+
+  .empty-title {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .empty-body {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .action-secondary {
+    background: #2a2a2a !important;
+    border-color: #333333 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+
+    &:hover {
+      border-color: #6366f1 !important;
+      color: #6366f1 !important;
+    }
+  }
+
+  .info-card {
+    background: #1c1c1c !important;
+    border-color: #2a2a2a !important;
+    box-shadow: none !important;
+  }
+
+  .info-title {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .info-item-title {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  .info-item-desc {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  .page-title {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .page-desc {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
+  /* Ant Tabs overrides in dark mode */
+  :deep(.ant-tabs-bar) {
+    border-bottom-color: #2a2a2a !important;
+  }
+
+  :deep(.ant-tabs-tab) {
+    color: rgba(255, 255, 255, 0.65) !important;
+
+    &:hover {
+      color: #1890ff !important;
+    }
+
+    &-active {
+      color: #1890ff !important;
+      font-weight: 600;
+    }
+  }
+}
 </style>

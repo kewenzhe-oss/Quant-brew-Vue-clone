@@ -210,7 +210,8 @@
 <script>
 import { Empty } from 'ant-design-vue'
 import { getMacroViewModel } from '@/views/macro-intelligence/adapters'
-import { getWatchlist, getWatchlistPrices } from '@/api/market'
+import { getWatchlist, getWatchlistPrices, fetchCryptoBatch, fetchStockBatch } from '@/api/market'
+import { normalizeCryptoItem, normalizeStockItem } from '@/utils/normalizeWatchlistItem'
 import { getPlans } from '@/api/plans'
 import request from '@/utils/request'
 
@@ -244,7 +245,8 @@ export default {
       watchlistLoading: true,
       watchlistError: null,
       plans: [],
-      plansLoading: false
+      plansLoading: false,
+      watchlistTimer: null
     }
   },
   watch: {
@@ -258,6 +260,18 @@ export default {
     this.fetchMacroData()
     this.loadWatchlist()
     this.loadPlans()
+    
+    // Poll watchlist prices every 30 seconds
+    this.watchlistTimer = setInterval(() => {
+      if (this.watchlist && this.watchlist.length > 0) {
+        this.fetchWatchlistPrices(this.watchlist)
+      }
+    }, 30000)
+  },
+  beforeDestroy () {
+    if (this.watchlistTimer) {
+      clearInterval(this.watchlistTimer)
+    }
   },
   methods: {
     async fetchMacroData () {
@@ -382,25 +396,44 @@ export default {
     },
     async fetchWatchlistPrices (items) {
       try {
-        const reqList = items.map(i => ({ market: i.market, symbol: i.symbol }))
-        const res = await getWatchlistPrices({ watchlist: reqList })
-        let priceData = []
-        if (res && res.code === 1 && res.data) {
-          priceData = res.data
-        }
+        const cryptoSymbols = items
+          .filter(i => i.market === 'Crypto')
+          .map(i => i.symbol)
 
-        if (Array.isArray(priceData)) {
-          const newWatchlist = [...this.watchlist]
-          priceData.forEach(p => {
-            const match = newWatchlist.find(w => w.market === p.market && w.symbol === p.symbol)
-            if (match) {
-              match.price = p.price
-              match.changePercent = p.changePercent
-              match.priceAvailable = p.price !== undefined && p.price !== null && !p.error
+        const stockSymbols = items
+          .filter(i => i.market === 'USStock')
+          .map(i => i.symbol)
+
+        const [cryptoData, stockData] = await Promise.all([
+          fetchCryptoBatch(cryptoSymbols),
+          fetchStockBatch(stockSymbols)
+        ])
+
+        const normalizedCrypto = (cryptoData || []).map(normalizeCryptoItem)
+        const normalizedStock = (stockData || []).map(normalizeStockItem)
+
+        const priceMap = {}
+        normalizedCrypto.forEach(item => {
+          priceMap[`Crypto-${item.symbol}`] = item
+        })
+        normalizedStock.forEach(item => {
+          priceMap[`USStock-${item.symbol}`] = item
+        })
+
+        const newWatchlist = this.watchlist.map(item => {
+          const key = `${item.market}-${item.symbol}`
+          const priceData = priceMap[key]
+          if (priceData) {
+            return {
+              ...item,
+              price: priceData.price || 0,
+              changePercent: priceData.changePercent || 0,
+              priceAvailable: priceData.price !== undefined && priceData.price !== null && !priceData.error
             }
-          })
-          this.watchlist = newWatchlist
-        }
+          }
+          return item
+        })
+        this.watchlist = newWatchlist
       } catch (e) {
         console.error('[Today] Watchlist prices fetch failed:', e)
       }
@@ -499,8 +532,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  transition: border-color 0.15s;
-  &:hover { border-color: #d0e4ff; }
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+  }
 }
 
 .metric-label {
@@ -703,11 +741,12 @@ export default {
   background: #fafafa;
   color: inherit;
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
-    border-color: #d0e4ff;
-    background: #f0f7ff;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.06);
+    border-color: #faad14;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(250, 173, 20, 0.08);
+    transform: translateY(-2px);
   }
 }
 

@@ -257,3 +257,40 @@ export function getHotSymbols (parameter) {
     params: parameter
   })
 }
+
+/**
+ * 批量获取加密货币价格
+ * @param {string[]} symbols 
+ * @returns {Promise<any[]>}
+ */
+export function fetchCryptoBatch (symbols) {
+  const watchlist = (symbols || []).map(symbol => ({ market: 'Crypto', symbol }))
+  return getWatchlistPrices({ watchlist })
+    .then(res => (res && res.code === 1 && res.data) ? res.data : [])
+}
+
+/**
+ * 批量获取股票价格
+ * @param {string[]} symbols 
+ * @returns {Promise<any[]>}
+ */
+export function fetchStockBatch (symbols) {
+  const watchlist = (symbols || []).map(symbol => ({ market: 'USStock', symbol }))
+  return getWatchlistPrices({ watchlist })
+    .then(res => (res && res.code === 1 && res.data) ? res.data : [])
+}
+
+/**
+ * AI-driven watchlist addition decision making.
+ * @param {Object} parameter { user_input: string, asset_class: string, existing_watchlist: string[] }
+ * @returns {Promise<any>}
+ */
+export function callIdaWatchlistDecision (parameter) {
+  return request({
+    url: '/api/market/watchlist/decision',
+    method: 'post',
+    data: parameter
+  }).then(res => (res && res.code === 1) ? res.data : null)
+}
+
+

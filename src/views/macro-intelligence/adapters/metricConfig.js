@@ -285,7 +285,7 @@ export const MACRO_METRIC_CONFIG = {
  * @param {string|null} fetchedAtStr - ISO string date
  * @returns {MacroMetric}
  */
-export function formatMacroMetric (metricId, value, fetchedAtStr = null) {
+export function formatMacroMetric (metricId, value, fetchedAtStr = null, sourceType = null) {
   const normalizedMetricId = normalizeMacroMetricId(metricId)
   const displaySpec = getMacroMetricDisplaySpec(metricId)
   const config = MACRO_METRIC_CONFIG[metricId] || MACRO_METRIC_CONFIG[normalizedMetricId] || {
@@ -342,7 +342,13 @@ export function formatMacroMetric (metricId, value, fetchedAtStr = null) {
   } else {
     // Capitalize frequency
     const freqCapitalized = config.frequency.charAt(0).toUpperCase() + config.frequency.slice(1)
-    freshnessLabel = `${config.source} · ${freqCapitalized} · Data as of ${dateDisplay}`
+    let sourcePrefix = config.source
+    if (sourceType === 'fallback') {
+      sourcePrefix += ' (Fallback Source)'
+    } else if (sourceType === 'cached') {
+      sourcePrefix += ' (Cached Snapshot)'
+    }
+    freshnessLabel = `${sourcePrefix} · ${freqCapitalized} · Data as of ${dateDisplay}`
     if (isStale) {
       freshnessLabel += ' · Stale'
     }
@@ -368,11 +374,12 @@ export function formatMacroMetric (metricId, value, fetchedAtStr = null) {
     staleAfterDays,
     isStale,
     freshnessLabel,
-    statusLabel
+    statusLabel,
+    sourceType: sourceType || 'primary'
   }
 }
 
 // Keep formatMacroValue for backwards compatibility while migrating
-export function formatMacroValue (metricId, value, lastUpdated = null) {
-  return formatMacroMetric(metricId, value, lastUpdated)
+export function formatMacroValue (metricId, value, lastUpdated = null, sourceType = null) {
+  return formatMacroMetric(metricId, value, lastUpdated, sourceType)
 }

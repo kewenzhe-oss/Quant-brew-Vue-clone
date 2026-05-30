@@ -11,6 +11,10 @@
         </div>
       </div>
       <div class="header-meta">
+        <div class="meta-badges">
+          <span v-if="sourceTypeBadge" class="source-type-badge" :class="sourceTypeBadge.cls">{{ sourceTypeBadge.label }}</span>
+          <span v-if="showStaleBadge" class="source-type-badge stale-badge">⚠ Stale</span>
+        </div>
         <span class="meta-item data-source" v-if="displayMeta">{{ displayMeta }}</span>
         <span v-if="derivedFromSeries" class="provenance-badge derived">{{ $t('macro.detail.derivedFromSeries') }}</span>
       </div>
@@ -134,6 +138,17 @@ export default {
         color: toneColorMap[evalResult.tone] || 'blue'
       }
     },
+    sourceTypeBadge () {
+      // Only show badge when data is actually present
+      if (!this.hasValue || this.isOriginalMissing) return null
+      const st = this.metric.sourceType || 'primary'
+      if (st === 'fallback') return { label: 'Fallback Source', cls: 'badge-fallback' }
+      if (st === 'cached') return { label: 'Cached Snapshot', cls: 'badge-cached' }
+      return null // Primary is the normal case — no badge needed
+    },
+    showStaleBadge () {
+      return this.metric.isStale === true && this.hasValue && !this.isOriginalMissing
+    },
     localCurrentMeaning () {
       const key = `macro.registry.${this.metric.id}.currentMeaning`
       if (this.$te(key)) return this.$t(key)
@@ -246,6 +261,40 @@ export default {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+}
+
+.meta-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.source-type-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 16px;
+
+  &.badge-fallback {
+    background: #fff7e6;
+    color: #d46b08;
+    border: 1px solid #ffd591;
+  }
+
+  &.badge-cached {
+    background: #f0f0ff;
+    color: #6366f1;
+    border: 1px solid #c7d2fe;
+  }
+
+  &.stale-badge {
+    background: #fff1f0;
+    color: #cf1322;
+    border: 1px solid #ffa39e;
+  }
 }
 
 .meta-item {

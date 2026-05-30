@@ -298,9 +298,9 @@ class="analyze-button">
               <span class="sc-num">{{ watchlistTaskCount }}</span>
               <span class="sc-label">{{ $t('aiAssetAnalysis.watchlist.taskCount') }}</span>
             </div>
-            <div class="summary-chip pnl" v-if="watchlistTotalPnl !== 0">
-              <span class="sc-num" :class="watchlistTotalPnl >= 0 ? 'up' : 'down'">{{ watchlistTotalPnl >= 0 ? '+' : '' }}{{ formatNum(watchlistTotalPnl) }}</span>
-              <span class="sc-label">P&amp;L</span>
+            <div class="summary-chip exposure" v-if="watchlistTotalExposure > 0">
+              <span class="sc-num">${{ formatNum(watchlistTotalExposure) }}</span>
+              <span class="sc-label">{{ ($i18n && $i18n.locale === 'zh-CN') ? '估算敞口' : 'Exposure' }}</span>
             </div>
           </div>
 
@@ -360,12 +360,16 @@ class="analyze-button">
                     </span>
                   </div>
                 </div>
-                <!-- 持仓/盈亏行（仅有持仓时） -->
-                <div class="wl-row-pnl" v-if="positionSummaryMap[`${stock.market}:${stock.symbol}`]">
-                  <span class="wl-pnl-qty">{{ formatNum(positionSummaryMap[`${stock.market}:${stock.symbol}`].quantity, 4) }} @ {{ formatPrice(positionSummaryMap[`${stock.market}:${stock.symbol}`].avgEntry || 0) }}</span>
-                  <span class="wl-pnl-val" :class="positionSummaryMap[`${stock.market}:${stock.symbol}`].pnl >= 0 ? 'up' : 'down'">
-                    {{ positionSummaryMap[`${stock.market}:${stock.symbol}`].pnl >= 0 ? '+' : '' }}{{ formatNum(positionSummaryMap[`${stock.market}:${stock.symbol}`].pnl || 0) }}
-                    ({{ positionSummaryMap[`${stock.market}:${stock.symbol}`].pnlPercent >= 0 ? '+' : '' }}{{ formatNum(positionSummaryMap[`${stock.market}:${stock.symbol}`].pnlPercent || 0) }}%)
+                <!-- Exposure Registry info (if position exists) -->
+                <div class="wl-row-exposure" v-if="positionSummaryMap[`${stock.market}:${stock.symbol}`]" @click.stop="openPositionDetailDrawer(stock)" style="cursor: pointer; transition: all 0.2s; border-radius: 4px;" title="View Exposure Registry">
+                  <span class="wl-pnl-qty" :class="positionSummaryMap[`${stock.market}:${stock.symbol}`].side === 'long' ? 'long' : 'short'">
+                    {{ positionSummaryMap[`${stock.market}:${stock.symbol}`].side === 'long' ? ($t('portfolio.positions.long') || 'Long') : ($t('portfolio.positions.short') || 'Short') }}
+                    {{ formatNum(positionSummaryMap[`${stock.market}:${stock.symbol}`].quantity, 4) }}
+                    <span class="wl-pnl-avg">@ ${{ formatPrice(positionSummaryMap[`${stock.market}:${stock.symbol}`].avgEntry || 0) }}</span>
+                  </span>
+                  <span class="wl-pnl-bucket" v-if="positionSummaryMap[`${stock.market}:${stock.symbol}`].group_name">
+                    <a-icon type="folder" style="margin-right: 2px;" />
+                    {{ positionSummaryMap[`${stock.market}:${stock.symbol}`].group_name }}
                   </span>
                 </div>
                 <!-- 任务状态（仅有任务时） -->
@@ -464,6 +468,47 @@ class="analyze-button">
           </a-list>
         </div>
 
+        <!-- AI Suggested Fallback section -->
+        <div v-if="symbolSearchResults.length === 0 && !searchingSymbols && hasSearched" class="ai-fallback-section" style="margin-top: 16px;">
+          <!-- Loading state -->
+          <div v-if="loadingAiDecision" class="ai-loading" style="padding: 16px 0; text-align: center; color: #999;">
+            <a-spin size="small" style="margin-right: 8px;" />
+            <span>Checking asset via AI Assistant...</span>
+          </div>
+
+          <!-- Error or Ignored reason state -->
+          <div v-else-if="aiDecisionError" class="ai-error" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.06); border-radius: 4px; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); font-size: 13px;">
+            <a-icon type="warning" style="margin-right: 6px;" />
+            <span>{{ aiDecisionError }}</span>
+          </div>
+
+          <!-- AI Suggestion card -->
+          <div v-else-if="aiDecisionResult" class="ai-suggested-card" style="padding: 16px; background: rgba(16, 185, 129, 0.05); border-radius: 6px; border: 1px dashed #10b981;">
+            <div class="section-title" style="font-size: 12px; font-weight: 600; color: #10b981; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+              <span><a-icon type="bulb" style="margin-right: 4px;" />AI SUGGESTED CANDIDATE</span>
+              <a-tag color="green" size="small">{{ aiDecisionResult.decision.toUpperCase() }}</a-tag>
+            </div>
+            
+            <div class="ai-suggested-row" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--component-background, #fff); border-radius: 4px; border: 1px solid var(--border-color-base, #f0f0f0); cursor: pointer; transition: all 0.2s;" @click="handleSelectFromAi(aiDecisionResult)">
+              <div style="display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <strong style="font-size: 16px; color: var(--heading-color, rgba(0,0,0,0.85));">{{ aiDecisionResult.normalized_symbol }}</strong>
+                  <span style="font-size: 13px; color: var(--text-color-secondary, rgba(0,0,0,0.45));">{{ aiDecisionResult.display_name }}</span>
+                </div>
+                <div style="margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap;">
+                  <a-tag v-for="tag in aiDecisionResult.risk_tags" :key="tag" size="small" color="red">{{ tag }}</a-tag>
+                </div>
+              </div>
+              <a-button type="primary" size="small" icon="plus">
+                {{ $t('dashboard.analysis.watchlist.add') || 'Add' }}
+              </a-button>
+            </div>
+            <p style="margin: 10px 0 0 0; font-size: 12px; color: var(--text-color-secondary, rgba(0,0,0,0.45)); font-style: italic; line-height: 1.4;">
+              <strong>Reason:</strong> {{ aiDecisionResult.reason }}
+            </p>
+          </div>
+        </div>
+
         <!-- 热门标的 -->
         <div class="hot-symbols-section">
           <div class="section-title">
@@ -540,6 +585,272 @@ class="analyze-button">
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- Unified Position Detail Drawer -->
+    <a-drawer
+      :visible="showPositionDrawer"
+      @close="closePositionDrawer"
+      width="480"
+      placement="right"
+      :wrapClassName="isDarkTheme ? 'qd-dark-drawer' : ''"
+      :bodyStyle="{ paddingBottom: '80px' }"
+    >
+      <template slot="title">
+        <div class="position-drawer-title">
+          <a-icon type="wallet" style="margin-right: 8px; color: #1890ff;" />
+          <span>{{ ($i18n && $i18n.locale === 'zh-CN') ? '敞口研究与登记' : 'Exposure Research & Registry' }}</span>
+          <span class="symbol-tag" v-if="targetStockForOps" style="margin-left: 8px; font-size: 12px; padding: 2px 6px; background: rgba(24, 144, 255, 0.1); color: #1890ff; border-radius: 4px; font-family: monospace;">{{ targetStockForOps.symbol }}</span>
+        </div>
+      </template>
+
+      <div class="position-drawer-content" v-if="editingPosition">
+        <!-- 1. Position Snapshot -->
+        <div class="drawer-section">
+          <h4 class="section-title" style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #8c8c8c;">
+            {{ ($i18n && $i18n.locale === 'zh-CN') ? '敞口登记概览' : 'Exposure Overview' }}
+          </h4>
+          
+          <!-- Notice alert if no active exposure is open -->
+          <div v-if="!editingPosition.id" style="padding: 12px; background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 6px; color: #0050b3; font-size: 12px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px;">
+            <a-icon type="info-circle" style="margin-top: 3px; color: #1890ff;" />
+            <div>
+              <span style="font-weight: 600; display: block; margin-bottom: 4px;">
+                {{ ($i18n && $i18n.locale === 'zh-CN') ? '无活跃敞口登记' : 'No Active Exposure' }}
+              </span>
+              {{ ($i18n && $i18n.locale === 'zh-CN') ? '该标的当前没有活跃的风险敞口。您可以在下方“登记敞口”中创建新记录，或切换到“历史记录”选项卡查看过往平仓研究记录。' : 'This asset has no active exposure registry. You can create a new exposure registration below, or switch to the "History" tab to review past closed context.' }}
+            </div>
+          </div>
+
+          <div class="snapshot-grid" v-if="editingPosition.id" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+            <div class="snapshot-item" style="grid-column: span 2; display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '标的名称' : 'Asset' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">{{ editingPosition.name || editingPosition.symbol }}</span>
+            </div>
+            <div class="snapshot-item" style="display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '敞口状态' : 'Status' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">
+                <a-tag :color="editingPosition.status === 'open' ? 'blue' : editingPosition.status === 'closed' ? 'orange' : 'gray'" style="margin: 0; text-transform: capitalize;">
+                  {{ editingPosition.status || 'open' }}
+                </a-tag>
+              </span>
+            </div>
+            <div class="snapshot-item" style="display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '敞口方向' : 'Direction' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">
+                <a-tag :color="editingPosition.side === 'long' ? 'green' : 'red'" style="margin: 0;">
+                  {{ editingPosition.side === 'long' ? ($t('portfolio.positions.long') || 'Long') : ($t('portfolio.positions.short') || 'Short') }}
+                </a-tag>
+              </span>
+            </div>
+            <div class="snapshot-item" style="display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '敞口数量' : 'Size' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">{{ formatNum(editingPosition.quantity, 4) }}</span>
+            </div>
+            <div class="snapshot-item" style="display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '登记成本均价' : 'Avg Cost' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">${{ formatPrice(editingPosition.entry_price) }}</span>
+            </div>
+            <div class="snapshot-item" style="display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '市场价格' : 'Market Price' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">${{ formatPrice(editingPosition.current_price || editingPosition.entry_price) }}</span>
+            </div>
+            <div class="snapshot-item" style="grid-column: span 2; display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 6px;">
+              <span class="label" style="font-size: 11px; color: #8c8c8c;">{{ ($i18n && $i18n.locale === 'zh-CN') ? '估算敞口价值' : 'Approx Value' }}</span>
+              <span class="value" style="font-size: 14px; font-weight: 600; color: #262626;">${{ formatNum(editingPosition.market_value || (editingPosition.quantity * editingPosition.entry_price)) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <a-divider v-if="editingPosition.id" style="margin: 16px 0;" />
+
+        <!-- 2. Research Context (Only visible if position exists) -->
+        <div class="drawer-section" v-if="editingPosition.id">
+          <h4 class="section-title" style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #8c8c8c;">
+            {{ ($i18n && $i18n.locale === 'zh-CN') ? '研究上下文' : 'Research Context' }}
+          </h4>
+          <a-form layout="vertical">
+            <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '投资备注 / 逻辑 (Thesis)' : 'Research Thesis / Notes'">
+              <a-textarea
+                v-model="positionForm.notes"
+                :placeholder="($i18n && $i18n.locale === 'zh-CN') ? '记录您登记该敞口的研究逻辑或备注...' : 'Enter your investment thesis or research notes...'"
+                :rows="4"
+              />
+            </a-form-item>
+            <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '分组名 / 投资桶 (Bucket)' : 'Group / Investment Bucket'">
+              <a-input
+                v-model="positionForm.group_name"
+                :placeholder="($i18n && $i18n.locale === 'zh-CN') ? '例如：Core Macro、Speculative' : 'e.g. Core Macro, Hedge'"
+              />
+            </a-form-item>
+            <a-button type="primary" :loading="savingMetadata" block @click="handleSaveMetadata">
+              <a-icon type="save" />
+              {{ ($i18n && $i18n.locale === 'zh-CN') ? '保存备注与分组' : 'Save Thesis & Group' }}
+            </a-button>
+          </a-form>
+        </div>
+
+        <a-divider style="margin: 16px 0;" />
+
+        <!-- 3. Actions -->
+        <div class="drawer-section">
+          <h4 class="section-title" style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #8c8c8c;">
+            {{ ($i18n && $i18n.locale === 'zh-CN') ? '风险敞口管理' : 'Exposure Management' }}
+          </h4>
+          <a-tabs v-model="drawerActiveTab" size="small" @change="handleTabChange">
+            <!-- Register Tab (Only if position does not exist) -->
+            <a-tab-pane key="register" v-if="!editingPosition.id" :tab="($i18n && $i18n.locale === 'zh-CN') ? '登记敞口' : 'Register Exposure'">
+              <a-form layout="vertical" style="margin-top: 8px;">
+                <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '敞口方向' : 'Direction'" style="margin-bottom: 12px;">
+                  <a-radio-group v-model="positionForm.side" buttonStyle="solid" size="small">
+                    <a-radio-button value="long">{{ ($i18n && $i18n.locale === 'zh-CN') ? '多头 / 买入' : 'Long / Buy' }}</a-radio-button>
+                    <a-radio-button value="short">{{ ($i18n && $i18n.locale === 'zh-CN') ? '空头 / 卖出' : 'Short / Sell' }}</a-radio-button>
+                  </a-radio-group>
+                </a-form-item>
+                
+                <a-row :gutter="12">
+                  <a-col :span="12">
+                    <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '登记数量' : 'Quantity'" style="margin-bottom: 12px;">
+                      <a-input-number v-model="positionForm.quantity" :min="0.000001" style="width: 100%;" size="small" />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '登记成本' : 'Avg Cost'" style="margin-bottom: 12px;">
+                      <a-input-number v-model="positionForm.entryPrice" :min="0.000001" style="width: 100%;" size="small" />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+                
+                <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '投资备注 / 逻辑 (Thesis)' : 'Research Thesis / Notes'" style="margin-bottom: 12px;">
+                  <a-textarea
+                    v-model="positionForm.notes"
+                    :placeholder="($i18n && $i18n.locale === 'zh-CN') ? '记录您登记该敞口的研究逻辑或备注...' : 'Enter your investment thesis or research notes...'"
+                    :rows="3"
+                  />
+                </a-form-item>
+                
+                <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '分组名 / 投资桶 (Bucket)' : 'Group / Investment Bucket'" style="margin-bottom: 16px;">
+                  <a-input
+                    v-model="positionForm.group_name"
+                    :placeholder="($i18n && $i18n.locale === 'zh-CN') ? '例如：Core Macro、Speculative' : 'e.g. Core Macro, Hedge'"
+                    size="small"
+                  />
+                </a-form-item>
+                
+                <a-button type="primary" block :loading="savingPosition" @click="savePosition">
+                  <a-icon type="plus-circle" />
+                  {{ ($i18n && $i18n.locale === 'zh-CN') ? '确认登记敞口' : 'Register Exposure' }}
+                </a-button>
+              </a-form>
+            </a-tab-pane>
+
+            <!-- Adjust Position Tab -->
+            <a-tab-pane key="adjust" v-if="editingPosition.id" :tab="($i18n && $i18n.locale === 'zh-CN') ? '调整敞口' : 'Adjust Exposure'">
+              <a-form layout="vertical" style="margin-top: 8px;">
+                <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '操作类型' : 'Action'" style="margin-bottom: 12px;">
+                  <a-radio-group v-model="adjustForm.type" buttonStyle="solid" size="small">
+                    <a-radio-button value="add">{{ ($i18n && $i18n.locale === 'zh-CN') ? '增加敞口' : 'Add Size' }}</a-radio-button>
+                    <a-radio-button value="reduce">{{ ($i18n && $i18n.locale === 'zh-CN') ? '减少敞口' : 'Reduce Size' }}</a-radio-button>
+                  </a-radio-group>
+                </a-form-item>
+                <a-row :gutter="12">
+                  <a-col :span="12">
+                    <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '调整数量' : 'Adjustment Size'" style="margin-bottom: 12px;">
+                      <a-input-number v-model="adjustForm.quantity" :min="0.000001" style="width: 100%;" size="small" />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12" v-if="adjustForm.type === 'add'">
+                    <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '登记成本' : 'Adjustment Cost'" style="margin-bottom: 12px;">
+                      <a-input-number v-model="adjustForm.price" :min="0.000001" style="width: 100%;" size="small" />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+                <a-button type="primary" ghost block :loading="adjustingExposure" @click="handleAdjustExposure" size="small">
+                  {{ ($i18n && $i18n.locale === 'zh-CN') ? '确认调整' : 'Submit Adjustment' }}
+                </a-button>
+              </a-form>
+            </a-tab-pane>
+
+            <!-- Close Position Tab -->
+            <a-tab-pane key="close" v-if="editingPosition.id" :tab="($i18n && $i18n.locale === 'zh-CN') ? '关闭敞口' : 'Close Exposure'">
+              <div class="close-panel" style="margin-top: 8px;">
+                <p class="close-hint" style="font-size: 12px; color: #8c8c8c; line-height: 1.5; margin-bottom: 12px;">
+                  {{ ($i18n && $i18n.locale === 'zh-CN') ? '关闭敞口将从当前活跃研究列表中移除该资产，并将其归入历史研究记录以供后续回顾。' : 'Closing the exposure removes the asset from your active watchlist/dashboard and saves it to the research History timeline for future review.' }}
+                </p>
+                <a-form layout="vertical">
+                  <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '关闭备注 (Close Note)' : 'Close Note'" style="margin-bottom: 12px;">
+                    <a-textarea
+                      v-model="closeForm.close_note"
+                      :placeholder="($i18n && $i18n.locale === 'zh-CN') ? '（选填）记录本次关闭敞口的原因、宏观环境变化等...' : 'Optional. Enter reason for closing, macro fundamentals change, etc...'"
+                      :rows="3"
+                    />
+                  </a-form-item>
+                  <a-button type="primary" style="background-color: #fa8c16; border-color: #fa8c16;" block :loading="closingPosition" @click="handleCloseExposureWithNote">
+                    <a-icon type="check-square" />
+                    {{ ($i18n && $i18n.locale === 'zh-CN') ? '确认关闭敞口' : 'Confirm Close Exposure' }}
+                  </a-button>
+                  
+                  <div class="danger-zone" style="margin-top: 20px; padding: 10px; border: 1px dashed #ff4d4f; border-radius: 4px; background: #fff1f0;">
+                    <span style="font-size: 11px; color: #ff4d4f; font-weight: 600; display: block; margin-bottom: 8px;">
+                      {{ ($i18n && $i18n.locale === 'zh-CN') ? '危险区域' : 'Danger Zone' }}
+                    </span>
+                    <a-popconfirm
+                      :title="($i18n && $i18n.locale === 'zh-CN') ? '确定要永久删除该记录吗？此操作将完全抹除该资产的研究记录，且不可逆！' : 'Are you sure you want to permanently delete this record? This action will completely erase the research history and cannot be undone!'"
+                      @confirm="handleHardDeletePosition"
+                      okText="Confirm"
+                      cancelText="Cancel"
+                    >
+                      <a-button type="danger" size="small" block ghost>
+                        <a-icon type="delete" />
+                        {{ ($i18n && $i18n.locale === 'zh-CN') ? '永久删除敞口记录' : 'Permanently Delete Record' }}
+                      </a-button>
+                    </a-popconfirm>
+                  </div>
+                </a-form>
+              </div>
+            </a-tab-pane>
+
+            <!-- History Timeline Tab -->
+            <a-tab-pane key="history" :tab="($i18n && $i18n.locale === 'zh-CN') ? '历史记录' : 'History'">
+              <div class="history-timeline-panel" style="margin-top: 8px; max-height: 300px; overflow-y: auto; padding-right: 4px;">
+                <a-spin :spinning="loadingHistory">
+                  <a-timeline v-if="historicalExposures.length > 0">
+                    <a-timeline-item v-for="hist in historicalExposures" :key="hist.id" color="gray">
+                      <div class="hist-item" style="font-size: 12px; line-height: 1.6;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 600;">
+                          <span>
+                            <a-tag size="small" :color="hist.status === 'closed' ? 'orange' : 'blue'">{{ hist.status }}</a-tag>
+                            {{ hist.side === 'long' ? 'Long' : 'Short' }} {{ hist.quantity }} @ ${{ formatPrice(hist.entry_price) }}
+                          </span>
+                          <a-popconfirm
+                            :title="($i18n && $i18n.locale === 'zh-CN') ? '确定要删除这条历史记录吗？' : 'Are you sure you want to delete this historical record?'"
+                            @confirm="handleDeleteHistoryItem(hist.id)"
+                            okText="Yes"
+                            cancelText="No"
+                          >
+                            <a-icon type="delete" style="color: #ff4d4f; cursor: pointer; font-size: 14px;" />
+                          </a-popconfirm>
+                        </div>
+                        <div style="color: #8c8c8c; margin-top: 4px;">
+                          <span>Opened: {{ formatTime(hist.entry_time) }}</span>
+                          <span v-if="hist.closed_at" style="margin-left: 8px;">Closed: {{ formatIsoTime(hist.closed_at) }}</span>
+                        </div>
+                        <div v-if="hist.notes" style="background: #f5f5f5; padding: 6px 8px; border-radius: 4px; margin-top: 4px; font-style: italic; color: #595959;">
+                          <strong>Thesis:</strong> {{ hist.notes }}
+                        </div>
+                        <div v-if="hist.close_note" style="background: #fffbe6; border: 1px solid #ffe58f; padding: 6px 8px; border-radius: 4px; margin-top: 4px; color: #595959;">
+                          <strong>Close Note:</strong> {{ hist.close_note }}
+                        </div>
+                      </div>
+                    </a-timeline-item>
+                  </a-timeline>
+                  <a-empty v-else :description="($i18n && $i18n.locale === 'zh-CN') ? '暂无历史研究记录' : 'No historical records found'" />
+                </a-spin>
+              </div>
+            </a-tab-pane>
+          </a-tabs>
+        </div>
+      </div>
+    </a-drawer>
 
     <a-modal
       :visible="showMonitorModal"
@@ -777,8 +1088,9 @@ class="analyze-button">
 <script>
 import { mapGetters, mapState } from 'vuex'
 import { getUserInfo } from '@/api/auth'
-import { getWatchlist, addWatchlist, removeWatchlist, getWatchlistPrices, getMarketTypes, searchSymbols, getHotSymbols } from '@/api/market'
-import { getPositions, addPosition, getMonitors, addMonitor, updateMonitor, deleteMonitor } from '@/api/portfolio'
+import { getWatchlist, addWatchlist, removeWatchlist, getWatchlistPrices, getMarketTypes, searchSymbols, getHotSymbols, fetchCryptoBatch, fetchStockBatch, callIdaWatchlistDecision } from '@/api/market'
+import { normalizeCryptoItem, normalizeStockItem } from '@/utils/normalizeWatchlistItem'
+import { getPositions, addPosition, updatePosition, deletePosition, getArchivedPositions, getMonitors, addMonitor, updateMonitor, deleteMonitor } from '@/api/portfolio'
 import { fastAnalyze, getAllAnalysisHistory, deleteAnalysisHistory } from '@/api/fast-analysis'
 import { getMarketSentiment, getMarketOverview, getMarketHeatmap, getEconomicCalendar } from '@/api/global-market'
 import FastAnalysisReport from './components/FastAnalysisReport.vue'
@@ -847,6 +1159,9 @@ export default {
       symbolSearchKeyword: '',
       symbolSearchResults: [],
       searchingSymbols: false,
+      loadingAiDecision: false,
+      aiDecisionResult: null,
+      aiDecisionError: null,
       hotSymbols: [],
       loadingHotSymbols: false,
       selectedSymbolForAdd: null,
@@ -857,11 +1172,30 @@ export default {
       positionSummaryMap: {},
       showPositionModal: false,
       showMonitorModal: false,
+      showPositionDrawer: false,
+      editingPosition: null,
+      savingMetadata: false,
+      adjustingExposure: false,
+      closingPosition: false,
+      savingPosition: false,
+      drawerActiveTab: 'adjust',
+      loadingHistory: false,
+      historicalExposures: [],
+      closeForm: {
+        close_note: ''
+      },
+      adjustForm: {
+        type: 'add',
+        quantity: null,
+        price: null
+      },
       targetStockForOps: null,
       positionForm: {
         side: 'long',
         quantity: null,
-        entryPrice: null
+        entryPrice: null,
+        notes: '',
+        group_name: ''
       },
       monitorForm: {
         interval_min: 240,
@@ -908,8 +1242,8 @@ export default {
     mergedUserInfo () {
       return this.localUserInfo && this.localUserInfo.email ? this.localUserInfo : this.storeUserInfo
     },
-    watchlistTotalPnl () {
-      return Object.values(this.positionSummaryMap).reduce((s, v) => s + (Number(v.pnl) || 0), 0)
+    watchlistTotalExposure () {
+      return Object.values(this.positionSummaryMap).reduce((s, v) => s + (Number(v.marketValue) || 0), 0)
     },
     watchlistPositionCount () {
       return Object.values(this.positionSummaryMap).filter(v => v.quantity > 0).length
@@ -1160,7 +1494,9 @@ export default {
             marketValue: 0,
             monitorCount: 0,
             activeMonitorCount: 0,
-            nextRunAtText: ''
+            nextRunAtText: '',
+            side: pos.side || 'long',
+            group_name: pos.group_name || ''
           }
         }
         map[key].quantity += qty
@@ -1212,66 +1548,291 @@ export default {
         ])
         this.positions = posRes && posRes.code === 1 ? (posRes.data || []) : []
         this.monitors = monRes && monRes.code === 1 ? (monRes.data || []) : []
-        this.buildPositionSummary()
+        this.updatePositionsPnLWithWatchlistPrices()
       } catch (e) {
         this.positions = []
         this.monitors = []
         this.positionSummaryMap = {}
       }
     },
-    openPositionModal (stock) {
-      this.targetStockForOps = stock
-      const key = `${stock.market}:${stock.symbol}`
-      const existingPos = (this.positions || []).find(p => `${p.market}:${p.symbol}` === key)
-      if (existingPos) {
-        const qty = Number(existingPos.quantity || 0)
-        this.positionForm = {
-          side: existingPos.side || (qty < 0 ? 'short' : 'long'),
-          quantity: Math.abs(qty) || null,
-          entryPrice: Number(existingPos.entry_price || 0) || null
-        }
-      } else {
-        this.positionForm = {
-          side: 'long',
-          quantity: null,
-          entryPrice: null
-        }
-      }
-      this.showPositionModal = true
+     openPositionModal (stock) {
+       this.openPositionDetailDrawer(stock)
+     },
+     openPositionDetailDrawer (stock) {
+       this.targetStockForOps = stock
+       const key = `${stock.market}:${stock.symbol}`
+       const existingPos = (this.positions || []).find(p => `${p.market}:${p.symbol}` === key)
+       if (existingPos) {
+         this.editingPosition = existingPos
+         this.positionForm = {
+           side: existingPos.side || 'long',
+           quantity: existingPos.quantity || null,
+           entryPrice: existingPos.entry_price || null,
+           notes: existingPos.notes || '',
+           group_name: existingPos.group_name || ''
+         }
+         this.adjustForm = {
+           type: 'add',
+           quantity: null,
+           price: existingPos.current_price || existingPos.entry_price || null
+         }
+         this.drawerActiveTab = 'adjust'
+         this.showPositionDrawer = true
+         this.loadHistoricalExposures()
+       } else {
+         this.editingPosition = {
+           id: null,
+           status: 'closed',
+           market: stock.market,
+           symbol: stock.symbol,
+           name: stock.name || stock.symbol,
+           side: 'long',
+           quantity: 0,
+           entry_price: 0,
+           current_price: 0,
+           market_value: 0
+         }
+         this.positionForm = {
+           side: 'long',
+           quantity: null,
+           entryPrice: null,
+           notes: '',
+           group_name: ''
+         }
+         this.drawerActiveTab = 'register'
+         this.showPositionDrawer = true
+         this.loadHistoricalExposures()
+       }
+     },
+    closePositionDrawer () {
+      this.showPositionDrawer = false
+      this.editingPosition = null
+      this.targetStockForOps = null
+      this.closeForm.close_note = ''
+      this.historicalExposures = []
     },
-    async savePosition () {
-      const stock = this.targetStockForOps
-      if (!stock) return
-      const quantity = Number(this.positionForm.quantity || 0)
-      const entryPrice = Number(this.positionForm.entryPrice || 0)
-      if (!(quantity > 0) || !(entryPrice > 0)) {
+    async handleSaveMetadata () {
+      if (!this.editingPosition) return
+      this.savingMetadata = true
+      try {
+        const res = await updatePosition(this.editingPosition.id, {
+          notes: this.positionForm.notes || '',
+          group_name: this.positionForm.group_name || ''
+        })
+        if (res && res.code === 1) {
+          this.$message.success(
+            this.$i18n && this.$i18n.locale === 'zh-CN'
+              ? '研究备注与分组保存成功'
+              : 'Research notes and group saved successfully'
+          )
+          this.editingPosition.notes = this.positionForm.notes || ''
+          this.editingPosition.group_name = this.positionForm.group_name || ''
+          await this.loadPositionData()
+        } else {
+          this.$message.error(res?.msg || 'Save metadata failed')
+        }
+      } catch (e) {
+        this.$message.error(e?.response?.data?.msg || e?.message || 'Save metadata failed')
+      } finally {
+        this.savingMetadata = false
+      }
+    },
+    async handleAdjustExposure () {
+      if (!this.editingPosition) return
+      const qtyAdjust = Number(this.adjustForm.quantity || 0)
+      if (!(qtyAdjust > 0)) {
         this.$message.warning(
           this.$i18n && this.$i18n.locale === 'zh-CN'
-            ? '请输入有效的数量和买入单价'
-            : 'Please enter valid quantity and entry price'
+            ? '请输入有效的调整数量'
+            : 'Please enter a valid adjustment quantity'
         )
         return
       }
+
+      this.adjustingExposure = true
       try {
-        const res = await addPosition({
-          market: stock.market,
-          symbol: stock.symbol,
-          name: stock.name || stock.symbol,
-          side: this.positionForm.side || 'long',
-          quantity,
-          entry_price: entryPrice
+        const qtyExisting = Number(this.editingPosition.quantity || 0)
+        const priceExisting = Number(this.editingPosition.entry_price || 0)
+        let newQty = qtyExisting
+        let newEntryPrice = priceExisting
+
+        if (this.adjustForm.type === 'add') {
+          const priceAdjust = Number(this.adjustForm.price || 0)
+          if (!(priceAdjust > 0)) {
+            this.$message.warning(
+              this.$i18n && this.$i18n.locale === 'zh-CN'
+                ? '请输入有效的成交价格'
+                : 'Please enter a valid transaction price'
+            )
+            this.adjustingExposure = false
+            return
+          }
+          newQty = qtyExisting + qtyAdjust
+          newEntryPrice = ((qtyExisting * priceExisting) + (qtyAdjust * priceAdjust)) / newQty
+        } else {
+          // Reduce
+          if (qtyAdjust >= qtyExisting) {
+            this.$message.warning(
+              this.$i18n && this.$i18n.locale === 'zh-CN'
+                ? '减仓数量不能大于或等于当前持仓数量，如需清仓请使用“关闭当前持仓”'
+                : 'Reduction quantity cannot be greater than or equal to current quantity. To fully exit, please use "Close Position".'
+            )
+            this.adjustingExposure = false
+            return
+          }
+          newQty = qtyExisting - qtyAdjust
+          // Entry price remains unchanged for reductions
+        }
+
+        const res = await updatePosition(this.editingPosition.id, {
+          quantity: newQty,
+          entry_price: newEntryPrice
         })
+
         if (res && res.code === 1) {
-          this.$message.success(this.$t('portfolio.positions.add') + ' OK')
-          this.showPositionModal = false
+          this.$message.success(
+            this.$i18n && this.$i18n.locale === 'zh-CN'
+              ? '仓位调整成功'
+              : 'Exposure adjusted successfully'
+          )
+          this.closePositionDrawer()
           await this.loadPositionData()
         } else {
-          this.$message.error(res?.msg || 'Add position failed')
+          this.$message.error(res?.msg || 'Adjust exposure failed')
         }
       } catch (e) {
-        this.$message.error(e?.response?.data?.msg || e?.message || 'Add position failed')
+        this.$message.error(e?.response?.data?.msg || e?.message || 'Adjust exposure failed')
+      } finally {
+        this.adjustingExposure = false
       }
     },
+    async handleCloseExposureWithNote () {
+      if (!this.editingPosition) return
+      this.closingPosition = true
+      try {
+        const res = await updatePosition(this.editingPosition.id, {
+          status: 'closed',
+          close_note: this.closeForm.close_note || ''
+        })
+        if (res && res.code === 1) {
+          this.$message.success(
+            this.$i18n && this.$i18n.locale === 'zh-CN'
+              ? '敞口已平仓并记录'
+              : 'Exposure closed and recorded'
+          )
+          this.closePositionDrawer()
+          await this.loadPositionData()
+        } else {
+          this.$message.error(res?.msg || 'Close exposure failed')
+        }
+      } catch (e) {
+        this.$message.error(e?.response?.data?.msg || e?.message || 'Close exposure failed')
+      } finally {
+        this.closingPosition = false
+      }
+    },
+    async handleHardDeletePosition () {
+      if (!this.editingPosition) return
+      this.closingPosition = true
+      try {
+        const res = await deletePosition(this.editingPosition.id)
+        if (res && res.code === 1) {
+          this.$message.success(
+            this.$i18n && this.$i18n.locale === 'zh-CN'
+              ? '仓位记录已永久清除'
+              : 'Exposure registry entry permanently cleared'
+          )
+          this.closePositionDrawer()
+          await this.loadPositionData()
+        } else {
+          this.$message.error(res?.msg || 'Clear entry failed')
+        }
+      } catch (e) {
+        this.$message.error(e?.response?.data?.msg || e?.message || 'Clear entry failed')
+      } finally {
+        this.closingPosition = false
+      }
+    },
+    handleTabChange (key) {
+      if (key === 'history') {
+        this.loadHistoricalExposures()
+      }
+    },
+    async loadHistoricalExposures () {
+      if (!this.editingPosition) return
+      this.loadingHistory = true
+      try {
+        const res = await getArchivedPositions()
+        if (res && res.code === 1) {
+          this.historicalExposures = (res.data || []).filter(
+            item => item.symbol === this.editingPosition.symbol && item.market === this.editingPosition.market
+          )
+        } else {
+          this.$message.error(res?.msg || 'Failed to load history')
+        }
+      } catch (e) {
+        this.$message.error('Failed to load historical exposures')
+      } finally {
+        this.loadingHistory = false
+      }
+    },
+    async handleDeleteHistoryItem (id) {
+      try {
+        const res = await deletePosition(id)
+        if (res && res.code === 1) {
+          this.$message.success(
+            this.$i18n && this.$i18n.locale === 'zh-CN'
+              ? '历史记录已永久清除'
+              : 'Historical record permanently cleared'
+          )
+          await this.loadHistoricalExposures()
+          await this.loadPositionData()
+        } else {
+          this.$message.error(res?.msg || 'Delete failed')
+        }
+      } catch (e) {
+        this.$message.error(e?.response?.data?.msg || e?.message || 'Delete failed')
+      }
+    },
+     async savePosition () {
+       const stock = this.targetStockForOps
+       if (!stock) return
+       const quantity = Number(this.positionForm.quantity || 0)
+       const entryPrice = Number(this.positionForm.entryPrice || 0)
+       if (!(quantity > 0) || !(entryPrice > 0)) {
+         this.$message.warning(
+           this.$i18n && this.$i18n.locale === 'zh-CN'
+             ? '请输入有效的数量和买入单价'
+             : 'Please enter valid quantity and entry price'
+         )
+         return
+       }
+       this.savingPosition = true
+       try {
+         const res = await addPosition({
+           market: stock.market,
+           symbol: stock.symbol,
+           name: stock.name || stock.symbol,
+           side: this.positionForm.side || 'long',
+           quantity,
+           entry_price: entryPrice,
+           notes: this.positionForm.notes || '',
+           group_name: this.positionForm.group_name || ''
+         })
+         if (res && res.code === 1) {
+           this.$message.success(this.$t('portfolio.positions.add') + ' OK')
+           this.showPositionModal = false
+           this.closePositionDrawer()
+           await this.loadPositionData()
+         } else {
+           this.$message.error(res?.msg || 'Add position failed')
+         }
+       } catch (e) {
+         this.$message.error(e?.response?.data?.msg || e?.message || 'Add position failed')
+       } finally {
+         this.savingPosition = false
+       }
+     },
     openMonitorModal (stock) {
       this.targetStockForOps = stock
       this.monitorForm = {
@@ -1912,45 +2473,102 @@ export default {
       if (!this.watchlist || this.watchlist.length === 0) return
 
       try {
-        const watchlistData = this.watchlist.map(item => ({
-          market: item.market,
-          symbol: item.symbol
-        }))
+        const cryptoSymbols = this.watchlist
+          .filter(i => i.market === 'Crypto')
+          .map(i => i.symbol)
 
-        const res = await getWatchlistPrices({
-          watchlist: watchlistData
+        const stockSymbols = this.watchlist
+          .filter(i => i.market === 'USStock')
+          .map(i => i.symbol)
+
+        const [cryptoData, stockData] = await Promise.all([
+          fetchCryptoBatch(cryptoSymbols),
+          fetchStockBatch(stockSymbols)
+        ])
+
+        const normalizedCrypto = (cryptoData || []).map(normalizeCryptoItem)
+        const normalizedStock = (stockData || []).map(normalizeStockItem)
+
+        const priceMap = {}
+        const pricesObj = {}
+
+        normalizedCrypto.forEach(item => {
+          priceMap[`Crypto-${item.symbol}`] = item
+          pricesObj[`Crypto:${item.symbol}`] = {
+            price: item.price || 0,
+            change: item.changePercent || 0
+          }
         })
 
-        if (res && res.code === 1 && res.data) {
-          const priceMap = {}
-          const pricesObj = {}
-          res.data.forEach(item => {
-            priceMap[`${item.market}-${item.symbol}`] = item
-            // 同时填充 watchlistPrices 对象（使用 : 作为键）
-            pricesObj[`${item.market}:${item.symbol}`] = {
-              price: item.price || 0,
-              change: item.changePercent || 0
-            }
-          })
-          this.watchlistPrices = pricesObj
+        normalizedStock.forEach(item => {
+          priceMap[`USStock-${item.symbol}`] = item
+          pricesObj[`USStock:${item.symbol}`] = {
+            price: item.price || 0,
+            change: item.changePercent || 0
+          }
+        })
 
-          this.watchlist = this.watchlist.map(item => {
-            const key = `${item.market}-${item.symbol}`
-            const priceData = priceMap[key]
-            if (priceData) {
-              return {
-                ...item,
-                price: priceData.price || 0,
-                change: priceData.change || 0,
-                changePercent: priceData.changePercent || 0
-              }
+        this.watchlistPrices = pricesObj
+
+        this.watchlist = this.watchlist.map(item => {
+          const key = `${item.market}-${item.symbol}`
+          const priceData = priceMap[key]
+          if (priceData) {
+            return {
+              ...item,
+              price: priceData.price || 0,
+              change: priceData.changePercent || 0,
+              changePercent: priceData.changePercent || 0
             }
-            return item
-          })
-        }
+          }
+          return item
+        })
+
+        this.updatePositionsPnLWithWatchlistPrices()
       } catch (error) {
-        // Silent fail
+        console.error('[Watchlist] loadWatchlistPrices failed:', error)
       }
+    },
+    updatePositionsPnLWithWatchlistPrices () {
+      if (!this.positions || this.positions.length === 0) {
+        this.buildPositionSummary()
+        return
+      }
+      this.positions = this.positions.map(pos => {
+        const key = `${pos.market}:${pos.symbol}`
+        const priceData = this.watchlistPrices[key]
+        if (priceData && priceData.price > 0) {
+          const currentPrice = Number(priceData.price || 0)
+          const entryPrice = Number(pos.entry_price || 0)
+          const quantity = Number(pos.quantity || 0)
+          const side = pos.side || 'long'
+          
+          const marketValue = currentPrice * quantity
+          const costValue = entryPrice * quantity
+          let pnl = 0
+          if (side === 'long') {
+            pnl = (currentPrice - entryPrice) * quantity
+          } else {
+            pnl = (entryPrice - currentPrice) * quantity
+          }
+          const pnlPercent = costValue > 0 ? Number((pnl / costValue * 100).toFixed(2)) : 0
+          
+          const updated = {
+            ...pos,
+            current_price: currentPrice,
+            market_value: marketValue,
+            cost_value: costValue,
+            pnl: pnl,
+            pnl_percent: pnlPercent
+          }
+          if (this.editingPosition && Number(this.editingPosition.id) === Number(pos.id)) {
+            this.editingPosition = updated
+          }
+          return updated
+        }
+        return pos
+      })
+      this.buildPositionSummary()
     },
     startWatchlistPriceRefresh () {
       this.watchlistPriceTimer = setInterval(() => {
@@ -2014,6 +2632,9 @@ export default {
       this.symbolSearchResults = []
       this.hasSearched = false
       this.selectedMarketTab = this.marketTypes.length > 0 ? this.marketTypes[0].value : ''
+      this.loadingAiDecision = false
+      this.aiDecisionResult = null
+      this.aiDecisionError = null
     },
     handleMarketTabChange (activeKey) {
       this.selectedMarketTab = activeKey
@@ -2021,6 +2642,9 @@ export default {
       this.symbolSearchResults = []
       this.selectedSymbolForAdd = null
       this.hasSearched = false
+      this.loadingAiDecision = false
+      this.aiDecisionResult = null
+      this.aiDecisionError = null
       this.loadHotSymbols(activeKey)
     },
     handleSymbolSearchInput (e) {
@@ -2030,6 +2654,9 @@ export default {
       if (this.searchTimer) {
         clearTimeout(this.searchTimer)
       }
+
+      this.aiDecisionResult = null
+      this.aiDecisionError = null
 
       if (!keyword || keyword.trim() === '') {
         this.symbolSearchResults = []
@@ -2072,6 +2699,8 @@ export default {
 
       this.searchingSymbols = true
       this.hasSearched = true
+      this.aiDecisionResult = null
+      this.aiDecisionError = null
       try {
         const res = await searchSymbols({
           market: this.selectedMarketTab,
@@ -2080,24 +2709,80 @@ export default {
         })
         if (res && res.code === 1 && res.data && res.data.length > 0) {
           this.symbolSearchResults = res.data
+          this.selectedSymbolForAdd = null
         } else {
           this.symbolSearchResults = []
-          this.selectedSymbolForAdd = {
-            market: this.selectedMarketTab,
-            symbol: keyword.trim().toUpperCase(),
-            name: ''
-          }
+          this.selectedSymbolForAdd = null
+          await this.triggerAiWatchlistFallback(keyword.trim())
         }
       } catch (error) {
         this.symbolSearchResults = []
-        this.selectedSymbolForAdd = {
-          market: this.selectedMarketTab,
-          symbol: keyword.trim().toUpperCase(),
-          name: ''
-        }
+        this.selectedSymbolForAdd = null
+        await this.triggerAiWatchlistFallback(keyword.trim())
       } finally {
         this.searchingSymbols = false
       }
+    },
+    async triggerAiWatchlistFallback (query) {
+      this.loadingAiDecision = true
+      this.aiDecisionResult = null
+      this.aiDecisionError = null
+      try {
+        const existingSymbols = (this.watchlist || []).map(i => i.symbol)
+        let assetClass = 'mixed'
+        if (this.selectedMarketTab === 'Crypto') {
+          assetClass = 'crypto'
+        } else if (this.selectedMarketTab === 'USStock') {
+          assetClass = 'stock'
+        }
+
+        const decision = await callIdaWatchlistDecision({
+          user_input: query,
+          asset_class: assetClass,
+          existing_watchlist: existingSymbols
+        })
+
+        if (decision) {
+          if (decision.decision === 'add' || decision.decision === 'watch-only') {
+            this.aiDecisionResult = decision
+          } else {
+            this.aiDecisionError = decision.reason || 'AI decided not to watch this asset.'
+          }
+        } else {
+          this.aiDecisionError = 'AI fallback returned no recommendation.'
+        }
+      } catch (err) {
+        console.error('AI Fallback decision failed:', err)
+        this.aiDecisionError = err.message || 'Error occurred during AI verification.'
+      } finally {
+        this.loadingAiDecision = false
+      }
+    },
+    handleSelectFromAi (decision) {
+      if (!decision || !decision.normalized_symbol) return
+
+      this.addingStock = true
+      const market = decision.asset_type === 'US Stock' ? 'USStock' : 'Crypto'
+
+      addWatchlist({
+        userid: this.userId,
+        market: market,
+        symbol: decision.normalized_symbol,
+        name: decision.display_name || decision.normalized_symbol
+      }).then(res => {
+        if (res && res.code === 1) {
+          this.$message.success(this.$t('dashboard.analysis.message.addStockSuccess'))
+          this.handleCloseAddStockModal()
+          this.loadWatchlist()
+        } else {
+          this.$message.error(res?.msg || this.$t('dashboard.analysis.message.addStockFailed'))
+        }
+      }).catch(error => {
+        const errorMsg = error?.response?.data?.msg || error?.message || this.$t('dashboard.analysis.message.addStockFailed')
+        this.$message.error(errorMsg)
+      }).finally(() => {
+        this.addingStock = false
+      })
     },
     handleDirectAdd () {
       if (!this.symbolSearchKeyword || !this.symbolSearchKeyword.trim()) {
@@ -3037,7 +3722,15 @@ export default {
         .wl-name { color: #666; }
         .wl-market { color: #666; background: rgba(255, 255, 255, 0.06); }
         .wl-price { color: #d4d4d4; }
-        .wl-pnl-qty { color: #666; }
+        .wl-pnl-qty {
+          color: #666;
+          &.long { color: #4ade80; }
+          &.short { color: #f87171; }
+        }
+        .wl-pnl-bucket {
+          background: rgba(255, 255, 255, 0.06);
+          color: #888;
+        }
         .wl-task-badge.paused { background: rgba(255, 255, 255, 0.05); color: #666; }
         .wl-task-next { color: #555; }
       }
@@ -3611,24 +4304,38 @@ export default {
 .wl-change.up { color: #16a34a; background: rgba(22,163,74,0.08); }
 .wl-change.down { color: #dc2626; background: rgba(220,38,38,0.06); }
 
-.wl-row-pnl {
+.wl-row-exposure {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-top: 4px;
   font-family: 'SF Mono', Monaco, monospace;
 }
 .wl-pnl-qty {
   font-size: 10px;
-  color: #94a3b8;
-}
-.wl-pnl-val {
-  font-size: 10px;
   font-weight: 600;
+  &.long { color: #16a34a; }
+  &.short { color: #dc2626; }
+}
+.wl-pnl-avg {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 400;
+  margin-left: 4px;
+}
+.wl-pnl-bucket {
+  font-size: 10px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 4px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin-left: auto;
 }
-.wl-pnl-val.up { color: #16a34a; }
-.wl-pnl-val.down { color: #dc2626; }
 
 .wl-row-task {
   display: flex;
@@ -3982,6 +4689,131 @@ export default {
     color: #666;
   }
 }
+
+/* Position Drawer Styles */
+.position-drawer-title {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #0f172a;
+  
+  .symbol-tag {
+    font-weight: 700;
+  }
+}
+
+.position-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0;
+
+  .drawer-section {
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .snapshot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .snapshot-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #cbd5e1;
+      background: #f1f5f9;
+    }
+
+    .label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+    }
+  }
+
+  .pnl-panel {
+    padding: 14px 16px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    transition: all 0.2s;
+
+    &.profit {
+      background: rgba(22, 163, 74, 0.06);
+      border: 1px solid rgba(22, 163, 74, 0.15);
+      color: #16a34a;
+
+      .pnl-value {
+        color: #16a34a;
+      }
+      .pnl-percent {
+        color: #15803d;
+      }
+    }
+
+    &.loss {
+      background: rgba(220, 38, 38, 0.05);
+      border: 1px solid rgba(220, 38, 38, 0.12);
+      color: #dc2626;
+
+      .pnl-value {
+        color: #dc2626;
+      }
+      .pnl-percent {
+        color: #b91c1c;
+      }
+    }
+
+    .pnl-label {
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .pnl-value {
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+
+  .close-panel {
+    padding: 12px;
+    border-radius: 8px;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+
+    .close-hint {
+      color: #991b1b;
+      margin-bottom: 12px;
+    }
+  }
+}
 </style>
 
 <style lang="less">
@@ -4071,6 +4903,64 @@ export default {
   .ant-popover-message { color: #d4d4d4; }
   .ant-popover-message-title { color: #d4d4d4; }
   .ant-popover-buttons .ant-btn-default { background: #1c1c1c; border-color: #2a2a2a; color: #d4d4d4; }
+
+  /* Input overrides for drawer under dark theme */
+  .ant-input { background: #1c1c1c; border-color: #2a2a2a; color: #d4d4d4; &::placeholder { color: #555; } }
+  .ant-input-number { background: #1c1c1c; border-color: #2a2a2a; color: #d4d4d4; .ant-input-number-input { color: #d4d4d4; } }
+  .ant-tabs-bar { border-bottom-color: #2a2a2a; }
+  .ant-tabs-tab { color: #888; &:hover { color: #d4d4d4; } }
+  .ant-tabs-tab-active { color: #1890ff !important; }
+  .ant-form-item-label > label { color: #d4d4d4; }
+
+  /* Position Drawer theme overrides */
+  .position-drawer-title {
+    color: #d4d4d4;
+  }
+  .position-drawer-content {
+    .drawer-section .section-title {
+      color: #888;
+    }
+    .snapshot-item {
+      background: #1c1c1c;
+      border-color: #2a2a2a;
+      &:hover {
+        border-color: #3a3a3a;
+        background: #222;
+      }
+      .label {
+        color: #888;
+      }
+      .value {
+        color: #d4d4d4;
+      }
+    }
+    .pnl-panel {
+      &.profit {
+        background: rgba(74, 222, 128, 0.08);
+        border-color: rgba(74, 222, 128, 0.2);
+        color: #4ade80;
+        .pnl-value { color: #4ade80; }
+        .pnl-percent { color: #86efac; }
+      }
+      &.loss {
+        background: rgba(248, 113, 113, 0.08);
+        border-color: rgba(248, 113, 113, 0.2);
+        color: #f87171;
+        .pnl-value { color: #f87171; }
+        .pnl-percent { color: #fca5a5; }
+      }
+      .pnl-label {
+        color: #aaa;
+      }
+    }
+    .close-panel {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.2);
+      .close-hint {
+        color: #fca5a5;
+      }
+    }
+  }
 }
 </style>
 

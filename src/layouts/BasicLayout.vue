@@ -182,6 +182,21 @@ export default {
       })
     }
 
+    // Pinned signature link implementation - dynamically injected to support native click external redirection
+    this.$nextTick(() => {
+      const siderChildren = this.$el.querySelector('.ant-layout-sider-children')
+      if (siderChildren) {
+        if (!siderChildren.querySelector('.postsoma-signature-link')) {
+          const link = document.createElement('a')
+          link.href = 'https://postsoma-2050.website/'
+          link.target = '_blank'
+          link.className = 'postsoma-signature-link'
+          link.innerText = '// @postsoma-2050'
+          siderChildren.appendChild(link)
+        }
+      }
+    })
+
     // first update color
     // TIPS: THEME COLOR HANDLER!! PLEASE CHECK THAT!!
     // 注意：主题色更新已在 created() 的 watch 中处理，这里不再重复调用

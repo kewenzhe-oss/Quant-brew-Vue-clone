@@ -36,6 +36,14 @@ export function deletePosition (id) {
   })
 }
 
+export function getArchivedPositions (params = {}) {
+  return request({
+    url: '/api/portfolio/positions/archive',
+    method: 'get',
+    params
+  })
+}
+
 export function getPortfolioSummary (params = {}) {
   return request({
     url: '/api/portfolio/summary',

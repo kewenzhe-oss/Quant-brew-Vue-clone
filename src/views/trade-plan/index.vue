@@ -359,6 +359,19 @@ export default {
       this.error = null
     }
   },
+  mounted () {
+    const symbolQuery = this.$route.query.symbol
+    const assetTypeQuery = this.$route.query.assetType
+    if (symbolQuery) {
+      this.form.symbol = symbolQuery.toUpperCase()
+    }
+    if (assetTypeQuery) {
+      const normalizedType = assetTypeQuery.charAt(0).toUpperCase() + assetTypeQuery.slice(1).toLowerCase()
+      if (['Stock', 'Etf', 'Crypto'].includes(normalizedType)) {
+        this.form.assetType = normalizedType === 'Etf' ? 'ETF' : normalizedType
+      }
+    }
+  },
   methods: {
     async loadUserId () {
       try {
@@ -805,6 +818,219 @@ export default {
   /deep/ .draft-scenarios .ant-row > .ant-col-6 {
     width: 100% !important;
     margin-bottom: 12px;
+  }
+}
+
+/* ========== Dark Theme Contrast & Readability Overrides ========== */
+body.dark, body.realdark {
+  .trade-plan-container {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .tp-title {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .tp-subtitle {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .tp-card {
+    background: #1c1c1c !important;
+    border: 1px solid #2a2a2a !important;
+    box-shadow: none !important;
+
+    /deep/ .ant-card-head {
+      border-bottom: 1px solid #2a2a2a !important;
+      
+      .ant-card-head-title {
+        color: rgba(255, 255, 255, 0.95) !important;
+      }
+    }
+  }
+
+  .action-title {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .action-list li {
+    color: rgba(255, 255, 255, 0.75);
+    
+    .list-icon {
+      color: #10b981;
+    }
+  }
+
+  /* Advisory & restrained warning card */
+  .tp-disclaimer {
+    background: #141414 !important;
+    border: 1px solid #2a2a2a !important;
+    border-left: 3px solid #d97706 !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+    line-height: 1.5;
+
+    i {
+      color: #d97706 !important;
+    }
+  }
+
+  /* Form labels, inputs, and selections */
+  /deep/ .ant-form-item-label label {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+  }
+
+  /deep/ .ant-input,
+  /deep/ .ant-input-number,
+  /deep/ .ant-select-selection {
+    background: #141414 !important;
+    border: 1px solid #2a2a2a !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+
+    &:hover, &:focus {
+      border-color: #1890ff !important;
+    }
+    
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.3) !important;
+    }
+  }
+
+  /deep/ .ant-select-arrow {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  /deep/ .ant-input-number-handler-wrap {
+    background: #222222 !important;
+    border-left: 1px solid #2a2a2a !important;
+    
+    .ant-input-number-handler {
+      border-top: 1px solid #2a2a2a !important;
+      
+      .ant-input-number-handler-up-inner,
+      .ant-input-number-handler-down-inner {
+        color: rgba(255, 255, 255, 0.45) !important;
+      }
+    }
+  }
+
+  .tw-desc {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .tw-note {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .tw-btn {
+    background: #2a2a2a !important;
+    border-color: #333333 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+
+    &:hover {
+      border-color: #1890ff !important;
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+  }
+
+  /* Generated Draft Section */
+  .draft-title {
+    color: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .draft-text {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .draft-list li {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* Restrained, Minimalist Budget Cards in Dark Mode */
+  .budget-card {
+    background: #141414 !important;
+    border: 1px solid #2a2a2a !important;
+    
+    &.base-pool {
+      border-top: 3px solid #10b981 !important;
+    }
+    
+    &.reserve-pool {
+      border-top: 3px solid #3b82f6 !important;
+    }
+    
+    &.cash-pool {
+      border-top: 3px solid #ef4444 !important;
+    }
+  }
+
+  .bc-title {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .bc-amount {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .bc-pct {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .bc-desc {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .rule-group h4 {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Scenario Simulation boxes */
+  .scenario-box {
+    background: #141414 !important;
+    border: 1px solid #2a2a2a !important;
+
+    h4 {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  .draft-disclaimer {
+    background: #141414 !important;
+    color: rgba(255, 255, 255, 0.45);
+    border: 1px solid #2a2a2a !important;
+  }
+
+  .draft-table {
+    /deep/ .ant-table-thead > tr > th {
+      background: #141414 !important;
+      color: rgba(255, 255, 255, 0.85) !important;
+      border-bottom: 1px solid #2a2a2a !important;
+    }
+
+    /deep/ .ant-table-tbody > tr > td {
+      color: rgba(255, 255, 255, 0.75) !important;
+      border-bottom: 1px solid #2a2a2a !important;
+    }
+  }
+
+  .save-section {
+    border-top: 1px solid #2a2a2a;
+  }
+
+  .save-success {
+    color: #10b981;
+  }
+
+  .view-plan-link {
+    color: #5850ec;
+    &:hover {
+      color: #6366f1;
+    }
   }
 }
 </style>

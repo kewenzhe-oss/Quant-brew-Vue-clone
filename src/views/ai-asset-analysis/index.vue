@@ -92,11 +92,19 @@
     <!-- ======== Main Workspace Card ======== -->
     <a-card :bordered="false" class="workspace-card">
       <div class="workspace-header-bar">
-        <h3 class="workspace-title">
-          <a-icon type="dashboard" class="workspace-icon" />
-          {{ $t('aiAssetAnalysis.observation.title') }}
-        </h3>
-        <p class="workspace-subtitle">{{ $t('aiAssetAnalysis.observation.subtitle') }}</p>
+        <div class="workspace-header-left">
+          <h3 class="workspace-title">
+            <a-icon type="dashboard" class="workspace-icon" />
+            {{ $t('aiAssetAnalysis.observation.title') }}
+          </h3>
+          <p class="workspace-subtitle">{{ $t('aiAssetAnalysis.observation.subtitle') }}</p>
+        </div>
+        <div class="workspace-header-right" v-if="currentAnalysisSymbol">
+          <a-button type="primary" size="small" class="go-to-research-btn" @click="goToResearch">
+            <a-icon type="area-chart" />
+            {{ ($i18n && $i18n.locale === 'zh-CN') ? '去研究工作区' : 'Research Workspace' }}
+          </a-button>
+        </div>
       </div>
       <div class="analysis-wrapper">
         <AnalysisView
@@ -246,9 +254,8 @@ export default {
         this.autoAnalyzeSignal++
       })
     },
-    // ==================== Quick Trade ====================
+    // ==================== Next Steps & Workflow Continuity ====================
     onAnalysisSymbolChange (value) {
-      // value format: "Crypto:BTC/USDT"
       if (!value) {
         this.currentAnalysisSymbol = ''
         this.currentAnalysisMarket = ''
@@ -258,11 +265,14 @@ export default {
       const market = parts.length > 1 ? parts[0] : 'Crypto'
       const symbol = parts.length > 1 ? parts[1] : parts[0]
       this.currentAnalysisMarket = market
-      // Only allow Quick Trade for Crypto
-      if (market === 'Crypto') {
-        this.currentAnalysisSymbol = symbol
-      } else {
-        this.currentAnalysisSymbol = ''
+      this.currentAnalysisSymbol = symbol
+    },
+    goToResearch () {
+      if (this.currentAnalysisSymbol) {
+        this.$router.push({
+          path: '/stock-research',
+          query: { symbol: this.currentAnalysisSymbol }
+        })
       }
     }
   }
@@ -564,6 +574,31 @@ export default {
       border-bottom: 1.5px solid #f0f0f0;
       background: #fafafa;
       text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .workspace-header-left {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .workspace-header-right {
+        margin-left: 16px;
+        flex-shrink: 0;
+
+        .go-to-research-btn {
+          border-radius: 8px;
+          font-weight: 600;
+          background: linear-gradient(135deg, #1890ff, #3b82f6);
+          border: none;
+          color: #ffffff;
+          &:hover {
+            opacity: 0.9;
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+          }
+        }
+      }
       
       .workspace-title {
         font-size: 15px;
@@ -674,6 +709,9 @@ export default {
       .workspace-header-bar {
         border-bottom-color: #2a2a2a;
         background: #181818;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         
         .workspace-title {
           color: rgba(255, 255, 255, 0.85);
@@ -684,6 +722,13 @@ export default {
         
         .workspace-subtitle {
           color: rgba(255, 255, 255, 0.45);
+        }
+
+        .workspace-header-right {
+          .go-to-research-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+            color: #ffffff !important;
+          }
         }
       }
     }
