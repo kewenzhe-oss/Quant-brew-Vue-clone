@@ -19,9 +19,9 @@
 
     <div v-else>
 
-      <!-- System Warnings / Stale metrics notification -->
+      <!-- System Warnings / Critical Stale / Degraded Alert (Yellow/Red) -->
       <a-alert
-        v-if="model.health && (model.health.status === 'degraded' || model.health.status === 'stale')"
+        v-if="model.health && (model.health.status === 'degraded' || hasCriticalStale)"
         :type="model.health.status === 'degraded' ? 'error' : 'warning'"
         show-icon
         class="system-warnings"
@@ -33,12 +33,35 @@
         <div slot="description">
           <ul class="warning-list">
             <li v-if="model.health.status === 'degraded'">
-              {{ $t('macro.warnings.degraded.desc', { metrics: model.health.missingMetrics.join(', ') }) }}
+              {{ $t('macro.warnings.degraded.desc', { metrics: model.health.missingMetrics.map(key => getIndicatorMeta(key).name || key.toUpperCase()).join(', ') }) }}
             </li>
-            <li v-else-if="model.health.status === 'stale'">
-              {{ $t('macro.warnings.stale.desc', { metrics: model.health.staleMetrics.join(', ') }) }}
+            <li v-if="hasCriticalStale">
+              {{ $t('macro.warnings.stale.desc', { metrics: criticalStaleNames.join(', ') }) }}
             </li>
           </ul>
+        </div>
+      </a-alert>
+
+      <!-- Natural Release Lag Info Alert (Blue Info) -->
+      <a-alert
+        v-if="model.health && hasNaturalStale && !hasCriticalStale && model.health.status !== 'degraded'"
+        type="info"
+        show-icon
+        class="system-warnings natural-stale-info"
+      >
+        <div slot="message">
+          <span>{{ $t('macro.warnings.natural_stale.title') }}</span>
+        </div>
+        <div slot="description">
+          <span>
+            {{ $t('macro.warnings.natural_stale.desc', { metrics: naturalStaleNames.join(', ') }) }}
+            <a-tooltip placement="top">
+              <template slot="title">
+                <span>{{ $t('macro.warnings.natural_stale.tooltip') }}</span>
+              </template>
+              <a-icon type="question-circle" style="margin-left: 4px; cursor: pointer;" />
+            </a-tooltip>
+          </span>
         </div>
       </a-alert>
 
@@ -468,6 +491,40 @@ export default {
         fear_greed: false,
         vix: false
       }
+    }
+  },
+  computed: {
+    criticalStaleMetrics () {
+      if (!this.model.health || !this.model.health.staleMetrics) return []
+      return this.model.health.staleMetrics.filter(key => {
+        const metric = this.model.all_metrics[key]
+        return metric && metric.sourceType !== 'primary'
+      })
+    },
+    criticalStaleNames () {
+      return this.criticalStaleMetrics.map(key => {
+        const meta = this.getIndicatorMeta(key)
+        return meta.name || key.toUpperCase()
+      })
+    },
+    naturalStaleMetrics () {
+      if (!this.model.health || !this.model.health.staleMetrics) return []
+      return this.model.health.staleMetrics.filter(key => {
+        const metric = this.model.all_metrics[key]
+        return metric && metric.sourceType === 'primary'
+      })
+    },
+    naturalStaleNames () {
+      return this.naturalStaleMetrics.map(key => {
+        const meta = this.getIndicatorMeta(key)
+        return meta.name || key.toUpperCase()
+      })
+    },
+    hasCriticalStale () {
+      return this.criticalStaleMetrics.length > 0
+    },
+    hasNaturalStale () {
+      return this.naturalStaleMetrics.length > 0
     }
   },
   mounted () {

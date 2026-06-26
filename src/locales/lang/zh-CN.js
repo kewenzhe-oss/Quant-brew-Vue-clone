@@ -4927,6 +4927,9 @@ const locale = {
   'macro.warnings.degraded.desc': '部分宏观数据暂未同步: {metrics}。系统已自动降级使用可用数据。',
   'macro.warnings.stale.title': '数据时效性提醒',
   'macro.warnings.stale.desc': '部分数据已超过更新窗口: {metrics}。',
+  'macro.warnings.natural_stale.title': '发布周期正常滞后',
+  'macro.warnings.natural_stale.desc': '部分指标当前显示为官方最新数据，因处于发布周期空窗期而提示滞后：{metrics}。系统已正常同步，无需处理。',
+  'macro.warnings.natural_stale.tooltip': '对于季度数据(如GDP)与月度数据(如CPI/PCE)，官方公布存在天然发布滞后(15-80天)。当前已同步至上游官方最新版本，无需处理。',
 
   'macro.branches.liquidity.title': '流动性条件',
   'macro.branches.liquidity.summary': '资金环境: {state}',

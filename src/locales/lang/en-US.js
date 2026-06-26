@@ -5158,6 +5158,9 @@ const locale = {
   'macro.warnings.degraded.desc': 'Some macro metrics are not synced: {metrics}. The system has automatically degraded to available data.',
   'macro.warnings.stale.title': 'Data Freshness Warning',
   'macro.warnings.stale.desc': 'Some data has exceeded the update window: {metrics}.',
+  'macro.warnings.natural_stale.title': 'Natural Release Lag',
+  'macro.warnings.natural_stale.desc': 'Some metrics are display-lagged due to natural publication cycles (e.g. GDP/CPI wait times): {metrics}. The system is synced to the latest official release.',
+  'macro.warnings.natural_stale.tooltip': 'For quarterly (e.g. GDP) and monthly (e.g. CPI/PCE) data, there is a natural publication lag of 15 to 80 days. The system has synced the latest official release, no action needed.',
 
   'macro.branches.liquidity.title': 'Liquidity',
   'macro.branches.liquidity.summary': 'Funding environment: {state}',

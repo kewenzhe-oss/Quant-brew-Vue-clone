@@ -285,7 +285,7 @@ export const MACRO_METRIC_CONFIG = {
  * @param {string|null} fetchedAtStr - ISO string date
  * @returns {MacroMetric}
  */
-export function formatMacroMetric (metricId, value, fetchedAtStr = null, sourceType = null) {
+export function formatMacroMetric (metricId, value, observationDateStr = null, sourceType = null, fetchedAtStr = null) {
   const normalizedMetricId = normalizeMacroMetricId(metricId)
   const displaySpec = getMacroMetricDisplaySpec(metricId)
   const config = MACRO_METRIC_CONFIG[metricId] || MACRO_METRIC_CONFIG[normalizedMetricId] || {
@@ -302,18 +302,27 @@ export function formatMacroMetric (metricId, value, fetchedAtStr = null, sourceT
   }
 
   const today = new Date()
-  let latestDataDate = null
-  let fetchedAt = null
+  let latestDataDate = observationDateStr
   let isStale = false
   const staleAfterDays = STALE_AFTER_DAYS[config.frequency] || 30
 
+  // 1. Determine staleness using fetched_at (backend refresh timestamp) if provided
   if (fetchedAtStr) {
-    fetchedAt = new Date(fetchedAtStr)
-    latestDataDate = fetchedAtStr
-  }
-
-  if (fetchedAt) {
+    const fetchedAt = new Date(fetchedAtStr)
     const diffTime = Math.abs(today - fetchedAt)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    // Fallback/cached means we degraded, so always mark as stale
+    if (sourceType === 'fallback' || sourceType === 'cached') {
+      isStale = true
+    } else {
+      // Normal primary source sync: safe sync threshold is 5 days of no sync activity
+      isStale = diffDays > 5
+    }
+  } else if (observationDateStr) {
+    // 2. Fallback to legacy observation date difference if fetched_at is not provided
+    const obsDate = new Date(observationDateStr)
+    const diffTime = Math.abs(today - obsDate)
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     isStale = diffDays > staleAfterDays
   }
@@ -380,6 +389,6 @@ export function formatMacroMetric (metricId, value, fetchedAtStr = null, sourceT
 }
 
 // Keep formatMacroValue for backwards compatibility while migrating
-export function formatMacroValue (metricId, value, lastUpdated = null, sourceType = null) {
-  return formatMacroMetric(metricId, value, lastUpdated, sourceType)
+export function formatMacroValue (metricId, value, lastUpdated = null, sourceType = null, fetchedAt = null) {
+  return formatMacroMetric(metricId, value, lastUpdated, sourceType, fetchedAt)
 }

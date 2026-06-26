@@ -901,7 +901,9 @@ export async function getDomainViewModel (domain) {
         }
 
         const fetchedDate = rawValue && typeof rawValue === 'object' ? rawValue.date : null
-        const formattedMetric = formatMacroValue(metricId, validValue, fetchedDate)
+        const srcType = rawValue && typeof rawValue === 'object' ? rawValue.source_type : null
+        const fetchedAt = rawValue && typeof rawValue === 'object' ? rawValue.fetched_at : null
+        const formattedMetric = formatMacroValue(metricId, validValue, fetchedDate, srcType, fetchedAt)
 
         return {
           id: metricId,

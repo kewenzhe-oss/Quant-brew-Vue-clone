@@ -98,12 +98,23 @@ export default {
       if (!this.isOriginalMissing) return true
       return this.derivedValue !== null
     },
+    derivedConfig () {
+      if (this.derivedDate) {
+        return formatMacroMetric(
+          this.metric.id,
+          this.derivedValue,
+          this.derivedDate,
+          this.metric.sourceType || 'primary',
+          this.metric.fetchedAt || this.metric.updatedAt
+        )
+      }
+      return null
+    },
     displayValue () {
       // Chart-derived value is always preferred (single source of truth with the chart).
       // Snapshot value acts only as a placeholder while the chart is loading.
-      if (this.derivedValue !== null) {
-        const formatted = formatMacroMetric(this.metric.id, this.derivedValue)
-        return formatted.displayValue
+      if (this.derivedConfig) {
+        return this.derivedConfig.displayValue
       }
       if (!this.isOriginalMissing) {
         return this.metric.displayValue || this.metric.primary || this.metric.formattedValue || this.metric.value
@@ -113,9 +124,8 @@ export default {
     displayMeta () {
       if (!this.hasValue) return this.$t('macro.detail.dataUnavailable')
       // If we have a chart-derived date, use it (matches chart's provenance)
-      if (this.derivedDate) {
-        const config = formatMacroMetric(this.metric.id, this.derivedValue, this.derivedDate)
-        return config.meta
+      if (this.derivedConfig) {
+        return this.derivedConfig.meta
       }
       return this.metric.meta || (this.metric.source ? `${this.metric.source}` : this.$t('macro.detail.dataUnavailable'))
     },
@@ -147,6 +157,9 @@ export default {
       return null // Primary is the normal case — no badge needed
     },
     showStaleBadge () {
+      if (this.derivedConfig) {
+        return this.derivedConfig.isStale === true && this.hasValue && !this.isOriginalMissing
+      }
       return this.metric.isStale === true && this.hasValue && !this.isOriginalMissing
     },
     localCurrentMeaning () {

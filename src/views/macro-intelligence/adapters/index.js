@@ -147,18 +147,18 @@ key_metrics: [],
 
     // 1. Raw Data Extraction & Formatting using formatMacroMetric
     const metricsMap = {
-      fear_greed: formatMacroMetric('fear_greed', sentData.fear_greed?.value, sentData.fear_greed?.date || sentData.fear_greed?.as_of || sentData.fear_greed?.asOf, sentData.fear_greed?.source_type),
-      vix: formatMacroMetric('vix', sentData.vix?.value, sentData.vix?.date || sentData.vix?.as_of || sentData.vix?.asOf, sentData.vix?.source_type),
-      dxy: formatMacroMetric('dxy', sentData.dxy?.value, sentData.dxy?.date || sentData.dxy?.as_of || sentData.dxy?.asOf, sentData.dxy?.source_type),
-      us10y: formatMacroMetric('us10y', infData.us10y_yield?.value, infData.us10y_yield?.date || infData.us10y_yield?.as_of || infData.us10y_yield?.asOf, infData.us10y_yield?.source_type),
-      rrp: formatMacroMetric('rrp', liqData.rrp_balance?.value, liqData.rrp_balance?.date || liqData.rrp_balance?.as_of || liqData.rrp_balance?.asOf, liqData.rrp_balance?.source_type),
-      nfci: formatMacroMetric('nfci', liqData.nfci?.value, liqData.nfci?.date || liqData.nfci?.as_of || liqData.nfci?.asOf, liqData.nfci?.source_type),
-      gdp: formatMacroMetric('gdp', ecoData.gdp_growth?.value, ecoData.gdp_growth?.date || ecoData.gdp_growth?.as_of || ecoData.gdp_growth?.asOf, ecoData.gdp_growth?.source_type),
-      cpi: formatMacroMetric('cpi', infData.cpi_yoy?.value, infData.cpi_yoy?.date || infData.cpi_yoy?.as_of || infData.cpi_yoy?.asOf, infData.cpi_yoy?.source_type),
+      fear_greed: formatMacroMetric('fear_greed', sentData.fear_greed?.value, sentData.fear_greed?.date || sentData.fear_greed?.as_of || sentData.fear_greed?.asOf, sentData.fear_greed?.source_type, sentData.fear_greed?.fetched_at),
+      vix: formatMacroMetric('vix', sentData.vix?.value, sentData.vix?.date || sentData.vix?.as_of || sentData.vix?.asOf, sentData.vix?.source_type, sentData.vix?.fetched_at),
+      dxy: formatMacroMetric('dxy', sentData.dxy?.value, sentData.dxy?.date || sentData.dxy?.as_of || sentData.dxy?.asOf, sentData.dxy?.source_type, sentData.dxy?.fetched_at),
+      us10y: formatMacroMetric('us10y', infData.us10y_yield?.value, infData.us10y_yield?.date || infData.us10y_yield?.as_of || infData.us10y_yield?.asOf, infData.us10y_yield?.source_type, infData.us10y_yield?.fetched_at),
+      rrp: formatMacroMetric('rrp', liqData.rrp_balance?.value, liqData.rrp_balance?.date || liqData.rrp_balance?.as_of || liqData.rrp_balance?.asOf, liqData.rrp_balance?.source_type, liqData.rrp_balance?.fetched_at),
+      nfci: formatMacroMetric('nfci', liqData.nfci?.value, liqData.nfci?.date || liqData.nfci?.as_of || liqData.nfci?.asOf, liqData.nfci?.source_type, liqData.nfci?.fetched_at),
+      gdp: formatMacroMetric('gdp', ecoData.gdp_growth?.value, ecoData.gdp_growth?.date || ecoData.gdp_growth?.as_of || ecoData.gdp_growth?.asOf, ecoData.gdp_growth?.source_type, ecoData.gdp_growth?.fetched_at),
+      cpi: formatMacroMetric('cpi', infData.cpi_yoy?.value, infData.cpi_yoy?.date || infData.cpi_yoy?.as_of || infData.cpi_yoy?.asOf, infData.cpi_yoy?.source_type, infData.cpi_yoy?.fetched_at),
       // Inflation branch — restored from backend inflation_rates section
-      pce_yoy: formatMacroMetric('pce_yoy', infData.pce_yoy?.value, infData.pce_yoy?.date || infData.pce_yoy?.as_of || infData.pce_yoy?.asOf, infData.pce_yoy?.source_type),
-      core_pce_yoy: formatMacroMetric('core_pce_yoy', infData.core_pce_yoy?.value, infData.core_pce_yoy?.date || infData.core_pce_yoy?.as_of || infData.core_pce_yoy?.asOf, infData.core_pce_yoy?.source_type),
-      breakeven_10y: formatMacroMetric('breakeven_10y', infData.breakeven_10y?.value, infData.breakeven_10y?.date || infData.breakeven_10y?.as_of || infData.breakeven_10y?.asOf, infData.breakeven_10y?.source_type)
+      pce_yoy: formatMacroMetric('pce_yoy', infData.pce_yoy?.value, infData.pce_yoy?.date || infData.pce_yoy?.as_of || infData.pce_yoy?.asOf, infData.pce_yoy?.source_type, infData.pce_yoy?.fetched_at),
+      core_pce_yoy: formatMacroMetric('core_pce_yoy', infData.core_pce_yoy?.value, infData.core_pce_yoy?.date || infData.core_pce_yoy?.as_of || infData.core_pce_yoy?.asOf, infData.core_pce_yoy?.source_type, infData.core_pce_yoy?.fetched_at),
+      breakeven_10y: formatMacroMetric('breakeven_10y', infData.breakeven_10y?.value, infData.breakeven_10y?.date || infData.breakeven_10y?.as_of || infData.breakeven_10y?.asOf, infData.breakeven_10y?.source_type, infData.breakeven_10y?.fetched_at)
     }
     briefing.all_metrics = metricsMap
     const metricText = (id) => metricsMap[id]?.formattedValue || '—'
