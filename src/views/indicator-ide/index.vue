@@ -316,7 +316,7 @@
               <transition name="collapse-fade">
                 <div v-show="guideExpanded" id="ide-guide-content" class="ide-guide-card-content">
                   <p class="ide-guide-summary">{{ $t('indicatorIde.devGuideTooltip') }}</p>
-                  
+
                   <div class="ide-guide-quick-tips">
                     <div class="quick-tip-item">
                       <div class="tip-header">
@@ -325,7 +325,7 @@
                       </div>
                       <div class="tip-desc">{{ $t('indicatorIde.tipParamDesc') }}</div>
                     </div>
-                    
+
                     <div class="quick-tip-item">
                       <div class="tip-header">
                         <span class="tip-tag strategy-tag"># @strategy</span>
@@ -4588,7 +4588,7 @@ export default {
     background: #ffffff;
     border-color: #3b82f6;
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.08), 0 4px 6px -2px rgba(59, 130, 246, 0.04);
-    
+
     .ide-guide-chevron {
       transform: rotate(90deg);
       color: #2563eb;
@@ -4627,7 +4627,7 @@ export default {
   margin-right: 12px;
   flex-shrink: 0;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   .ide-guide-card-header:hover & {
     background: #e2e8f0;
   }
@@ -4727,7 +4727,7 @@ export default {
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
-  
+
   &.param-tag {
     color: #2563eb;
     background: #eff6ff;
@@ -6162,7 +6162,7 @@ export default {
       background: #181818;
       border-color: #177ddc;
       box-shadow: 0 10px 15px -3px rgba(23, 125, 220, 0.15);
-      
+
       .ide-guide-chevron {
         color: #58a6ff;
       }
@@ -6178,7 +6178,7 @@ export default {
 
   .ide-guide-chevron-circle {
     background: #2d2d2d;
-    
+
     .ide-guide-card-header:hover & {
       background: #3d3d3d;
     }

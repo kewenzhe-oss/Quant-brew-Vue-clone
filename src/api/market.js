@@ -260,7 +260,7 @@ export function getHotSymbols (parameter) {
 
 /**
  * 批量获取加密货币价格
- * @param {string[]} symbols 
+ * @param {string[]} symbols
  * @returns {Promise<any[]>}
  */
 export function fetchCryptoBatch (symbols) {
@@ -271,7 +271,7 @@ export function fetchCryptoBatch (symbols) {
 
 /**
  * 批量获取股票价格
- * @param {string[]} symbols 
+ * @param {string[]} symbols
  * @returns {Promise<any[]>}
  */
 export function fetchStockBatch (symbols) {
@@ -292,5 +292,3 @@ export function callIdaWatchlistDecision (parameter) {
     data: parameter
   }).then(res => (res && res.code === 1) ? res.data : null)
 }
-
-

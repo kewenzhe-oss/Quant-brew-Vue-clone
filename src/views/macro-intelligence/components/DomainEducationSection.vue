@@ -11,7 +11,7 @@
             <div class="edu-chevron-circle" :class="{ 'active': activeKeys.includes('1') }">
               <a-icon type="right" class="edu-chevron-icon" />
             </div>
-            
+
             <!-- Zone 2: Center (Book Icon, Title, Subtitle) -->
             <div class="edu-header-center">
               <span class="education-title">
@@ -20,7 +20,7 @@
               </span>
               <span class="education-subtitle">{{ $t('macro.education.guideSubTitle') }}</span>
             </div>
-            
+
             <!-- Zone 3: Right (Compact Badge) -->
             <span class="education-badge" :class="{ 'active': activeKeys.includes('1') }">
               {{ activeKeys.includes('1') ? $t('macro.education.guideCollapse') : $t('macro.education.guideExpand') }}
@@ -185,7 +185,7 @@ export default {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
   overflow: hidden;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     border-color: #94a3b8;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
@@ -201,11 +201,11 @@ export default {
   background: #ffffff;
   border-bottom: 1.5px solid #cbd5e1;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     background: #f8fafc;
   }
-  
+
   .ant-collapse-arrow {
     display: none !important;
   }
@@ -229,11 +229,11 @@ export default {
   margin-right: 16px;
   flex-shrink: 0;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     background: #e2e8f0;
   }
-  
+
   &.active {
     background: #e6f7ff;
     .edu-chevron-icon {
@@ -331,12 +331,12 @@ export default {
     background: #1f1f1f;
     border-color: #303030;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    
+
     &:hover {
       border-color: #434343;
     }
   }
-  
+
   :deep(.ant-collapse-header) {
     background: #1f1f1f !important;
     border-bottom-color: #303030 !important;
@@ -344,7 +344,7 @@ export default {
       background: #252526 !important;
     }
   }
-  
+
   .edu-chevron-circle {
     background: #2d2d2d;
     &.active {
@@ -354,60 +354,60 @@ export default {
       }
     }
   }
-  
+
   .edu-chevron-icon {
     color: rgba(255, 255, 255, 0.45);
   }
-  
+
   .education-title {
     color: rgba(255, 255, 255, 0.85);
   }
-  
+
   .education-book-icon {
     color: #177ddc;
   }
-  
+
   .education-subtitle {
     color: rgba(255, 255, 255, 0.45);
   }
-  
+
   .education-badge {
     color: rgba(255, 255, 255, 0.65);
     background: #2d2d2d;
     border-color: #434343;
-    
+
     &.active {
       color: #177ddc;
       background: rgba(24, 144, 255, 0.15);
       border-color: rgba(24, 144, 255, 0.3);
     }
   }
-  
+
   .education-legend-notice {
     background: #141414;
     border-color: #303030;
     color: rgba(255, 255, 255, 0.45);
   }
-  
+
   .education-content {
     background: #141414;
   }
-  
+
   .section-desc {
     background: #1f1f1f;
     color: rgba(255, 255, 255, 0.65);
     border-left-color: #177ddc;
   }
-  
+
   .edu-group .group-title {
     color: rgba(255, 255, 255, 0.85);
     border-bottom-color: #303030;
   }
-  
+
   .edu-group .group-desc {
     color: rgba(255, 255, 255, 0.65);
   }
-  
+
   .indicator-card {
     background: #1f1f1f;
     border-color: #303030;
@@ -416,15 +416,15 @@ export default {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
   }
-  
+
   .ind-header .ind-name {
     color: rgba(255, 255, 255, 0.88);
   }
-  
+
   .ind-desc {
     color: rgba(255, 255, 255, 0.65);
   }
-  
+
   .ind-why {
     background: rgba(24, 144, 255, 0.1);
     color: rgba(255, 255, 255, 0.75);
@@ -432,7 +432,7 @@ export default {
       color: #177ddc;
     }
   }
-  
+
   .ind-thresholds {
     .threshold-label {
       color: rgba(255, 255, 255, 0.85);

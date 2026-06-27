@@ -842,7 +842,7 @@ body.dark, body.realdark {
 
     /deep/ .ant-card-head {
       border-bottom: 1px solid #2a2a2a !important;
-      
+
       .ant-card-head-title {
         color: rgba(255, 255, 255, 0.95) !important;
       }
@@ -855,7 +855,7 @@ body.dark, body.realdark {
 
   .action-list li {
     color: rgba(255, 255, 255, 0.75);
-    
+
     .list-icon {
       color: #10b981;
     }
@@ -890,7 +890,7 @@ body.dark, body.realdark {
     &:hover, &:focus {
       border-color: #1890ff !important;
     }
-    
+
     &::placeholder {
       color: rgba(255, 255, 255, 0.3) !important;
     }
@@ -903,10 +903,10 @@ body.dark, body.realdark {
   /deep/ .ant-input-number-handler-wrap {
     background: #222222 !important;
     border-left: 1px solid #2a2a2a !important;
-    
+
     .ant-input-number-handler {
       border-top: 1px solid #2a2a2a !important;
-      
+
       .ant-input-number-handler-up-inner,
       .ant-input-number-handler-down-inner {
         color: rgba(255, 255, 255, 0.45) !important;
@@ -951,15 +951,15 @@ body.dark, body.realdark {
   .budget-card {
     background: #141414 !important;
     border: 1px solid #2a2a2a !important;
-    
+
     &.base-pool {
       border-top: 3px solid #10b981 !important;
     }
-    
+
     &.reserve-pool {
       border-top: 3px solid #3b82f6 !important;
     }
-    
+
     &.cash-pool {
       border-top: 3px solid #ef4444 !important;
     }

@@ -302,7 +302,7 @@ export function formatMacroMetric (metricId, value, observationDateStr = null, s
   }
 
   const today = new Date()
-  let latestDataDate = observationDateStr
+  const latestDataDate = observationDateStr
   let isStale = false
   const staleAfterDays = STALE_AFTER_DAYS[config.frequency] || 30
 

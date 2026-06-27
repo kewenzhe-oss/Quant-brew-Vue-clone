@@ -29,7 +29,7 @@
               </span>
             </div>
           </div>
- 
+
           <div class="summary-card" v-if="momentumSnapshot">
             <div :class="['card-icon-wrapper', momentumSnapshot.colorClass]">
               <a-icon :type="momentumSnapshot.icon" />
@@ -46,7 +46,7 @@
               </span>
             </div>
           </div>
- 
+
           <div class="summary-card" v-if="flowSnapshot">
             <div :class="['card-icon-wrapper', flowSnapshot.colorClass]">
               <a-icon :type="flowSnapshot.icon" />
@@ -63,7 +63,7 @@
               </span>
             </div>
           </div>
- 
+
           <div class="summary-card" v-if="volatilitySnapshot">
             <div :class="['card-icon-wrapper', volatilitySnapshot.colorClass]">
               <a-icon :type="volatilitySnapshot.icon" />
@@ -102,10 +102,10 @@
               <template slot="value" slot-scope="text, record">
                 <div class="value-cell-container">
                   <span class="ind-value">{{ formatValue(record.name, text) }}</span>
-                  <indicator-range-bar 
-                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)" 
-                    :name="record.name" 
-                    :value="parseFloat(text)" 
+                  <indicator-range-bar
+                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)"
+                    :name="record.name"
+                    :value="parseFloat(text)"
                   />
                 </div>
               </template>
@@ -136,10 +136,10 @@
               <template slot="value" slot-scope="text, record">
                 <div class="value-cell-container">
                   <span class="ind-value">{{ formatValue(record.name, text) }}</span>
-                  <indicator-range-bar 
-                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)" 
-                    :name="record.name" 
-                    :value="parseFloat(text)" 
+                  <indicator-range-bar
+                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)"
+                    :name="record.name"
+                    :value="parseFloat(text)"
                   />
                 </div>
               </template>
@@ -170,10 +170,10 @@
               <template slot="value" slot-scope="text, record">
                 <div class="value-cell-container">
                   <span class="ind-value">{{ formatValue(record.name, text) }}</span>
-                  <indicator-range-bar 
-                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)" 
-                    :name="record.name" 
-                    :value="parseFloat(text)" 
+                  <indicator-range-bar
+                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)"
+                    :name="record.name"
+                    :value="parseFloat(text)"
                   />
                 </div>
               </template>
@@ -204,10 +204,10 @@
               <template slot="value" slot-scope="text, record">
                 <div class="value-cell-container">
                   <span class="ind-value">{{ formatValue(record.name, text) }}</span>
-                  <indicator-range-bar 
-                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)" 
-                    :name="record.name" 
-                    :value="parseFloat(text)" 
+                  <indicator-range-bar
+                    v-if="['RSI', 'Stoch %K', 'Stoch %D', 'Williams %R', 'BB %B'].includes(record.name)"
+                    :name="record.name"
+                    :value="parseFloat(text)"
                   />
                 </div>
               </template>
@@ -539,26 +539,26 @@ const IndicatorRangeBar = {
       let max = 100
       let t1 = 30
       let t2 = 70
-      let val = this.value
-      
+      const val = this.value
+
       if (this.name === 'RSI') {
-        min = 0; max = 100; t1 = 30; t2 = 70;
+        min = 0; max = 100; t1 = 30; t2 = 70
       } else if (this.name.includes('Stoch')) {
-        min = 0; max = 100; t1 = 20; t2 = 80;
+        min = 0; max = 100; t1 = 20; t2 = 80
       } else if (this.name === 'Williams %R') {
-        min = -100; max = 0; t1 = -80; t2 = -20;
+        min = -100; max = 0; t1 = -80; t2 = -20
       } else if (this.name === 'BB %B') {
-        min = 0; max = 1; t1 = 0.2; t2 = 0.8;
+        min = 0; max = 1; t1 = 0.2; t2 = 0.8
       } else {
         return null
       }
-      
+
       let pct = ((val - min) / (max - min)) * 100
       pct = Math.max(0, Math.min(100, pct))
-      
+
       const t1Pct = ((t1 - min) / (max - min)) * 100
       const t2Pct = ((t2 - min) / (max - min)) * 100
-      
+
       let state = 'neutral'
       if (this.name === 'Williams %R') {
         if (val < t1) state = 'oversold'
@@ -570,7 +570,7 @@ const IndicatorRangeBar = {
         if (val < t1) state = 'oversold'
         else if (val > t2) state = 'overbought'
       }
-      
+
       return { pct, t1Pct, t2Pct, state }
     }
   },
@@ -625,14 +625,14 @@ export default {
       const adx = this.getIndicatorValue('trend', 'ADX')
       const macd = this.getIndicatorValue('trend', 'MACD')
       if (adx === null) return null
-      
+
       let statusEn = ''
       let statusZh = ''
       let descEn = ''
       let descZh = ''
-      let icon = 'line-chart'
+      const icon = 'line-chart'
       let colorClass = 'cyan'
-      
+
       if (adx > 25) {
         if (macd > 0) {
           statusEn = 'Strong Trend (Supportive)'
@@ -657,20 +657,20 @@ export default {
         descEn = 'Trend is in early transition with balanced momentum.'
         descZh = '趋势处于酝酿过渡期，多空动能均衡。'
       }
-      
+
       return { labelEn: 'Trend State', labelZh: '趋势状态', valueEn: statusEn, valueZh: statusZh, descEn, descZh, icon, colorClass }
     },
     momentumSnapshot () {
       const rsi = this.getIndicatorValue('momentum', 'RSI')
       if (rsi === null) return null
-      
+
       let statusEn = ''
       let statusZh = ''
       let descEn = ''
       let descZh = ''
-      let icon = 'dashboard'
+      const icon = 'dashboard'
       let colorClass = 'amber'
-      
+
       if (rsi > 70) {
         statusEn = 'Overextended (Overbought)'
         statusZh = '买方动能充沛 (接近超买区)'
@@ -690,19 +690,19 @@ export default {
         descZh = 'RSI稳定在常态区间，无极端极化读数。'
         colorClass = 'neutral'
       }
-      
+
       return { labelEn: 'Momentum Temp', labelZh: '动能温度', valueEn: statusEn, valueZh: statusZh, descEn, descZh, icon, colorClass }
     },
     flowSnapshot () {
       const cmf = this.getIndicatorValue('volume', 'CMF')
-      
+
       let statusEn = ''
       let statusZh = ''
       let descEn = ''
       let descZh = ''
-      let icon = 'transaction'
+      const icon = 'transaction'
       let colorClass = 'green'
-      
+
       if (cmf !== null) {
         if (cmf > 0.1) {
           statusEn = 'Supportive Capital Inflow'
@@ -729,20 +729,20 @@ export default {
         descZh = 'CMF在零轴附近震荡，资金流向均衡。'
         colorClass = 'neutral'
       }
-      
+
       return { labelEn: 'Flow & Accumulation', labelZh: '资金流动', valueEn: statusEn, valueZh: statusZh, descEn, descZh, icon, colorClass }
     },
     volatilitySnapshot () {
       const width = this.getIndicatorValue('volatility', 'BB Width')
       const percentB = this.getIndicatorValue('volatility', 'BB %B')
-      
+
       let statusEn = ''
       let statusZh = ''
       let descEn = ''
       let descZh = ''
-      let icon = 'radar-chart'
+      const icon = 'radar-chart'
       let colorClass = 'purple'
-      
+
       if (width !== null && percentB !== null) {
         if (width < 10) {
           statusEn = 'Range Compressed (Squeeze)'
@@ -785,7 +785,7 @@ export default {
         descZh = '布林带宽度适中，价格在通道内部平稳运行。'
         colorClass = 'neutral'
       }
-      
+
       return { labelEn: 'Volatility State', labelZh: '波动状态', valueEn: statusEn, valueZh: statusZh, descEn, descZh, icon, colorClass }
     }
   },
@@ -806,16 +806,16 @@ export default {
     formatValue (name, value) {
       if (value === null || value === undefined || isNaN(value)) return '—'
       const val = parseFloat(value)
-      
+
       const oneDecimal = ['RSI', 'Stoch %K', 'Stoch %D', 'ADX', 'CCI', 'Williams %R', 'MFI']
       const twoDecimals = ['BB Upper', 'BB Mid', 'BB Lower', 'ATR', 'CMF', 'BB %B', 'BB Width', 'MACD']
-      
+
       if (oneDecimal.includes(name)) {
         return val.toFixed(1)
       } else if (twoDecimals.includes(name)) {
         return val.toFixed(2)
       }
-      
+
       return val.toFixed(2)
     },
     getInterpretationKey (name, value) {
@@ -1150,7 +1150,7 @@ body.dark, body.realdark {
   .section-card {
     background: #1c1c1c !important;
     border-color: #2a2a2a !important;
-    
+
     .section-title {
       border-bottom-color: #2a2a2a !important;
     }
@@ -1288,7 +1288,7 @@ body.dark, body.realdark {
     justify-content: center;
     font-size: 18px;
     flex-shrink: 0;
-    
+
     &.cyan {
       background: rgba(19, 194, 194, 0.08);
       color: #13c2c2;
@@ -1330,14 +1330,14 @@ body.dark, body.realdark {
     display: flex;
     align-items: center;
     gap: 6px;
-    
+
     &.is-zh {
       text-transform: none;
       letter-spacing: normal;
       font-size: 11px;
       font-weight: 600;
     }
-    
+
     .label-sep {
       color: #bfbfbf;
     }
@@ -1347,13 +1347,13 @@ body.dark, body.realdark {
     font-size: 13px;
     font-weight: 600;
     color: #1f2937;
-    
+
     .val-sep {
       color: #bfbfbf;
       margin: 0 4px;
       font-weight: normal;
     }
-    
+
     .val-zh {
       font-weight: 500;
       color: #4b5563;
@@ -1414,7 +1414,7 @@ body.dark, body.realdark {
   transform: translateX(-50%);
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   transition: left 0.3s ease;
-  
+
   &.neutral {
     background: #8c8c8c;
   }
@@ -1431,14 +1431,14 @@ body.dark, body.realdark {
   .summary-card {
     background: #1c1c1c !important;
     border-color: #2a2a2a !important;
-    
+
     &:hover {
       box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
     }
-    
+
     .card-value {
       color: rgba(255, 255, 255, 0.85) !important;
-      
+
       .val-zh {
         color: rgba(255, 255, 255, 0.65) !important;
       }
@@ -1452,11 +1452,11 @@ body.dark, body.realdark {
   .range-track {
     background: #2a2a2a !important;
   }
-  
+
   .neutral-zone {
     background: #3e3e3e !important;
   }
-  
+
   .threshold-tick {
     background: #4d4d4d !important;
   }

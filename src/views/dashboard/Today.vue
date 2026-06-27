@@ -215,6 +215,45 @@ import { normalizeCryptoItem, normalizeStockItem } from '@/utils/normalizeWatchl
 import { getPlans } from '@/api/plans'
 import request from '@/utils/request'
 
+/**
+ * Robustly matches a watchlist item to a normalized price item.
+ * Supports exact normalization (casing, slashes removed) and crypto base asset suffix/prefix fallback.
+ */
+function findMatchingPrice (item, priceList) {
+  if (!priceList || priceList.length === 0) return null
+  
+  const targetMarket = (item.market || '').toLowerCase()
+  const targetSymClean = (item.symbol || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+  
+  if (!targetSymClean) return null
+  
+  // Try exact normalized match first
+  for (const p of priceList) {
+    const pMarket = p.assetType === 'Cryptocurrency' ? 'crypto' : 'usstock'
+    if (pMarket !== targetMarket) continue
+    
+    const pSymClean = (p.symbol || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    if (pSymClean === targetSymClean) {
+      return p
+    }
+  }
+  
+  // If crypto, allow matching base asset to trading pair (e.g. ZEC matching ZECUSDT)
+  if (targetMarket === 'crypto') {
+    for (const p of priceList) {
+      const pMarket = p.assetType === 'Cryptocurrency' ? 'crypto' : 'usstock'
+      if (pMarket !== targetMarket) continue
+      
+      const pSymClean = (p.symbol || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+      if (pSymClean.startsWith(targetSymClean) || targetSymClean.startsWith(pSymClean)) {
+        return p
+      }
+    }
+  }
+  
+  return null
+}
+
 // ONLY reads: top_metrics, dimensions[*].{title, verdict, key_metrics}, data_completeness
 // NEVER reads: headline, core_judgment, risk_asset_implication, tailwinds, headwinds
 
@@ -260,7 +299,7 @@ export default {
     this.fetchMacroData()
     this.loadWatchlist()
     this.loadPlans()
-    
+
     // Poll watchlist prices every 30 seconds
     this.watchlistTimer = setInterval(() => {
       if (this.watchlist && this.watchlist.length > 0) {
@@ -405,24 +444,22 @@ export default {
           .map(i => i.symbol)
 
         const [cryptoData, stockData] = await Promise.all([
-          fetchCryptoBatch(cryptoSymbols),
-          fetchStockBatch(stockSymbols)
+          fetchCryptoBatch(cryptoSymbols).catch(err => {
+            console.warn('[Today] Crypto price fetch failed:', err)
+            return []
+          }),
+          fetchStockBatch(stockSymbols).catch(err => {
+            console.warn('[Today] Stock price fetch failed:', err)
+            return []
+          })
         ])
 
         const normalizedCrypto = (cryptoData || []).map(normalizeCryptoItem)
         const normalizedStock = (stockData || []).map(normalizeStockItem)
-
-        const priceMap = {}
-        normalizedCrypto.forEach(item => {
-          priceMap[`Crypto-${item.symbol}`] = item
-        })
-        normalizedStock.forEach(item => {
-          priceMap[`USStock-${item.symbol}`] = item
-        })
+        const allPrices = [...normalizedCrypto, ...normalizedStock]
 
         const newWatchlist = this.watchlist.map(item => {
-          const key = `${item.market}-${item.symbol}`
-          const priceData = priceMap[key]
+          const priceData = findMatchingPrice(item, allPrices)
           if (priceData) {
             return {
               ...item,

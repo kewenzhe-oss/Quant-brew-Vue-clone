@@ -1727,7 +1727,7 @@ export default {
       }
       .crypto-factor-summary__text { color: @dk-text2 !important; }
     }
-    
+
     .crypto-factor-item {
       background: @dk-surface2 !important;
       border-color: @dk-border !important;

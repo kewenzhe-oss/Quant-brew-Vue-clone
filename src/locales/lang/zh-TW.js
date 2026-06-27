@@ -4682,6 +4682,6 @@ const locale = {
 }
 
 export default {
-...components,
-...locale
+  ...components,
+  ...locale
 }

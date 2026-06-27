@@ -126,10 +126,10 @@
                 </div>
               </template>
               <template v-else-if="marketData.calendar.length > 0">
-                <div 
-                  v-for="evt in marketData.calendar.slice(0, 10)" 
-                  :key="evt.id" 
-                  class="cal-item interactive-gateway-row" 
+                <div
+                  v-for="evt in marketData.calendar.slice(0, 10)"
+                  :key="evt.id"
+                  class="cal-item interactive-gateway-row"
                   :class="evt.importance"
                   @click="handleGatewayClick"
                 >
@@ -488,7 +488,7 @@ class="analyze-button">
               <span><a-icon type="bulb" style="margin-right: 4px;" />AI SUGGESTED CANDIDATE</span>
               <a-tag color="green" size="small">{{ aiDecisionResult.decision.toUpperCase() }}</a-tag>
             </div>
-            
+
             <div class="ai-suggested-row" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--component-background, #fff); border-radius: 4px; border: 1px solid var(--border-color-base, #f0f0f0); cursor: pointer; transition: all 0.2s;" @click="handleSelectFromAi(aiDecisionResult)">
               <div style="display: flex; flex-direction: column;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -609,7 +609,7 @@ class="analyze-button">
           <h4 class="section-title" style="font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #8c8c8c;">
             {{ ($i18n && $i18n.locale === 'zh-CN') ? '敞口登记概览' : 'Exposure Overview' }}
           </h4>
-          
+
           <!-- Notice alert if no active exposure is open -->
           <div v-if="!editingPosition.id" style="padding: 12px; background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 6px; color: #0050b3; font-size: 12px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px;">
             <a-icon type="info-circle" style="margin-top: 3px; color: #1890ff;" />
@@ -706,7 +706,7 @@ class="analyze-button">
                     <a-radio-button value="short">{{ ($i18n && $i18n.locale === 'zh-CN') ? '空头 / 卖出' : 'Short / Sell' }}</a-radio-button>
                   </a-radio-group>
                 </a-form-item>
-                
+
                 <a-row :gutter="12">
                   <a-col :span="12">
                     <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '登记数量' : 'Quantity'" style="margin-bottom: 12px;">
@@ -719,7 +719,7 @@ class="analyze-button">
                     </a-form-item>
                   </a-col>
                 </a-row>
-                
+
                 <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '投资备注 / 逻辑 (Thesis)' : 'Research Thesis / Notes'" style="margin-bottom: 12px;">
                   <a-textarea
                     v-model="positionForm.notes"
@@ -727,7 +727,7 @@ class="analyze-button">
                     :rows="3"
                   />
                 </a-form-item>
-                
+
                 <a-form-item :label="($i18n && $i18n.locale === 'zh-CN') ? '分组名 / 投资桶 (Bucket)' : 'Group / Investment Bucket'" style="margin-bottom: 16px;">
                   <a-input
                     v-model="positionForm.group_name"
@@ -735,7 +735,7 @@ class="analyze-button">
                     size="small"
                   />
                 </a-form-item>
-                
+
                 <a-button type="primary" block :loading="savingPosition" @click="savePosition">
                   <a-icon type="plus-circle" />
                   {{ ($i18n && $i18n.locale === 'zh-CN') ? '确认登记敞口' : 'Register Exposure' }}
@@ -764,7 +764,13 @@ class="analyze-button">
                     </a-form-item>
                   </a-col>
                 </a-row>
-                <a-button type="primary" ghost block :loading="adjustingExposure" @click="handleAdjustExposure" size="small">
+                <a-button
+type="primary"
+ghost
+block
+:loading="adjustingExposure"
+@click="handleAdjustExposure"
+size="small">
                   {{ ($i18n && $i18n.locale === 'zh-CN') ? '确认调整' : 'Submit Adjustment' }}
                 </a-button>
               </a-form>
@@ -788,7 +794,7 @@ class="analyze-button">
                     <a-icon type="check-square" />
                     {{ ($i18n && $i18n.locale === 'zh-CN') ? '确认关闭敞口' : 'Confirm Close Exposure' }}
                   </a-button>
-                  
+
                   <div class="danger-zone" style="margin-top: 20px; padding: 10px; border: 1px dashed #ff4d4f; border-radius: 4px; background: #fff1f0;">
                     <span style="font-size: 11px; color: #ff4d4f; font-weight: 600; display: block; margin-bottom: 8px;">
                       {{ ($i18n && $i18n.locale === 'zh-CN') ? '危险区域' : 'Danger Zone' }}
@@ -2542,7 +2548,7 @@ export default {
           const entryPrice = Number(pos.entry_price || 0)
           const quantity = Number(pos.quantity || 0)
           const side = pos.side || 'long'
-          
+
           const marketValue = currentPrice * quantity
           const costValue = entryPrice * quantity
           let pnl = 0
@@ -2552,7 +2558,7 @@ export default {
             pnl = (entryPrice - currentPrice) * quantity
           }
           const pnlPercent = costValue > 0 ? Number((pnl / costValue * 100).toFixed(2)) : 0
-          
+
           const updated = {
             ...pos,
             current_price: currentPrice,
@@ -4696,7 +4702,7 @@ export default {
   align-items: center;
   font-weight: 600;
   color: #0f172a;
-  
+
   .symbol-tag {
     font-weight: 700;
   }

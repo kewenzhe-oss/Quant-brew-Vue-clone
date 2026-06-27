@@ -344,7 +344,7 @@ export default {
   .quote-actions {
     margin-left: 0 !important;
     width: 100% !important;
-    
+
     .draft-plan-btn {
       width: 100% !important;
       justify-content: center !important;
@@ -389,7 +389,7 @@ body.dark, body.realdark {
     background: #141414 !important;
     border-top-color: #2a2a2a !important;
     color: rgba(255, 255, 255, 0.45) !important;
-    
+
     .trust-item {
       .trust-val {
         color: rgba(255, 255, 255, 0.65) !important;

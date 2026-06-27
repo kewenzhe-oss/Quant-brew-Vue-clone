@@ -15,7 +15,7 @@
  * @param {any} raw
  * @returns {WatchlistDisplayItem}
  */
-export function normalizeCryptoItem(raw) {
+export function normalizeCryptoItem (raw) {
   return {
     symbol: raw.symbol ?? raw.trading_pair ?? '',
     displayName: raw.displayName ?? raw.name ?? raw.baseAsset ?? '',
@@ -31,7 +31,7 @@ export function normalizeCryptoItem(raw) {
     ),
     sparklineData: raw.sparklineData ?? raw.sparkline_in_7d?.price ?? [],
     folder: raw.folder ?? 'crypto',
-    riskTags: raw.riskTags ?? [],
+    riskTags: raw.riskTags ?? []
   }
 }
 
@@ -40,7 +40,7 @@ export function normalizeCryptoItem(raw) {
  * @param {any} raw
  * @returns {WatchlistDisplayItem}
  */
-export function normalizeStockItem(raw) {
+export function normalizeStockItem (raw) {
   return {
     symbol: raw.symbol ?? raw.ticker ?? '',
     displayName: raw.displayName ?? raw.name ?? raw.companyName ?? '',
@@ -54,6 +54,6 @@ export function normalizeStockItem(raw) {
     ),
     sparklineData: raw.sparklineData ?? [],
     folder: raw.folder ?? 'stocks',
-    riskTags: [],
+    riskTags: []
   }
 }

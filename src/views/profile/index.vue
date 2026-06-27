@@ -501,7 +501,7 @@ export default {
       const baseUrl = window.location.origin + window.location.pathname
       const ref = this.referralData.referral_code || this.profile.id
       return `${baseUrl}#/user/login?ref=${ref}`
-    },
+    }
   },
   watch: {
     activeTab (val) {

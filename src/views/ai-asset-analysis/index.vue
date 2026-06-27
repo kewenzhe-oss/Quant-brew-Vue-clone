@@ -577,12 +577,12 @@ export default {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       .workspace-header-left {
         flex: 1;
         min-width: 0;
       }
-      
+
       .workspace-header-right {
         margin-left: 16px;
         flex-shrink: 0;
@@ -599,7 +599,7 @@ export default {
           }
         }
       }
-      
+
       .workspace-title {
         font-size: 15px;
         font-weight: 700;
@@ -608,13 +608,13 @@ export default {
         display: flex;
         align-items: center;
         gap: 8px;
-        
+
         .workspace-icon {
           color: #6366f1;
           font-size: 16px;
         }
       }
-      
+
       .workspace-subtitle {
         margin: 4px 0 0 0;
         font-size: 11px;
@@ -712,14 +712,14 @@ export default {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        
+
         .workspace-title {
           color: rgba(255, 255, 255, 0.85);
           .workspace-icon {
             color: #a78bfa;
           }
         }
-        
+
         .workspace-subtitle {
           color: rgba(255, 255, 255, 0.45);
         }

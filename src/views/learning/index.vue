@@ -30,13 +30,63 @@
       <a-icon type="export" class="core-external" />
     </a>
 
+    <!-- Section 1.5: Sandbox & Decision Tools -->
+    <div class="section-heading">
+      <h2>{{ $t('learning.sandboxTitle') }}</h2>
+      <p>{{ $t('learning.sandboxSubtitle') }}</p>
+    </div>
+
+    <div class="ecosystem-grid">
+      <div class="ecosystem-card sandbox-trigger-card" @click="openAssetDrawer">
+        <div class="card-top">
+          <div class="platform-icon">
+            <a-icon type="line-chart" />
+          </div>
+          <span class="sandbox-action-btn">{{ $t('learning.sandbox.openTool') }}</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">{{ $t('learning.sandbox.asset.title') }}</h2>
+          <p class="card-subtitle">{{ $t('learning.sandbox.asset.subtitle') }}</p>
+        </div>
+        <div class="card-meta">{{ $t('learning.sandbox.asset.badge') }}</div>
+      </div>
+
+      <div class="ecosystem-card sandbox-trigger-card" @click="openDebtDrawer">
+        <div class="card-top">
+          <div class="platform-icon">
+            <a-icon type="calculator" />
+          </div>
+          <span class="sandbox-action-btn">{{ $t('learning.sandbox.openTool') }}</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">{{ $t('learning.sandbox.debt.title') }}</h2>
+          <p class="card-subtitle">{{ $t('learning.sandbox.debt.subtitle') }}</p>
+        </div>
+        <div class="card-meta">{{ $t('learning.sandbox.debt.badge') }}</div>
+      </div>
+
+      <div class="ecosystem-card sandbox-trigger-card" @click="openRealEstateDrawer">
+        <div class="card-top">
+          <div class="platform-icon">
+            <a-icon type="home" />
+          </div>
+          <span class="sandbox-action-btn">{{ $t('learning.sandbox.openTool') }}</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">{{ $t('learning.sandbox.realestate.title') }}</h2>
+          <p class="card-subtitle">{{ $t('learning.sandbox.realestate.subtitle') }}</p>
+        </div>
+        <div class="card-meta">{{ $t('learning.sandbox.realestate.badge') }}</div>
+      </div>
+    </div>
+
     <!-- Section 2: Connected Workspaces -->
     <div class="section-heading">
       <h2>{{ $t('learning.ecosystemTitle') }}</h2>
       <p>{{ $t('learning.ecosystemSubtitle') }}</p>
     </div>
 
-    <div class="ecosystem-grid">
+    <div class="workspaces-grid">
       <a
         v-for="workspace in workspaces"
         :key="workspace.title"
@@ -90,12 +140,42 @@
       </a>
     </div>
 
+    <!-- Drawer Components -->
+    <asset-growth-drawer
+      :visible="assetDrawerVisible"
+      @close="closeAssetDrawer"
+    />
+    <debt-amortization-drawer
+      :visible="debtDrawerVisible"
+      @close="closeDebtDrawer"
+    />
+    <real-estate-drawer
+      :visible="realEstateDrawerVisible"
+      @close="closeRealEstateDrawer"
+    />
+
   </div>
 </template>
 
 <script>
+import AssetGrowthDrawer from './components/AssetGrowthDrawer'
+import DebtAmortizationDrawer from './components/DebtAmortizationDrawer'
+import RealEstateDrawer from './components/RealEstateDrawer'
+
 export default {
   name: 'Learning',
+  components: {
+    AssetGrowthDrawer,
+    DebtAmortizationDrawer,
+    RealEstateDrawer
+  },
+  data () {
+    return {
+      assetDrawerVisible: false,
+      debtDrawerVisible: false,
+      realEstateDrawerVisible: false
+    }
+  },
   computed: {
     corePlatform () {
       return {
@@ -119,13 +199,6 @@ export default {
           subtitle: this.$t('learning.platforms.aiskills.subtitle'),
           badge: this.$t('learning.externalBadge'),
           url: 'https://205055.xyz/'
-        },
-        {
-          icon: 'book',
-          title: 'ReadSelah',
-          subtitle: this.$t('learning.platforms.readselah.subtitle'),
-          badge: this.$t('learning.readingBadge'),
-          url: 'https://www.readselah.org/'
         }
       ]
     },
@@ -143,6 +216,24 @@ export default {
     }
   },
   methods: {
+    openAssetDrawer () {
+      this.assetDrawerVisible = true
+    },
+    closeAssetDrawer () {
+      this.assetDrawerVisible = false
+    },
+    openDebtDrawer () {
+      this.debtDrawerVisible = true
+    },
+    closeDebtDrawer () {
+      this.debtDrawerVisible = false
+    },
+    openRealEstateDrawer () {
+      this.realEstateDrawerVisible = true
+    },
+    closeRealEstateDrawer () {
+      this.realEstateDrawerVisible = false
+    },
     async handleLibraryClick (event, item) {
       if (item.title === 'postsoma-2050 library') {
         event.preventDefault()
@@ -356,6 +447,12 @@ export default {
   gap: 16px;
 }
 
+.workspaces-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 /* ── Library Grid (1 card, narrower) ─────────── */
 .library-grid {
   display: grid;
@@ -484,6 +581,22 @@ export default {
   color: var(--color-text-faint);
 }
 
+.sandbox-trigger-card {
+  cursor: pointer;
+}
+
+.sandbox-action-btn {
+  font-size: 11.5px;
+  color: var(--color-primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: opacity 0.18s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
 /* ── Responsive ──────────────────────────────── */
 @media (max-width: 900px) {
   .ecosystem-grid {
@@ -497,6 +610,7 @@ export default {
   }
 
   .ecosystem-grid,
+  .workspaces-grid,
   .library-grid {
     grid-template-columns: 1fr;
     gap: 12px;

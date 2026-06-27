@@ -8,13 +8,19 @@
   --color-bg: #f6f5f2;
   --color-surface: #ffffff;
   --color-surface-2: #fafaf9;
+  --color-surface-3: #f5f4f0;
   --color-surface-offset: #f0f0ee;
   --color-border: #e6e2dc;
   --color-divider: #ece9e4;
   --color-text: #1f2933;
+  --color-text-secondary: #4a5568;
   --color-text-muted: #6b7280;
   --color-text-faint: #9ca3af;
   --color-primary: #1d6f4f;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-danger: #ef4444;
 }
 
 .basic-layout-wrapper.dark,
@@ -24,13 +30,50 @@ body.realdark {
   --color-bg: #141414;
   --color-surface: #1c1c1c;
   --color-surface-2: #252525;
+  --color-surface-3: #2d2d2d;
   --color-surface-offset: #333333;
   --color-border: #303030;
   --color-divider: #3a3a3a;
-  --color-text: rgba(255, 255, 255, 0.85);
-  --color-text-muted: rgba(255, 255, 255, 0.55);
-  --color-text-faint: rgba(255, 255, 255, 0.35);
+  --color-text: #f3f4f6;
+  --color-text-secondary: #d1d5db;
+  --color-text-muted: #d1d5db;
+  --color-text-faint: #9ca3af;
   --color-primary: #7bc59a;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-danger: #f87171;
+
+  // Dark overrides for popover elements mounted directly on body
+  .ant-select-dropdown {
+    background-color: var(--color-surface-2) !important;
+    border: 1px solid var(--color-border) !important;
+    
+    .ant-select-dropdown-menu-item {
+      color: var(--color-text) !important;
+      
+      &:hover, &-active {
+        background-color: var(--color-surface-offset) !important;
+      }
+      
+      &-selected {
+        background-color: var(--color-surface-offset) !important;
+        color: var(--color-primary) !important;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .ant-tooltip-inner {
+    background-color: var(--color-surface-offset) !important;
+    color: var(--color-text) !important;
+  }
+  .ant-tooltip-arrow {
+    border-top-color: var(--color-surface-offset) !important;
+    border-bottom-color: var(--color-surface-offset) !important;
+    border-left-color: var(--color-surface-offset) !important;
+    border-right-color: var(--color-surface-offset) !important;
+  }
 }
 
 /* ========== 顶栏：亮黑 #111 + 顶缘高光 ========== */
@@ -1320,4 +1363,55 @@ body.realdark .ant-modal-wrap [class*='payment'] .ant-descriptions-item-content 
     color: var(--color-text) !important;
   }
 }
+
+/* ========== Body-level popups, modals & drawers in dark mode ========== */
+body.dark,
+body.realdark {
+  .ant-drawer-content {
+    background-color: var(--color-bg) !important;
+    color: var(--color-text) !important;
+  }
+  
+  .ant-drawer-header {
+    background-color: var(--color-surface) !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
+    
+    .ant-drawer-title {
+      color: var(--color-text) !important;
+    }
+  }
+  
+  .ant-drawer-close {
+    color: var(--color-text-faint) !important;
+    &:hover {
+      color: var(--color-text) !important;
+    }
+  }
+
+  .ant-modal-content {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+  }
+  .ant-modal-header {
+    background-color: var(--color-surface) !important;
+    border-bottom: 1px solid var(--color-divider) !important;
+    
+    .ant-modal-title {
+      color: var(--color-text) !important;
+    }
+  }
+  .ant-modal-close {
+    color: var(--color-text-faint) !important;
+    &:hover {
+      color: var(--color-text) !important;
+    }
+  }
+  .ant-modal-footer {
+    border-top: 1px solid var(--color-divider) !important;
+    background-color: var(--color-surface-2) !important;
+  }
+}
+
 
