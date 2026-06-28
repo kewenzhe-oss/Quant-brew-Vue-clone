@@ -498,7 +498,7 @@ export default {
           type: 'line',
           data: seriesData.simple,
           smooth: true,
-          lineStyle: { width: 1.5, color: themeColors.line2 },
+          lineStyle: { width: 1.2, type: 'dashed', color: themeColors.line2 },
           itemStyle: { color: themeColors.line2 },
           showSymbol: false
         }
@@ -510,12 +510,12 @@ export default {
           type: 'line',
           data: seriesData.compound,
           smooth: true,
-          lineStyle: { width: 2.5, color: themeColors.line1 },
+          lineStyle: { width: 3, color: themeColors.line1 },
           itemStyle: { color: themeColors.line1 },
           showSymbol: false,
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: isDark ? 'rgba(123, 197, 154, 0.15)' : 'rgba(29, 111, 79, 0.08)' },
+              { offset: 0, color: isDark ? 'rgba(123, 197, 154, 0.2)' : 'rgba(29, 111, 79, 0.12)' },
               { offset: 1, color: 'rgba(0,0,0,0)' }
             ])
           }
@@ -554,6 +554,12 @@ export default {
         },
         yAxis: {
           type: 'value',
+          min: (value) => {
+            const minVal = value.min
+            const maxVal = value.max
+            const range = maxVal - minVal
+            return Math.max(0, Math.floor((minVal - Math.max(minVal * 0.05, range * 0.05)) / 1000) * 1000)
+          },
           axisLabel: {
             color: themeColors.text,
             fontSize: 10,
@@ -612,6 +618,12 @@ export default {
         },
         yAxis: {
           type: 'value',
+          min: (value) => {
+            const minVal = value.min
+            const maxVal = value.max
+            const range = maxVal - minVal
+            return Math.max(0, Math.floor((minVal - Math.max(minVal * 0.05, range * 0.05)) / 1000) * 1000)
+          },
           axisLabel: {
             color: themeColors.text,
             fontSize: 10,
@@ -625,7 +637,7 @@ export default {
             type: 'line',
             data: this.dcaResult.principal,
             smooth: true,
-            lineStyle: { width: 1.5, color: isDark ? 'rgba(255,255,255,0.3)' : '#9ca3af' },
+            lineStyle: { width: 1.2, type: 'dashed', color: isDark ? 'rgba(255,255,255,0.3)' : '#9ca3af' },
             itemStyle: { color: isDark ? 'rgba(255,255,255,0.4)' : '#9ca3af' },
             showSymbol: false
           },
@@ -634,7 +646,7 @@ export default {
             type: 'line',
             data: this.dcaResult.wealth,
             smooth: true,
-            lineStyle: { width: 2.5, color: themeColors.primary },
+            lineStyle: { width: 3, color: themeColors.primary },
             itemStyle: { color: themeColors.primary },
             showSymbol: false,
             areaStyle: {

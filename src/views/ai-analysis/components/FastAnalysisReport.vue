@@ -305,8 +305,30 @@
         </div>
       </div>
 
+      <!-- AI Insight Degraded State -->
+      <div class="report-section" v-if="result.ai_status === 'failed'">
+        <div class="report-section-header">
+          <span class="rsh-title"><a-icon type="robot" /> {{ $t('fastAnalysis.aiAnalysis') || 'AI 智能分析' }}</span>
+        </div>
+        <div class="ai-degraded-container">
+          <div class="ai-degraded-card">
+            <div class="ai-degraded-icon-wrapper">
+              <a-icon type="warning" theme="filled" class="ai-degraded-icon" />
+            </div>
+            <div class="ai-degraded-content">
+              <div class="ai-degraded-title">{{ $t('fastAnalysis.aiDegradedMessage') }}</div>
+              <div class="ai-degraded-action">
+                <a-button type="primary" @click="$emit('retry')">
+                  <a-icon type="redo" /> {{ $t('fastAnalysis.reanalyze') }}
+                </a-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Detailed Analysis (Collapsible) -->
-      <div class="report-section" v-if="result.detailed_analysis">
+      <div class="report-section" v-if="result.detailed_analysis && result.ai_status !== 'failed'">
         <div class="report-section-header" @click="toggleSection('detailedAnalysis')">
           <span class="rsh-title"><a-icon type="file-text" /> {{ $t('fastAnalysis.detailedAnalysisTitle') || '详细分析' }}</span>
           <a-icon type="right" class="section-toggle-arrow" :class="{ open: !sectionCollapsed.detailedAnalysis }" />
@@ -342,7 +364,7 @@
       </div>
 
       <!-- Reasons & Risks (Collapsible) -->
-      <div class="report-section">
+      <div class="report-section" v-if="result.ai_status !== 'failed'">
         <div class="report-section-header" @click="toggleSection('reasonsRisks')">
           <span class="rsh-title"><a-icon type="bulb" /> {{ $t('fastAnalysis.reasonsAndRisks') || '关键理由与风险' }}</span>
           <a-icon type="right" class="section-toggle-arrow" :class="{ open: !sectionCollapsed.reasonsRisks }" />
@@ -747,15 +769,24 @@ export default {
         return isNaN(num) ? '--' : `${num.toFixed(2)}%`
       }
       const localZh = this.$i18n && this.$i18n.locale === 'zh-CN'
+      const getEmptyHint = (val, metricType = 'derivatives') => {
+        if (val === undefined || val === null || val === '') {
+          if (metricType === 'flow') {
+            return localZh ? '链上资金流数据暂不支持' : 'On-chain flow data unavailable'
+          }
+          return localZh ? '当前资产暂不支持该项衍生品数据' : 'Derivatives data unavailable for this asset'
+        }
+        return ''
+      }
 
       add('volume_24h', localZh ? '24h成交额' : '24h Volume', usd(cf.volume_24h))
       add('volume_change_24h', localZh ? '成交活跃度变化' : 'Volume Activity Change', pct(cf.volume_change_24h), Number(cf.volume_change_24h) > 0 ? 'bullish' : (Number(cf.volume_change_24h) < 0 ? 'bearish' : ''))
-      add('funding_rate', localZh ? '资金费率' : 'Funding Rate', pct(cf.funding_rate), Number(cf.funding_rate) > 0 ? 'bullish' : (Number(cf.funding_rate) < 0 ? 'bearish' : ''))
-      add('open_interest', localZh ? '未平仓量 OI' : 'Open Interest', usd(cf.open_interest))
-      add('open_interest_change_24h', localZh ? 'OI变化(24h)' : 'OI Change (24h)', pct(cf.open_interest_change_24h), Number(cf.open_interest_change_24h) > 0 ? 'bullish' : (Number(cf.open_interest_change_24h) < 0 ? 'bearish' : ''))
-      add('long_short_ratio', localZh ? '多空比' : 'Long / Short Ratio', this.formatCompactNum(cf.long_short_ratio))
-      add('exchange_netflow', localZh ? '交易所净流' : 'Exchange Netflow', usd(cf.exchange_netflow), Number(cf.exchange_netflow) < 0 ? 'bullish' : (Number(cf.exchange_netflow) > 0 ? 'bearish' : ''))
-      add('stablecoin_netflow', localZh ? '稳定币净流' : 'Stablecoin Netflow', usd(cf.stablecoin_netflow), Number(cf.stablecoin_netflow) > 0 ? 'bullish' : (Number(cf.stablecoin_netflow) < 0 ? 'bearish' : ''))
+      add('funding_rate', localZh ? '资金费率' : 'Funding Rate', pct(cf.funding_rate), Number(cf.funding_rate) > 0 ? 'bullish' : (Number(cf.funding_rate) < 0 ? 'bearish' : ''), getEmptyHint(cf.funding_rate, 'derivatives'))
+      add('open_interest', localZh ? '未平仓量 OI' : 'Open Interest', usd(cf.open_interest), '', getEmptyHint(cf.open_interest, 'derivatives'))
+      add('open_interest_change_24h', localZh ? 'OI变化(24h)' : 'OI Change (24h)', pct(cf.open_interest_change_24h), Number(cf.open_interest_change_24h) > 0 ? 'bullish' : (Number(cf.open_interest_change_24h) < 0 ? 'bearish' : ''), getEmptyHint(cf.open_interest_change_24h, 'derivatives'))
+      add('long_short_ratio', localZh ? '多空比' : 'Long / Short Ratio', this.formatCompactNum(cf.long_short_ratio), '', getEmptyHint(cf.long_short_ratio, 'derivatives'))
+      add('exchange_netflow', localZh ? '交易所净流' : 'Exchange Netflow', usd(cf.exchange_netflow), Number(cf.exchange_netflow) < 0 ? 'bullish' : (Number(cf.exchange_netflow) > 0 ? 'bearish' : ''), getEmptyHint(cf.exchange_netflow, 'flow'))
+      add('stablecoin_netflow', localZh ? '稳定币净流' : 'Stablecoin Netflow', usd(cf.stablecoin_netflow), Number(cf.stablecoin_netflow) > 0 ? 'bullish' : (Number(cf.stablecoin_netflow) < 0 ? 'bearish' : ''), getEmptyHint(cf.stablecoin_netflow, 'flow'))
       return rows
     },
     cryptoSignals () {
@@ -1549,6 +1580,68 @@ export default {
   }
 }
 
+  // ── AI Degraded Container ──
+  .ai-degraded-container {
+    padding: 16px 20px 24px;
+
+    .ai-degraded-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(250, 173, 20, 0.05);
+      border: 1px solid rgba(250, 173, 20, 0.2);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: rgba(250, 173, 20, 0.4);
+        box-shadow: 0 4px 12px rgba(250, 173, 20, 0.08);
+      }
+
+      .ai-degraded-icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(250, 173, 20, 0.15);
+        border-radius: 50%;
+        flex-shrink: 0;
+
+        .ai-degraded-icon {
+          font-size: 18px;
+          color: #faad14;
+        }
+      }
+
+      .ai-degraded-content {
+        flex: 1;
+
+        .ai-degraded-title {
+          font-size: 13px;
+          font-weight: 500;
+          color: @rpt-text;
+          line-height: 1.6;
+          margin-bottom: 12px;
+        }
+
+        .ai-degraded-action {
+          .ant-btn {
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            .anticon {
+              font-size: 13px;
+            }
+          }
+        }
+      }
+    }
+  }
+
 // ━━━━━━ Dark Theme ━━━━━━
 @dk-bg: #111113;
 @dk-surface: #19191b;
@@ -1738,6 +1831,22 @@ export default {
         &.bearish { color: #f87171 !important; }
       }
       .crypto-factor-item__hint { color: @dk-text3 !important; }
+    }
+
+    .ai-degraded-container {
+      .ai-degraded-card {
+        background: rgba(250, 173, 20, 0.03);
+        border-color: rgba(250, 173, 20, 0.15);
+
+        .ai-degraded-content .ai-degraded-title {
+          color: @dk-text;
+        }
+
+        &:hover {
+          border-color: rgba(250, 173, 20, 0.35);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+      }
     }
 
     .feedback-section {

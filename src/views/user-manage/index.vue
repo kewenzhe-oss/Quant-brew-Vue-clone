@@ -1458,7 +1458,7 @@ export default {
         const url = window.URL.createObjectURL(file)
         const link = document.createElement('a')
         link.href = url
-        link.download = `quantdinger_users_${new Date().toISOString().slice(0, 10)}.csv`
+        link.download = `quantbrew_users_${new Date().toISOString().slice(0, 10)}.csv`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)

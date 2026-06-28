@@ -445,7 +445,7 @@ export default {
 
     // 跳转到文档中心
     goToDocs () {
-      window.open('https://github.com/brokermr810/QuantDinger/blob/main/docs/STRATEGY_DEV_GUIDE.md', '_blank')
+      window.open('https://github.com/brokermr810/QuantBrew/blob/main/docs/STRATEGY_DEV_GUIDE.md', '_blank')
     },
 
     // 验证代码

@@ -337,7 +337,7 @@
 
                   <div class="ide-guide-footer">
                     <a
-                      href="https://github.com/brokermr810/QuantDinger/blob/main/docs/STRATEGY_DEV_GUIDE.md"
+                      href="https://github.com/brokermr810/QuantBrew/blob/main/docs/STRATEGY_DEV_GUIDE.md"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="ide-guide-external-btn"
@@ -525,7 +525,7 @@
                   @click="runBacktest"
                 >
                   <a-icon v-if="!running" type="play-circle" />
-                  {{ $t('indicatorIde.runHistoricalBacktest') }}
+                  <span class="btn-text">{{ $t('indicatorIde.runHistoricalBacktest') }}</span>
                 </a-button>
                 <a-icon :type="paramsPanelExpanded ? 'up' : 'down'" @click="paramsPanelExpanded = !paramsPanelExpanded" />
               </div>
@@ -4971,18 +4971,28 @@ export default {
 }
 .params-scroll--right { padding: 12px 16px 10px; min-width: 0; }
 
+.params-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
 .param-section {
   margin-bottom: 0;
-  padding: 12px 12px 12px;
+  padding: 14px 16px;
   border-bottom: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff;
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
   min-width: 0;
   overflow: hidden;
+  flex: 1 1 260px;
 }
-.param-section--full { grid-column: 1 / -1; }
+.param-section--full {
+  flex: 2 1 460px;
+}
 
 .direction-radio-group {
   display: flex !important;
@@ -5066,23 +5076,16 @@ export default {
   }
 }
 
-@media (max-width: 1500px) {
-  .params-grid {
-    grid-template-columns: minmax(0, 1fr);
+@media (max-width: 1100px) {
+  .params-card-actions .btn-text {
+    display: none;
   }
-
-  .param-section--full {
-    grid-column: auto;
-  }
-}
-
-@media (max-width: 1280px) {
   .direction-radio-group /deep/ .ant-radio-button-wrapper {
     flex-basis: calc(50% - 4px);
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 900px) {
   .direction-radio-group /deep/ .ant-radio-button-wrapper {
     flex-basis: 100%;
     min-width: 0;
@@ -5274,13 +5277,7 @@ export default {
     &:hover { color: @primary-color; background: rgba(24, 144, 255, 0.08); }
   }
 }
-.params-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  min-width: 0;
-  overflow: hidden;
-}
+
 .result-tabs {
   flex: 0 0 auto;
   min-height: auto;

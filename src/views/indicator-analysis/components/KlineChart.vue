@@ -327,7 +327,8 @@ export default {
       { name: 'parallelStraightLine', title: proxy.$t('dashboard.indicator.drawing.parallelLine'), icon: 'menu' },
       { name: 'priceLine', title: proxy.$t('dashboard.indicator.drawing.priceLine'), icon: 'dollar' },
       { name: 'priceChannelLine', title: proxy.$t('dashboard.indicator.drawing.priceChannel'), icon: 'border' },
-      { name: 'fibonacciLine', title: proxy.$t('dashboard.indicator.drawing.fibonacciLine'), icon: 'rise' }
+      { name: 'fibonacciLine', title: proxy.$t('dashboard.indicator.drawing.fibonacciLine'), icon: 'rise' },
+      { name: 'measure', title: proxy.$t('dashboard.indicator.drawing.measure'), icon: 'percentage' }
     ])
 
     // 指标按钮定义
@@ -1850,180 +1851,210 @@ registerOverlay({
     })
 
     // ========== 注册价格测量工具 Overlay (Price Range Measure) ==========
-    // 类似 TradingView 的测量工具，显示两点之间的价格变化和涨跌幅
-    registerOverlay({
+    // TradingView-style measure tool — premium two-tier card design
+    try { registerOverlay({
       name: 'priceRangeMeasure',
-      totalStep: 2, // 需要两个点：起点和终点
-      lock: false, // 允许编辑
+      totalStep: 3,
+      lock: false,
       needDefaultPointFigure: false,
       needDefaultXAxisFigure: false,
       needDefaultYAxisFigure: false,
 
-      createPointFigures: ({ coordinates, overlay, ctx }) => {
-        if (!coordinates[0] || !coordinates[1]) return []
+      onDrawEnd: () => {
+        activeDrawingTool.value = null
+        return false
+      },
 
-        const startPoint = overlay.points[0]
-        const endPoint = overlay.points[1]
+      createPointFigures: ({ coordinates, overlay }) => {
+        const pts = coordinates
+        if (!pts || pts.length === 0 || !pts[0]) return []
 
-        if (!startPoint || !endPoint) return []
+        const isDark = chartTheme.value === 'dark'
 
-        // 获取起点和终点的价格
-        const startPrice = startPoint.value
-        const endPrice = endPoint.value
-        const priceChange = endPrice - startPrice
-        const percentChange = (priceChange / startPrice) * 100
-
-        // 计算时间跨度（通过时间戳差值）
-        const startTimestamp = startPoint.timestamp
-        const endTimestamp = endPoint.timestamp
-        const timeDiff = Math.abs(endTimestamp - startTimestamp)
-
-        // 格式化时间跨度
-        let timeSpan = ''
-        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
-        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000)
-
-        if (days > 0) {
-          timeSpan = `${days}天${hours > 0 ? hours + '小时' : ''}`
-        } else if (hours > 0) {
-          timeSpan = `${hours}小时${minutes > 0 ? minutes + '分钟' : ''}`
-        } else if (minutes > 0) {
-          timeSpan = `${minutes}分钟`
-        } else {
-          timeSpan = `${seconds}秒`
-        }
-
-        // 尝试从图表实例获取数据来计算K线数量
-        let barCount = 0
-        try {
-          if (ctx && ctx.chart) {
-            const chartData = ctx.chart.getData()
-            if (chartData && Array.isArray(chartData) && chartData.length > 0) {
-              const startIndex = chartData.findIndex(item => Math.abs(item.timestamp - startTimestamp) < 1000)
-              const endIndex = chartData.findIndex(item => Math.abs(item.timestamp - endTimestamp) < 1000)
-              if (startIndex >= 0 && endIndex >= 0) {
-                barCount = Math.abs(endIndex - startIndex)
-              }
+        // ── Phase 1: only first anchor placed — show blue anchor dot ──
+        if (pts.length < 2 || !pts[1]) {
+          return [
+            {
+              type: 'circle',
+              attrs: { x: pts[0].x, y: pts[0].y, r: 6 },
+              styles: { style: 'stroke', color: 'rgba(22,119,255,0.60)', size: 1.5 },
+              ignoreEvent: true
+            },
+            {
+              type: 'circle',
+              attrs: { x: pts[0].x, y: pts[0].y, r: 3 },
+              styles: { style: 'fill', color: '#1677ff' },
+              ignoreEvent: true
             }
-          }
-        } catch (e) {
-          // 如果无法获取数据，忽略错误
+          ]
         }
 
-        // 格式化显示文本
-        const percentStr = percentChange >= 0
-          ? `+${percentChange.toFixed(2)}%`
-          : `${percentChange.toFixed(2)}%`
-        const pp = pricePrecision.value
-        const priceChangeStr = priceChange >= 0
-          ? `+${priceChange.toFixed(pp)}`
-          : `${priceChange.toFixed(pp)}`
+        // ── Phase 2+: both points present — render full card ──
+        const x1 = pts[0].x, y1 = pts[0].y
+        const x2 = pts[1].x, y2 = pts[1].y
 
-        // 构建显示文本
-        let displayText = `${percentStr}  ${priceChangeStr}`
-        if (barCount > 0) {
-          displayText += `  (${barCount}根`
-          if (timeSpan) {
-            displayText += ` / ${timeSpan}`
+        const op = overlay.points
+        const startPrice = op && op[0] ? (op[0].value ?? 0) : 0
+        const endPrice   = op && op[1] ? (op[1].value ?? 0) : 0
+
+        const priceChange   = endPrice - startPrice
+        const percentChange = startPrice !== 0 ? (priceChange / startPrice) * 100 : 0
+
+        const pp   = pricePrecision.value
+        const sign = priceChange >= 0 ? '+' : ''
+        const percentStr = `${sign}${percentChange.toFixed(2)}%`
+        const priceStr   = `${sign}${priceChange.toFixed(pp)}`
+
+        let barLabel = ''
+        try {
+          const arr = klineData.value
+          if (arr && arr.length > 0) {
+            const si = arr.findIndex(d => Math.abs(d.timestamp - op[0].timestamp) < 2000)
+            const ei = arr.findIndex(d => Math.abs(d.timestamp - op[1].timestamp) < 2000)
+            if (si >= 0 && ei >= 0) barLabel = `${Math.abs(ei - si)} bars`
           }
-          displayText += ')'
-        } else if (timeSpan) {
-          displayText += `  (${timeSpan})`
-        }
+        } catch (_) {}
 
-        // 根据涨跌设置颜色
         const isUp = priceChange >= 0
-        const lineColor = isUp ? '#0ecb81' : '#f6465d'
-        const textColor = isUp ? '#0ecb81' : '#f6465d'
-        const bgColor = isUp ? 'rgba(14, 203, 129, 0.1)' : 'rgba(246, 70, 93, 0.1)'
 
-        const x1 = coordinates[0].x
-        const y1 = coordinates[0].y
-        const x2 = coordinates[1].x
-        const y2 = coordinates[1].y
+        // ── Colour tokens ──
+        const accentHex = isUp ? '#0ecb81' : '#f6465d'
+        const lineClr   = isUp ? 'rgba(14,203,129,0.45)' : 'rgba(246,70,93,0.45)'
+        const txtMain   = accentHex
+        const txtSub    = isDark ? 'rgba(220,228,236,0.82)' : 'rgba(30,40,50,0.70)'
 
-        // 计算文本位置（在线的中点上方）
+        // ── Card: white-float (light) / dark-float (dark) semi-transparent rect ──
+        // Background comes from rect figure ONLY — text figures keep backgroundColor:'transparent'
+        const cardBg  = isDark ? 'rgba(22,24,30,0.90)' : 'rgba(255,255,255,0.90)'
+        const cardBdr = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'
+
+        // ── Compact layout (height target 36–40px) ──
+        const accentW = 3    // left direction stripe
+        const radius  = 4
+        const padL    = 10   // text left padding (after stripe)
+        const padR    = 12
+        const padT    = 6    // tight vertical padding
+        const rowGap  = 2
+        const padB    = 6
+        const fsMain  = 15   // % primary
+        const fsSub   = 11   // price · bars secondary
+
+        const subLine = barLabel ? `${priceStr}  ·  ${barLabel}` : priceStr
+
+        // Width: fit content only
+        const wMain  = percentStr.length * 9.2
+        const wSub   = subLine.length * 6.5
+        const innerW = Math.max(wMain, wSub)
+        const cardW  = accentW + padL + innerW + padR
+        const cardH  = padT + fsMain + rowGap + fsSub + padB   // ≈ 6+15+2+11+6 = 40px
+
+        // ── Smart position: above midpoint, flip below if clipped ──
         const midX = (x1 + x2) / 2
         const midY = (y1 + y2) / 2
-        const textOffsetY = -20 // 文本在线上方
+        let cardY = midY - cardH - 12
+        if (cardY < 6) cardY = midY + 12
+        let cardX = midX - cardW / 2
+        cardX = Math.max(6, cardX)
 
-        // 估算文本宽度
-        const fontSize = 12
-        const textWidth = displayText.length * 7 + 16 // 简单估算
-        const textHeight = fontSize + 8
+        const textX = cardX + accentW + padL
+        const mainY = cardY + padT + fsMain * 0.82
+        const subY  = cardY + padT + fsMain + rowGap + fsSub * 0.82
 
-        return [
-          // 1. 连接线（带箭头）
-          {
+        const figures = []
+
+        // ── 1. Muted dashed measurement line ──
+        figures.push({
+          type: 'line',
+          attrs: { coordinates: [{ x: x1, y: y1 }, { x: x2, y: y2 }] },
+          styles: { style: 'stroke', color: lineClr, size: 1, dashedValue: [5, 4] },
+          ignoreEvent: true
+        })
+
+        // ── 2. Vertical tick at each endpoint ──
+        ;[{ x: x1, y: y1 }, { x: x2, y: y2 }].forEach(p => {
+          figures.push({
             type: 'line',
-            attrs: {
-              coordinates: [
-                { x: x1, y: y1 },
-                { x: x2, y: y2 }
-              ]
-            },
-            styles: {
-              style: 'stroke',
-              color: lineColor,
-              size: 2,
-              dashedValue: [4, 4] // 虚线样式
-            },
-            ignoreEvent: false
-          },
-          // 2. 起点标记（小圆点）
-          {
+            attrs: { coordinates: [{ x: p.x, y: p.y - 6 }, { x: p.x, y: p.y + 6 }] },
+            styles: { style: 'stroke', color: lineClr, size: 1 },
+            ignoreEvent: true
+          })
+        })
+
+        // ── 3. Endpoint hollow ring + inner fill ──
+        ;[{ x: x1, y: y1 }, { x: x2, y: y2 }].forEach(p => {
+          figures.push({
             type: 'circle',
-            attrs: { x: x1, y: y1, r: 4 },
-            styles: { style: 'fill', color: lineColor },
-            ignoreEvent: false
-          },
-          // 3. 终点标记（小圆点）
-          {
+            attrs: { x: p.x, y: p.y, r: 4.5 },
+            styles: { style: 'stroke', color: accentHex, size: 1.5 },
+            ignoreEvent: true
+          })
+          figures.push({
             type: 'circle',
-            attrs: { x: x2, y: y2, r: 4 },
-            styles: { style: 'fill', color: lineColor },
-            ignoreEvent: false
+            attrs: { x: p.x, y: p.y, r: 2 },
+            styles: { style: 'fill', color: accentHex },
+            ignoreEvent: true
+          })
+        })
+
+        // ── 4. Card background rect (white-float / dark-float) ──
+        // This is the ONLY place background colour is set — text figures stay transparent
+        figures.push({
+          type: 'rect',
+          attrs: { x: cardX, y: cardY, width: cardW, height: cardH, r: radius },
+          styles: {
+            style: 'fill',
+            color: cardBg,
+            borderSize: 1,
+            borderColor: cardBdr,
+            borderStyle: 'solid'
           },
-          // 4. 文本背景框
-          {
-            type: 'rect',
-            attrs: {
-              x: midX - textWidth / 2,
-              y: midY + textOffsetY - textHeight / 2,
-              width: textWidth,
-              height: textHeight,
-              r: 4
-            },
-            styles: {
-              style: 'fill',
-              color: bgColor,
-              borderSize: 1,
-              borderColor: lineColor
-            },
-            ignoreEvent: false
+          ignoreEvent: true
+        })
+
+        // ── 5. Left accent stripe (3px direction colour, inset to card radius) ──
+        figures.push({
+          type: 'rect',
+          attrs: { x: cardX, y: cardY + radius, width: accentW, height: cardH - radius * 2, r: 0 },
+          styles: { style: 'fill', color: accentHex },
+          ignoreEvent: true
+        })
+
+        // ── 6. Primary: percentage — text figure, transparent bg (no klinecharts pill) ──
+        figures.push({
+          type: 'text',
+          attrs: { x: textX, y: mainY, text: percentStr, align: 'left', baseline: 'alphabetic' },
+          styles: {
+            color: txtMain,
+            size: fsMain,
+            weight: 'bold',
+            family: '"SF Mono","Roboto Mono","Consolas","Segoe UI",sans-serif',
+            backgroundColor: 'transparent',
+            paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0,
+            borderSize: 0
           },
-          // 5. 文本
-          {
-            type: 'text',
-            attrs: {
-              x: midX,
-              y: midY + textOffsetY,
-              text: displayText,
-              align: 'center',
-              baseline: 'middle'
-            },
-            styles: {
-              color: textColor,
-              size: fontSize,
-              weight: 'bold'
-            },
-            ignoreEvent: false
-          }
-        ]
+          ignoreEvent: true
+        })
+
+        // ── 7. Secondary: price delta · bars — transparent bg ──
+        figures.push({
+          type: 'text',
+          attrs: { x: textX, y: subY, text: subLine, align: 'left', baseline: 'alphabetic' },
+          styles: {
+            color: txtSub,
+            size: fsSub,
+            weight: 'normal',
+            family: '"SF Mono","Roboto Mono","Consolas","Segoe UI",sans-serif',
+            backgroundColor: 'transparent',
+            paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0,
+            borderSize: 0
+          },
+          ignoreEvent: true
+        })
+
+        return figures
       }
-    })
+    }) } catch (e) { /* already registered on HMR reload — safe to ignore */ }
+
 
     // --- 数据加载相关函数 ---
     // 格式化数据为 KLineChart 格式（timestamp 需要是毫秒）
@@ -3167,24 +3198,47 @@ registerOverlay({
           tooltip: {
             showRule: 'always',
             showType: 'standard',
-            labels: [
-              proxy.$t('dashboard.indicator.tooltip.time'),
-              proxy.$t('dashboard.indicator.tooltip.open'),
-              proxy.$t('dashboard.indicator.tooltip.high'),
-              proxy.$t('dashboard.indicator.tooltip.low'),
-              proxy.$t('dashboard.indicator.tooltip.close'),
-              proxy.$t('dashboard.indicator.tooltip.volume')
-            ],
-            values: (kLineData) => {
-              const d = new Date(kLineData.timestamp)
+            // Use custom callback to support per-field coloring (Chg / Chg%)
+            custom: (data) => {
+              const { prev, current: kd } = data
               const p = pricePrecision.value
+              const d = new Date(kd.timestamp)
+              const pad = n => String(n).padStart(2, '0')
+
+              // ── colour palette (mirrors bar colours) ──
+              const labelColor = isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.45)'
+              const valueColor = isDark ? 'rgba(255,255,255,0.82)' : '#262626'
+              const upColor    = isDark ? '#0ecb81' : '#13c2c2'
+              const downColor  = isDark ? '#f6465d' : '#fa541c'
+              const flatColor  = isDark ? 'rgba(255,255,255,0.35)' : '#8c8c8c'
+
+              // ── Chg / Chg% vs previous close ──
+              let chgText = '--'
+              let chgPctText = '--'
+              let chgColor = flatColor
+              if (prev != null && prev.close != null && kd.close != null) {
+                const diff = kd.close - prev.close
+                const pct  = prev.close !== 0 ? (diff / prev.close) * 100 : 0
+                const sign = diff > 0 ? '+' : ''
+                chgText    = `${sign}${diff.toFixed(p)}`
+                chgPctText = `${sign}${pct.toFixed(2)}%`
+                chgColor   = diff > 0 ? upColor : diff < 0 ? downColor : flatColor
+              }
+
+              const lbl = key => ({ text: proxy.$t(key), color: labelColor })
+              const val = (text, color) => ({ text, color: color || valueColor })
+
+              const timeStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+
               return [
-                `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}`,
-                kLineData.open.toFixed(p),
-                kLineData.high.toFixed(p),
-                kLineData.low.toFixed(p),
-                kLineData.close.toFixed(p),
-                kLineData.volume.toFixed(0)
+                { title: lbl('dashboard.indicator.tooltip.time'),   value: val(timeStr) },
+                { title: lbl('dashboard.indicator.tooltip.open'),   value: val(kd.open.toFixed(p)) },
+                { title: lbl('dashboard.indicator.tooltip.high'),   value: val(kd.high.toFixed(p)) },
+                { title: lbl('dashboard.indicator.tooltip.low'),    value: val(kd.low.toFixed(p)) },
+                { title: lbl('dashboard.indicator.tooltip.close'),  value: val(kd.close.toFixed(p)) },
+                { title: lbl('dashboard.indicator.tooltip.volume'), value: val(kd.volume.toFixed(0)) },
+                { title: lbl('dashboard.indicator.tooltip.chg'),    value: val(chgText, chgColor) },
+                { title: lbl('dashboard.indicator.tooltip.chgPct'), value: val(chgPctText, chgColor) }
               ]
             }
           },
@@ -4380,8 +4434,8 @@ registerOverlay({
     })
 
     // ── Watermark (multi-layer, tamper-resistant) ──
-    const _wmText = [81, 117, 97, 110, 116, 68, 105, 110, 103, 101, 114].map(c => String.fromCharCode(c)).join('')
-    const _wmSub = [113, 117, 97, 110, 116, 100, 105, 110, 103, 101, 114, 46, 99, 111, 109].map(c => String.fromCharCode(c)).join('')
+    const _wmText = [81, 117, 97, 110, 116, 66, 114, 101, 119].map(c => String.fromCharCode(c)).join('')
+    const _wmSub = [113, 117, 97, 110, 116, 98, 114, 101, 119, 115, 46, 119, 105, 110].map(c => String.fromCharCode(c)).join('')
 
     const _paintWmCanvas = () => {
       const cvs = wmCanvasRef.value
@@ -4411,6 +4465,14 @@ registerOverlay({
       ctx.font = '11px "Segoe UI", Helvetica, Arial, sans-serif'
       ctx.fillStyle = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.045)'
       ctx.fillText(_wmSub, 12, h - 10)
+
+      // bottom-right attribution
+      ctx.font = '11px "Segoe UI", Helvetica, Arial, sans-serif'
+      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.045)'
+      ctx.textAlign = 'right'
+      ctx.fillText('Powered by QuantBrew | © 2026 PostSoma. Visit quantbrews.win', w - 12, h - 10)
+      ctx.textAlign = 'left' // restore default
+
       // tiled repeat across chart
       ctx.font = '13px "Segoe UI", Helvetica, Arial, sans-serif'
       ctx.fillStyle = isDark ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.022)'

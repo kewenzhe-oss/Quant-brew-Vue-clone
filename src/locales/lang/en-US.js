@@ -1144,6 +1144,8 @@ const locale = {
   'dashboard.indicator.tooltip.high': 'H',
   'dashboard.indicator.tooltip.low': 'L',
   'dashboard.indicator.tooltip.volume': 'Volume',
+  'dashboard.indicator.tooltip.chg': 'Chg',
+  'dashboard.indicator.tooltip.chgPct': 'Chg%',
   'dashboard.indicator.drawing.line': 'Line',
   'dashboard.indicator.drawing.horizontalLine': 'Horizontal Line',
   'dashboard.indicator.drawing.verticalLine': 'Vertical Line',
@@ -3559,6 +3561,8 @@ const locale = {
   'fastAnalysis.analyzing': 'AI is analyzing...',
   'fastAnalysis.pleaseWait': 'Please wait, fetching real-time data and generating professional report',
   'fastAnalysis.error': 'Analysis Failed',
+  'fastAnalysis.aiDegradedMessage': 'AI insight generation timed out or failed, but you can refer to the objective quantitative data below.',
+  'fastAnalysis.reanalyze': 'Regenerate Analysis',
   'fastAnalysis.retry': 'Retry',
   'fastAnalysis.selectSymbol': 'Select a symbol to start',
   'fastAnalysis.selectHint': 'Choose from your watchlist or add a new symbol',
@@ -3591,7 +3595,7 @@ const locale = {
   'fastAnalysis.analysisTime': 'Analysis time',
   'fastAnalysis.startAnalysis': 'Analyze',
   'fastAnalysis.history': 'History',
-  'fastAnalysis.systemTitle': 'QUANTDINGER AI',
+  'fastAnalysis.systemTitle': 'QUANTBREW AI',
   'fastAnalysis.systemOnline': 'Online',
   'fastAnalysis.version': 'Fast',
   'fastAnalysis.preparing': 'Preparing...',
@@ -5625,7 +5629,7 @@ const locale = {
   'learning.realestate.arv': 'After Repair Value (ARV)',
   'learning.realestate.closingCosts': 'Closing Costs',
   'learning.realestate.repairCost': 'Estimated Repair Cost',
-  
+
   'learning.realestate.isCashPurchase': 'Cash Purchase',
   'learning.realestate.mortgage': 'Mortgage',
   'learning.realestate.downPaymentPercent': 'Down Payment (%)',
@@ -5635,7 +5639,7 @@ const locale = {
 
   'learning.realestate.grossRent': 'Gross Monthly Rent',
   'learning.realestate.otherIncome': 'Other Monthly Income',
-  
+
   'learning.realestate.taxAnnual': 'Annual Property Tax',
   'learning.realestate.insuranceMonthly': 'Monthly Insurance',
   'learning.realestate.repairsPercent': 'Repairs & Maint (%)',
@@ -5713,15 +5717,26 @@ const locale = {
   'learning.realestate.dcrRiskWarning': 'DCR Risk Warning',
   'learning.realestate.chart.accumulatedSavings': 'Accumulated Savings',
   'learning.realestate.result.infiniteRoi': 'Infinite (All Cash Out)',
-  
+
+  'learning.realestate.capitalStructure': 'Capital Outlay & Debt Commitment',
+  'learning.realestate.depreciationAnalysis': 'Depreciation Shield Outlook',
+  'learning.realestate.explain.returnOutlook': 'Return Outlook focuses on your capital allocation at entry. Total Cash Required represents the actual cash you must bring to the closing table (down payment, points, closing fees, and rehab costs), while the Monthly P&I represents your structural debt commitment.',
+  'learning.realestate.result.financedLoanAmount': 'Financed Loan Amount',
+  'learning.realestate.result.totalAcquisitionCost': 'Total Acquisition Cost',
+  'learning.realestate.returnOutlook': 'Return Outlook',
+  'learning.realestate.sectionDepreciation': 'Depreciation Shield Parameters',
+  'learning.realestate.sectionExpenses': 'Monthly Operating Expenses Detail',
+  'learning.realestate.sectionRefinance': 'BRRRR Refinance Parameters',
+  'learning.realestate.sectionRental': 'Rental Income & Operations',
+
   'learning.realestate.inheritedFrom': 'Carrying from Return Outlook:',
   'learning.realestate.advancedExpenses': 'Advanced Expenses (optional)',
   // Recovered Sandbox & Amortization Keys
   'learning.asset.tabDca': 'DCA Sandbox',
   'learning.asset.annualRate': 'Expected Annual Yield (%)',
   'learning.asset.years': 'Duration (Years)',
-  'learning.asset.simpleInterest': 'Simple Growth',
-  'learning.asset.compoundInterest': 'Compound Growth',
+  'learning.asset.simpleInterest': 'Simple',
+  'learning.asset.compoundInterest': 'Compound',
   'learning.asset.compoundFrequency': 'Compounding Cycle',
   'learning.asset.frequency.1': 'Annually',
   'learning.asset.frequency.2': 'Semi-Annually',
@@ -5843,7 +5858,7 @@ const locale = {
   'learning.realestate.diagnosis.tax.moderate': 'Moderate Tax Shield Lift',
   'learning.realestate.diagnosis.tax.moderate.desc': 'Tax depreciation provides a standard operational offset to marginal income taxes.',
   'learning.realestate.diagnosis.tax.minimal': 'Minimal Tax Shield Influence',
-  'learning.realestate.diagnosis.tax.minimal.desc': 'Depreciation benefits are minimal relative to the capital invested in this transaction.',
+  'learning.realestate.diagnosis.tax.minimal.desc': 'Depreciation benefits are minimal relative to the capital invested in this transaction.'
 
 }
 
